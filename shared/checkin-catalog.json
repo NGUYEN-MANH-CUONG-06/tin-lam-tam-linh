@@ -12,7 +12,7 @@
     { "key": "OTHER", "label": "Mông lung" }
   ],
   "contexts": [
-    { "key": "general", "label": "Chưa muốn chọn" },
+    { "key": "general", "label": "Tổng quan" },
     { "key": "study", "label": "Học tập" },
     { "key": "work", "label": "Công việc" },
     { "key": "family", "label": "Gia đình" },
