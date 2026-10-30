@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
+  Briefcase,
   Sparkles,
   Home,
   Compass,
@@ -627,165 +628,179 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
             {drawNotice}
           </p>
         )}
-        {/* =========================================================================
-            BƯỚC 1: KHỞI TÂM NGUYỆN (IMAGE 1)
-           ========================================================================= */}
+        {/* BƯỚC 1: KHỞI TÂM NGUYỆN */}
         {step === 1 && (
-          <div>
-            {/* Top Breadcrumb & Step Badge */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 text-xs text-muted">
-              <div className="flex items-center gap-2">
-                <span
-                  onClick={onBackToExperienceHome}
-                  className="hover:text-accent cursor-pointer transition-colors"
-                >
-                  Trải nghiệm
-                </span>
-                <span>/</span>
-                <span className="text-accent font-semibold">Xin xăm văn hóa</span>
-              </div>
-
-              <div className="flex items-center gap-2.5">
-                {onGoToWish && (
-                  <button
-                    onClick={onGoToWish}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-line text-xs font-medium text-accent hover:bg-surface transition-colors cursor-pointer"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Gửi gắm điều ước</span>
-                  </button>
-                )}
-                <div className="flex items-center gap-1.5 uppercase font-semibold text-xs text-muted">
-                  <span className="w-2 h-2 rounded-full bg-action inline-block"></span>
-                  <span>BƯỚC 1 / 3 • KHỞI TÂM NGUYỆN</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Heading & Subtitle */}
-            <div className="mb-6 text-left">
-              <h1 className="page-title mb-3">
-                Chọn một điều bạn muốn chiêm nghiệm
-              </h1>
-              <p className="text-sm sm:text-base text-muted leading-relaxed max-w-2xl">
-                Chọn một điều bạn muốn chiêm nghiệm. Các quẻ được gom trong một không gian chung, không phân chia theo vùng miền.
-              </p>
-            </div>
-
-            {/* Chọn chủ đề bạn đang lắng đọng */}
-            <fieldset className="min-w-0 mb-6">
-              <legend className="mb-3 font-display text-xl font-semibold text-ink">
-                Chọn điều bạn muốn chiêm nghiệm
-              </legend>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {(
-                  XIN_XAM_TOPICS satisfies TopicType[]
-                ).map((topic) => (
-                  <label
-                    key={topic}
-                    className={`flex min-h-14 cursor-pointer items-center gap-2 rounded-control border px-3 py-3 focus-within:ring-2 focus-within:ring-accent ${
-                      selectedTopic === topic
-                        ? "border-accent bg-accent-soft"
-                        : "border-line bg-surface"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="xam-topic"
-                      value={topic}
-                      checked={selectedTopic === topic}
-                      onChange={() => setSelectedTopic(topic)}
-                      className="h-5 w-5 shrink-0 accent-action"
-                    />
-
-                    <span className="text-sm font-semibold text-ink">
-                      {topic}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            {/* Selection Summary Callout Box */}
-            <Card className="p-4 sm:p-5 rounded-card bg-surface border border-line flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <div>
-                <div className="text-xs font-bold uppercase tracking-wider text-accent mb-1">
-                  ◎ TÓM TẮT LỰA CHỌN CỦA BẠN
-                </div>
-                <div className="text-lg font-bold text-ink mb-1 font-display">
-                  Bạn đã chọn:{" "}
-                  <span className="text-accent">
-                    {selectedTopic}
-                  </span>
-                </div>
-                <div className="text-xs text-muted italic">
-                  ✦ Gợi ý: Hãy giữ hơi thở nhẹ nhàng và tâm thế thả lỏng trước khi rút thẻ
-                  xăm.
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-                {onBackToExperienceHome && (
-                  <Button
-                    variant="outline"
-                    size="default"
+          <div className="min-h-[58vh] flex flex-col justify-between">
+            <div>
+              {/* Top Breadcrumb & Step Badge */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 text-xs text-muted">
+                <div className="flex items-center gap-2">
+                  <span
                     onClick={onBackToExperienceHome}
-                    className="w-full sm:w-auto text-xs border-line text-muted"
+                    className="hover:text-accent cursor-pointer transition-colors"
                   >
-                    <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-                    <span>Quay lại Trải nghiệm</span>
-                  </Button>
-                )}
+                    Trải nghiệm
+                  </span>
+                  <span>/</span>
+                  <span className="text-accent font-semibold">Xin xăm văn hóa</span>
+                </div>
 
-                <Button
-                  variant="default"
-                  size="default"
-                  disabled={!canContinueDraw}
-                  onClick={() => {
-                    if (!canContinueDraw) return;
-
-                    setStep(2);
-                    window.scrollTo({
-                      top: 0,
-                      behavior: "auto",
-                    });
-                  }}
-                  className="w-full sm:w-auto font-semibold shadow-xs gap-2"
-                >
-                  <span>Tiếp tục rút thẻ</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </Card>
-
-            {!availabilityLoading &&
-              !availabilityError &&
-              availabilityMatchesSelection &&
-              !canContinueDraw && (
-                <p role="status" className="mb-5 text-sm text-muted">
-                  Chủ đề này hiện chưa mở được. Hãy chọn một chủ đề khác để tiếp tục.
-                  {!isDemoMode() && (
+                <div className="flex items-center gap-2.5">
+                  {onGoToWish && (
                     <button
-                      type="button"
-                      className="ml-2 font-semibold text-accent underline underline-offset-2"
-                      onClick={enterDemoMode}
+                      onClick={onGoToWish}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-line text-xs font-medium text-accent hover:bg-surface transition-colors cursor-pointer"
                     >
-                      Mở bản demo
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Gửi gắm điều ước</span>
                     </button>
                   )}
+                  <div className="flex items-center gap-1.5 uppercase font-semibold text-xs text-muted">
+                    <span className="w-2 h-2 rounded-full bg-action inline-block"></span>
+                    <span>BƯỚC 1 / 3 • KHỞI TÂM NGUYỆN</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Heading & Subtitle */}
+              <div className="mb-6 text-left">
+                <h1 className="page-title mb-3">
+                  Chọn một điều bạn muốn chiêm nghiệm
+                </h1>
+                <p className="text-sm sm:text-base text-muted leading-relaxed max-w-2xl m-0">
+                  Lắng lòng suy ngẫm về phương diện bạn đang trăn trở nhất lúc này để đón nhận lời gửi gắm chân thành từ quẻ xăm.
                 </p>
-              )}
+              </div>
+
+              {/* Chọn chủ đề bạn đang lắng đọng */}
+              <fieldset className="min-w-0 mb-6">
+                <legend className="mb-3.5 text-xs font-semibold uppercase tracking-wider text-accent flex items-center gap-1.5">
+                  <Compass className="w-3.5 h-3.5" />
+                  <span>Phương diện tâm nguyện</span>
+                </legend>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {(
+                    XIN_XAM_TOPICS satisfies TopicType[]
+                  ).map((topic) => {
+                    const isSelected = selectedTopic === topic;
+                    return (
+                      <label
+                        key={topic}
+                        className={`flex min-h-16 cursor-pointer items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 transition-all shadow-2xs ${
+                          isSelected
+                            ? "border-accent bg-accent/8 ring-2 ring-accent/20 text-accent font-semibold shadow-xs"
+                            : "border-line bg-surface hover:border-accent/30 text-ink"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                            isSelected
+                              ? "bg-accent/15 text-accent"
+                              : "bg-surface-soft text-muted"
+                          }`}>
+                            {topic === "Học tập" ? (
+                              <BookOpen className="w-4 h-4" />
+                            ) : topic === "Công việc" ? (
+                              <Briefcase className="w-4 h-4" />
+                            ) : topic === "Gia đình" ? (
+                              <Home className="w-4 h-4" />
+                            ) : (
+                              <Flower2 className="w-4 h-4" />
+                            )}
+                          </span>
+                          <span className="text-sm font-semibold truncate">{topic}</span>
+                        </div>
+
+                        <input
+                          type="radio"
+                          name="xam-topic"
+                          value={topic}
+                          checked={isSelected}
+                          onChange={() => setSelectedTopic(topic)}
+                          className="h-4 w-4 shrink-0 accent-accent"
+                        />
+                      </label>
+                    );
+                  })}
+                </div>
+              </fieldset>
+
+              {/* Selection Summary Callout Box */}
+              <Card className="p-5 rounded-2xl bg-surface border border-line flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shadow-2xs">
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-accent mb-1 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>TÂM NGUYỆN CỦA BẠN</span>
+                  </div>
+                  <div className="text-lg font-bold text-ink mb-1 font-display">
+                    Bạn đã chọn:{" "}
+                    <span className="text-accent underline decoration-accent/40 underline-offset-4">
+                      {selectedTopic}
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted italic">
+                    ✦ Gợi ý: Hãy giữ hơi thở nhẹ nhàng và tâm thế thả lỏng trước khi rút thẻ xăm.
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto shrink-0">
+                  {onBackToExperienceHome && (
+                    <button
+                      type="button"
+                      onClick={onBackToExperienceHome}
+                      className="w-full sm:w-auto h-12 px-5 rounded-full border border-line/80 bg-surface hover:bg-surface-soft text-ink/80 text-sm font-medium inline-flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Quay lại Trải nghiệm</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    disabled={!canContinueDraw}
+                    onClick={() => {
+                      if (!canContinueDraw) return;
+                      setStep(2);
+                      window.scrollTo({ top: 0, behavior: "auto" });
+                    }}
+                    className={`w-full sm:w-auto h-12 px-6 rounded-full text-sm font-semibold inline-flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-sm ${
+                      canContinueDraw
+                        ? "bg-accent text-white hover:bg-accent/90 hover:shadow-md"
+                        : "bg-surface-soft text-muted border border-line cursor-not-allowed opacity-60"
+                    }`}
+                  >
+                    <span>Tiếp tục rút thẻ</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </Card>
+
+              {!availabilityLoading &&
+                !availabilityError &&
+                availabilityMatchesSelection &&
+                !canContinueDraw && (
+                  <p role="status" className="mb-5 text-sm text-muted">
+                    Chủ đề này hiện chưa mở được. Hãy chọn một chủ đề khác để tiếp tục.
+                    {!isDemoMode() && (
+                      <button
+                        type="button"
+                        className="ml-2 font-semibold text-accent underline underline-offset-2"
+                        onClick={enterDemoMode}
+                      >
+                        Mở bản demo
+                      </button>
+                    )}
+                  </p>
+                )}
+            </div>
 
             {/* Editorial Principle Disclaimer */}
-            <div className="p-5 rounded-panel bg-surface border border-line flex items-start gap-3.5 text-xs text-muted leading-relaxed mb-12">
-              <Info className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-              <div>
-                <div className="font-bold text-accent uppercase tracking-wider mb-1">
-                  LỜI NHẮC KHI CHIÊM NGHIỆM
-                </div>
-                <p>Lời quẻ là gợi ý văn hóa để suy ngẫm, không dự báo tương lai hoặc thay thế quyết định cá nhân.</p>
-              </div>
+            <div className="p-4 rounded-xl bg-surface/70 border border-line flex items-center gap-3 text-xs text-muted leading-relaxed mb-6">
+              <ShieldCheck className="w-4 h-4 text-accent flex-shrink-0" />
+              <span>
+                <strong>Lời nhắc:</strong> Lời quẻ là gợi ý văn hóa để suy ngẫm, không dự báo tương lai hoặc thay thế quyết định cá nhân.
+              </span>
             </div>
           </div>
         )}
@@ -795,60 +810,62 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
            ========================================================================= */}
         {step === 2 && (
           <div>
-            {/* Top Breadcrumb & Step Badge */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 text-xs text-muted">
+            {/* Top Navigation & Step Indicator */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 text-xs text-muted">
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={() => setStep(1)}
-                  className="hover:text-accent cursor-pointer"
+                  className="hover:text-accent cursor-pointer transition-colors"
                 >
                   Trải nghiệm
                 </button>
-                <span>›</span>
-                <span>Xin xăm văn hóa</span>
-                <span>›</span>
-                <span className="text-accent font-semibold">Bước 2: Rút thẻ</span>
+                <span>/</span>
+                <span className="text-muted/80">Xin xăm văn hóa</span>
+                <span>/</span>
+                <span className="text-accent font-semibold">Rút thẻ</span>
               </div>
 
-              <div className="flex items-center gap-1.5 uppercase font-semibold text-xs text-muted">
-                <span className="w-2 h-2 rounded-full bg-action inline-block"></span>
-                <span>
-                  BƯỚC 2 / 3 • LẮNG ĐỘNG RÚT THẺ – {selectedTopic.toUpperCase()}
-                </span>
-              </div>
-            </div>
-
-            {/* Active Choice Context Bar (Compact, understated) */}
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-muted pb-3 border-b border-line/60">
               <div className="flex items-center gap-2">
-                <Flower2 className="w-3.5 h-3.5 text-accent" />
-                <span>
-                  Đang xin xăm cho tâm: <strong className="text-ink">{selectedTopic}</strong>
-                </span>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-line text-xs font-semibold uppercase tracking-wider text-muted shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" />
+                  <span>Bước 2 / 3 • Rút thẻ</span>
+                </div>
               </div>
-
-              <button
-                onClick={() => setStep(1)}
-                className="text-xs text-accent hover:underline font-semibold cursor-pointer self-start sm:self-auto"
-              >
-                ← Đổi lựa chọn
-              </button>
             </div>
 
-            {/* Big Serif Heading */}
-            <div className="text-center max-w-xl mx-auto mb-8">
-              <h1 className="page-title mb-2.5 text-2xl sm:text-3xl lg:text-4xl text-ink font-display">
+            {/* Centered Sacred Heading with Active Context Capsule */}
+            <div className="text-center max-w-xl mx-auto mb-6">
+              {/* Active Topic Capsule Badge */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface/90 border border-line/80 shadow-2xs text-xs text-muted mb-3 hover:border-accent/40 transition-all">
+                <Flower2 className="w-3.5 h-3.5 text-accent shrink-0" />
+                <span>
+                  Tâm nguyện: <strong className="text-ink font-semibold">{selectedTopic}</strong>
+                </span>
+                <span className="text-line-strong">•</span>
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="text-accent hover:underline font-semibold cursor-pointer inline-flex items-center gap-1 transition-colors"
+                  title="Chọn lại chủ đề tâm nguyện khác"
+                >
+                  <span>Đổi</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+
+              <h1 className="page-title mb-2 text-2xl sm:text-3xl text-ink font-display">
                 Lắng lòng và rút một thẻ xăm
               </h1>
-              <p className="text-sm text-muted leading-relaxed">
-                Giữ hơi thở chậm rãi, tĩnh tâm trong một khoảnh khắc ngắn. Thẻ tre mở ra một góc nhìn suy ngẫm cổ truyền, gợi ý thái độ an nhiên trước đời sống.
+              <p className="text-xs sm:text-sm text-muted leading-relaxed max-w-md mx-auto">
+                Giữ hơi thở chậm rãi, tĩnh tâm trong một khoảnh khắc ngắn để đón nhận thông điệp phù hợp hôm nay.
               </p>
             </div>
 
-            {/* Center Altar: Open Sacred Space without Box Boundary */}
-            <div className="max-w-xl mx-auto py-4 text-center relative mb-12">
-              {/* Concentric Circle Aura Motif with Warm Ambient Glow */}
-              <div className="relative w-72 h-80 sm:w-96 sm:h-96 mx-auto mb-6 flex items-center justify-center">
+            {/* Center Altar: Sacred Space with Focused Vertical Footprint */}
+            <div className="max-w-xl mx-auto py-1 sm:py-2 text-center relative mb-8">
+              {/* Concentric Circle Aura Motif */}
+              <div className="relative w-64 h-64 sm:w-72 sm:h-72 mx-auto mb-3 flex items-center justify-center">
                 {/* Golden/Warm Ambient Aura */}
                 <div
                   className={`absolute inset-0 rounded-full transition-all duration-700 pointer-events-none blur-2xl ${
@@ -859,12 +876,12 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                       : "bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-transparent"
                   }`}
                 />
-                <div className="absolute inset-4 rounded-full border border-line/50" />
-                <div className="absolute inset-10 rounded-full border border-dashed border-line/40" />
+                <div className="absolute inset-3 rounded-full border border-line/50" />
+                <div className="absolute inset-8 rounded-full border border-dashed border-line/40" />
 
                 {/* Khu vực Bó Xăm & Thẻ Tre Rơi */}
                 <div className="relative flex flex-col items-center justify-center z-10 w-full">
-                  {/* Ống xăm thuần Việt & Bó xăm 13 que đầy đặn - Chỉ 1 que nhô cao, không rơi ra ngoài */}
+                  {/* Ống xăm thuần Việt & Bó xăm 13 que đầy đặn */}
                   <div
                     role="button"
                     tabIndex={0}
@@ -886,11 +903,11 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                       isShaking
                         ? "Đang lắc xăm lên xuống..."
                         : drawPhase === "dropped"
-                    ? `Thẻ số ${currentResult?.stickNumber ?? "—"} đã nhô lên`
+                        ? `Thẻ số ${currentResult?.stickNumber ?? "—"} đã nhô lên`
                         : "Chạm giữ 1,5 giây để lắc ống xăm"
                     }
                   >
-                    {/* 1. BÓ QUE XĂM: 13 que cắm san sát dày dặn trong miệng ống, nửa trên đỏ son, nửa dưới ngà kem có số */}
+                    {/* 1. BÓ QUE XĂM: 13 que cắm san sát dày dặn trong miệng ống */}
                     <div className="flex items-end justify-center -space-x-1 sm:-space-x-1.5 pointer-events-none relative z-10 px-2 overflow-visible">
                       {[
                         { num: "05", h: 84, rot: -7 },
@@ -916,9 +933,9 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                               height: `${s.h}px`,
                               transform:
                                 isChosen && drawPhase === "dropped"
-                                  ? `translateY(-48px) rotate(0deg)`
+                                  ? "translateY(-48px) rotate(0deg)"
                                   : isChosen && isShaking
-                                  ? `translateY(-28px) rotate(0deg)`
+                                  ? "translateY(-28px) rotate(0deg)"
                                   : `rotate(${s.rot}deg)`,
                               transformOrigin: "bottom center",
                             }}
@@ -972,7 +989,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                       })}
                     </div>
 
-                    {/* 2. THÂN ỐNG TRE HÌNH TRỤ CÓ ĐAI ĐỎ CHỮ VIỆT & CHỮ THƯ PHÁP "TÂM" (Miệng ống che chân bó xăm) */}
+                    {/* 2. THÂN ỐNG TRE HÌNH TRỤ CÓ ĐAI ĐỎ CHỮ VIỆT & CHỮ THƯ PHÁP "TÂM" */}
                     <div
                       className="w-34 sm:w-40 h-44 sm:h-48 rounded-2xl relative flex flex-col items-center justify-between p-0 z-20 overflow-hidden shadow-2xl border border-[#7a481d] -mt-3.5"
                       style={{
@@ -984,10 +1001,8 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                     >
                       {/* Miệng Ống Tre & Đai Đỏ Chữ Việt */}
                       <div className="w-full">
-                        {/* Vành miệng tre */}
                         <div className="w-full h-1.5 bg-[#663812] border-b border-[#d89750]/40" />
 
-                        {/* Đai Đỏ Chu Sa Chữ Việt thuần túy */}
                         <div className="w-full h-9 bg-gradient-to-r from-[#7a1518] via-[#a31f24] to-[#6e1114] border-y border-[#d4af37]/60 flex items-center justify-center shadow-inner">
                           <span
                             className="text-[11px] sm:text-xs font-serif font-bold tracking-[0.2em] uppercase"
@@ -1022,112 +1037,138 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                 </div>
               </div>
 
-              {/* Status and instruction */}
-              <div className="space-y-2 mb-6">
-                <h3 className="font-display font-bold text-xl sm:text-2xl text-ink">
-                  {drawPhase === "dropped"
-                    ? `Đã hiện diện Thẻ xăm số ${currentResult?.stickNumber ?? "—"}`
-                    : drawPhase === "shaking"
-                    ? "Đang lắng lòng lắc ống xăm..."
-                    : "Sẵn sàng khởi niệm bình an"}
-                </h3>
-                <p className="text-sm text-muted max-w-md mx-auto leading-relaxed">
-                  {drawPhase === "dropped"
-                    ? `Thẻ xăm số ${currentResult?.stickNumber ?? "—"} đã ứng hiện nhô cao trong bó xăm. Hãy mở xem lời quẻ chiêm nghiệm và thông điệp dành cho bạn.`
-                    : "Chạm vào ống xăm hoặc bấm nút bên dưới để rút thẻ tre lưu dấu hôm nay."}
-                </p>
-              </div>
-
-              {/* Action Buttons: Strict Visual Hierarchy */}
-              <div className="flex flex-col items-center justify-center gap-3 w-full">
+              {/* Status Indicator & Action Section */}
+              <div className="space-y-3 mb-2">
                 {drawPhase === "dropped" ? (
-                  <div className="flex flex-col items-center gap-3 w-full max-w-sm">
-                    <Button
-                      variant="default"
-                      size="lg"
-                      onClick={() => {
-                        setStep(3);
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}
-                      className="w-full py-3.5 font-semibold shadow-md gap-2 text-base cursor-pointer"
-                    >
-                      <Sparkles className="w-4 h-4 shrink-0" />
-                      <span>Xem chiêm nghiệm thẻ số {currentResult?.stickNumber ?? "—"}</span>
-                      <ArrowRight className="w-4 h-4 shrink-0" />
-                    </Button>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-semibold uppercase tracking-wider">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Thẻ xăm đã ứng hiện</span>
+                      </div>
+                      <h3 className="font-display font-bold text-xl sm:text-2xl text-ink">
+                        Thẻ xăm số {currentResult?.stickNumber ?? "—"}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-muted max-w-md mx-auto leading-relaxed">
+                        Thẻ tre đã nhô cao đón chào bạn. Mời bạn mở xem lời quẻ chiêm nghiệm và thông điệp dành riêng cho bạn.
+                      </p>
+                    </div>
 
-                    <button
-                      type="button"
-                      onPointerDown={beginHeldDraw}
-                      onPointerUp={cancelHeldDraw}
-                      onPointerCancel={cancelHeldDraw}
-                      onPointerLeave={cancelHeldDraw}
-                      onClick={handleKeyboardDraw}
-                      disabled={isRequestingDraw || isShaking}
-                      className="text-xs text-muted hover:text-accent font-medium py-1 transition-colors cursor-pointer flex items-center gap-1.5"
-                    >
-                      <RotateCcw className="w-3 h-3" />
-                      <span>Giữ 1,5 giây để lắc lại</span>
-                    </button>
+                    <div className="flex flex-col items-center gap-2.5 w-full max-w-sm mx-auto pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStep(3);
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className="w-full h-12 sm:h-13 px-6 rounded-full bg-accent hover:bg-accent/90 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-300 inline-flex items-center justify-center gap-2.5 text-sm sm:text-base cursor-pointer hover:-translate-y-0.5 active:scale-95"
+                      >
+                        <Sparkles className="w-4 h-4 text-amber-200 shrink-0" />
+                        <span>Xem chiêm nghiệm thẻ số {currentResult?.stickNumber ?? "—"}</span>
+                        <ArrowRight className="w-4 h-4 shrink-0" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onPointerDown={beginHeldDraw}
+                        onPointerUp={cancelHeldDraw}
+                        onPointerCancel={cancelHeldDraw}
+                        onPointerLeave={cancelHeldDraw}
+                        onClick={handleKeyboardDraw}
+                        disabled={isRequestingDraw || isShaking}
+                        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-line bg-surface hover:bg-surface-soft text-xs text-muted hover:text-ink font-medium transition-all cursor-pointer shadow-2xs"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>Giữ 1,5 giây để lắc lại thẻ khác</span>
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <Button
-                    variant="default"
-                    size="lg"
-                    onPointerDown={beginHeldDraw}
-                    onPointerUp={cancelHeldDraw}
-                    onPointerCancel={cancelHeldDraw}
-                    onPointerLeave={cancelHeldDraw}
-                    onClick={handleKeyboardDraw}
-                    disabled={isRequestingDraw || isShaking}
-                    className="w-full sm:w-auto px-8 py-3.5 font-semibold shadow-md gap-2 text-base cursor-pointer mx-auto"
-                  >
-                    <Sparkles className="w-4 h-4 shrink-0" />
-                    <span>
-                      {isRequestingDraw
-                        ? "Đang lấy thẻ…"
-                        : isShaking
-                          ? "Đang rút thẻ…"
-                          : "Giữ 1,5 giây để lắc ống xăm"}
-                    </span>
-                  </Button>
-                )}
+                  <div className="space-y-3">
+                    <p className="text-xs sm:text-sm text-muted font-medium">
+                      {isShaking
+                        ? "Đang lắng lòng lắc ống xăm, tâm thành ý tịnh…"
+                        : "Chạm vào ống xăm hoặc nhấn giữ nút bên dưới trong 1,5 giây"}
+                    </p>
 
-                <button
-                  type="button"
-                  onClick={() => setShowGuideModal(true)}
-                  className="text-xs text-muted hover:text-accent font-medium mt-1 cursor-pointer flex items-center gap-1"
-                >
-                  <Info className="w-3.5 h-3.5" />
-                  <span>Xem hướng dẫn chiêm nghiệm</span>
-                </button>
+                    <div className="flex flex-col items-center justify-center gap-2.5">
+                      <button
+                        type="button"
+                        onPointerDown={beginHeldDraw}
+                        onPointerUp={cancelHeldDraw}
+                        onPointerCancel={cancelHeldDraw}
+                        onPointerLeave={cancelHeldDraw}
+                        onClick={handleKeyboardDraw}
+                        disabled={isRequestingDraw || isShaking}
+                        className={`w-full sm:w-auto h-12 sm:h-13 px-8 rounded-full text-sm sm:text-base font-semibold inline-flex items-center justify-center gap-2.5 transition-all duration-300 shadow-md cursor-pointer select-none active:scale-95 ${
+                          isShaking
+                            ? "bg-accent/80 text-white cursor-wait animate-pulse"
+                            : "bg-accent hover:bg-accent/90 text-white hover:shadow-lg hover:-translate-y-0.5"
+                        }`}
+                      >
+                        <Sparkles className="w-4 h-4 text-amber-200 shrink-0" />
+                        <span>
+                          {isRequestingDraw
+                            ? "Đang đón thẻ…"
+                            : isShaking
+                              ? "Đang lắc ống xăm…"
+                              : "Giữ 1,5 giây để lắc ống xăm"}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowGuideModal(true)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface/80 hover:bg-surface border border-line/80 text-xs text-muted hover:text-accent hover:border-accent/40 transition-all cursor-pointer shadow-2xs"
+                      >
+                        <Info className="w-3.5 h-3.5 text-accent" />
+                        <span>Xem hướng dẫn chiêm nghiệm</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* 3 Cultural Guidance Cards (Subtle Editorial Row) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-line/60 mb-10">
-              <div className="text-left space-y-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-accent">
-                  01 • Tâm thành ý tịnh
-                </span>
+            {/* 3 Cultural Guidance Cards (Sophisticated Card Grid) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-line/60 mb-8">
+              <div className="p-4 sm:p-5 rounded-2xl bg-surface/70 border border-line/70 text-left space-y-2 hover:bg-surface transition-all shadow-2xs hover:shadow-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center text-accent shrink-0">
+                    <Flame className="w-3.5 h-3.5 text-accent" />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-accent font-display">
+                    01 • Tâm thành ý tịnh
+                  </span>
+                </div>
                 <p className="text-xs text-muted leading-relaxed">
                   Trước khi rút thẻ, buông xả toan tính được mất. Giữ lòng thanh thản để đón nhận lời khuyên với tâm thế sáng tỏ.
                 </p>
               </div>
 
-              <div className="text-left space-y-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-accent">
-                  02 • Tự soi chiếu tâm tư
-                </span>
+              <div className="p-4 sm:p-5 rounded-2xl bg-surface/70 border border-line/70 text-left space-y-2 hover:bg-surface transition-all shadow-2xs hover:shadow-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center text-accent shrink-0">
+                    <Compass className="w-3.5 h-3.5 text-accent" />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-accent font-display">
+                    02 • Tự soi chiếu tâm tư
+                  </span>
+                </div>
                 <p className="text-xs text-muted leading-relaxed">
                   Lời quẻ dân gian tựa chiếc gương phản chiếu nỗi lòng, giúp nhận ra điều gì cần gìn giữ và điều gì nên buông bỏ.
                 </p>
               </div>
 
-              <div className="text-left space-y-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-accent">
-                  03 • Thuận lẽ tự nhiên
-                </span>
+              <div className="p-4 sm:p-5 rounded-2xl bg-surface/70 border border-line/70 text-left space-y-2 hover:bg-surface transition-all shadow-2xs hover:shadow-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center text-accent shrink-0">
+                    <Sun className="w-3.5 h-3.5 text-accent" />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-accent font-display">
+                    03 • Thuận lẽ tự nhiên
+                  </span>
+                </div>
                 <p className="text-xs text-muted leading-relaxed">
                   Quẻ lành hay quẻ nhẫn nại đều hướng về đạo lý làm người. Tâm an vạn sự ắt sẽ hanh thông, tự tại.
                 </p>
@@ -1135,36 +1176,33 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
             </div>
 
             {/* Cultural & Legal Philosophy Banner */}
-            <Card className="p-6 rounded-card bg-surface/80 border border-line flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-12 shadow-2xs">
-              <div className="flex items-start gap-3.5">
-                <div className="w-10 h-10 rounded-panel bg-surface flex items-center justify-center text-accent flex-shrink-0">
+            <Card className="p-5 sm:p-6 rounded-2xl bg-surface/90 border border-line/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10 shadow-2xs">
+              <div className="flex items-start gap-4">
+                <div className="w-11 h-11 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent shrink-0 shadow-2xs">
                   <Scale className="w-5 h-5 text-accent" />
                 </div>
                 <div>
                   <h4 className="font-display font-bold text-base text-ink mb-1">
                     Chiêm nghiệm văn hóa — Không mê tín dị đoan
                   </h4>
-                  <p className="text-sm text-muted leading-relaxed max-w-xl">
-                    Trải nghiệm chiêm nghiệm văn hóa, không phải dự báo chắc chắn tương
-                    lai. Tin Lắm Tâm Linh hướng tới việc tiếp nhận di sản tập tục dân
-                    gian như một liệu pháp tinh thần tích cực, vun bồi sự bình an và trân
-                    trọng khoảnh khắc hiện tại.
+                  <p className="text-xs sm:text-sm text-muted leading-relaxed max-w-xl">
+                    Trải nghiệm chiêm nghiệm văn hóa, không phải dự báo chắc chắn tương lai. Tin Lắm Tâm Linh hướng tới việc tiếp nhận di sản tập tục dân gian như một liệu pháp tinh thần tích cực, vun bồi sự bình an và trân trọng khoảnh khắc hiện tại.
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-1.5 text-xs text-muted flex-shrink-0">
+              <div className="space-y-2 text-xs text-muted shrink-0 pl-0 sm:pl-4 border-t sm:border-t-0 sm:border-l border-line/60 pt-3 sm:pt-0 w-full sm:w-auto">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-accent" />
-                  <span>Miễn phí</span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="font-medium text-ink/80">Miễn phí trải nghiệm</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-accent" />
-                  <span>Không quảng cáo thương mại</span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="font-medium text-ink/80">Không quảng cáo thương mại</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-accent" />
-                  <span>Tôn trọng tuyệt đối quyền riêng tư</span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="font-medium text-ink/80">Bảo mật & riêng tư tuyệt đối</span>
                 </div>
               </div>
             </Card>
@@ -1225,8 +1263,12 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
               <h1 className="page-title mb-3 text-2xl sm:text-3xl lg:text-4xl text-ink font-display">
                 Lời gửi gắm từ Thẻ xăm số {currentResult.stickNumber}
               </h1>
-              <p className="font-serif italic text-base sm:text-lg text-accent leading-relaxed">
-                “{currentResult.quote}”
+              <p className="text-base sm:text-lg text-muted leading-relaxed max-w-2xl">
+                Quẻ xăm ứng về phương diện{" "}
+                <span className="font-semibold text-accent underline decoration-accent/40 underline-offset-4">
+                  {currentResult.topic.toLowerCase()}
+                </span>
+                {currentResult.insight ? ` — ${currentResult.insight}. Giữ tâm an định để đón nhận điều lành.` : " — Hướng về sự tĩnh tâm và sáng tỏ trong tâm hồn."}
               </p>
             </div>
 
@@ -1234,7 +1276,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 mb-8 items-start">
               {/* Left Column (5 columns): The Sacred Parchment Bamboo Slip */}
               <div className="lg:col-span-5 space-y-4">
-                <div className="rounded-2xl p-6 sm:p-8 bg-surface border border-line shadow-sm relative overflow-hidden text-center flex flex-col justify-between min-h-[480px]">
+                <div className="rounded-2xl p-5 sm:p-6 bg-surface border border-line shadow-sm relative overflow-hidden text-center flex flex-col justify-between min-h-[460px]">
                   {/* Subtle inner paper glow */}
                   <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-amber-500/5 pointer-events-none" />
 
@@ -1253,21 +1295,18 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                       THẺ SỐ {currentResult.stickNumber}
                     </div>
 
-                    <h2 className="section-title text-xl sm:text-2xl leading-snug mb-8 text-ink">
+                    <h2 className="section-title text-xl sm:text-2xl leading-snug mb-5 text-ink">
                       {currentResult.title}
                     </h2>
 
                     {/* 4-Line Poem in Center */}
-                    <div className="p-6 rounded-xl bg-surface-soft/60 border border-line/60 mb-8 shadow-inner">
-                      <p className="font-serif italic font-semibold text-base sm:text-lg text-ink leading-loose">
-                        “{currentResult.poem.line1}
-                        <br />
-                        {currentResult.poem.line2}
-                        <br />
-                        {currentResult.poem.line3}
-                        <br />
-                        {currentResult.poem.line4}”
-                      </p>
+                    <div className="py-5 px-2.5 sm:px-3 rounded-xl bg-surface-soft/70 border border-line/60 mb-6 shadow-inner">
+                      <div className="font-serif italic font-medium text-[13px] sm:text-[14px] text-ink leading-relaxed sm:leading-loose text-center space-y-1">
+                        <p className="m-0 whitespace-nowrap">“{currentResult.poem.line1}</p>
+                        <p className="m-0 whitespace-nowrap">{currentResult.poem.line2}</p>
+                        <p className="m-0 whitespace-nowrap">{currentResult.poem.line3}</p>
+                        <p className="m-0 whitespace-nowrap">{currentResult.poem.line4}”</p>
+                      </div>
                     </div>
                   </div>
 
@@ -1479,25 +1518,25 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                   </div>
 
                   {(isLoggedIn && currentDrawId && onGoToXinKeo || onGoToExplore) && (
-                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                    <div className="flex flex-wrap items-center gap-3 pt-2">
                       {isLoggedIn && currentDrawId && onGoToXinKeo && (
                         <button
                           type="button"
                           onClick={() => onGoToXinKeo(currentDrawId)}
-                          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent hover:text-action"
+                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-accent/8 border border-accent/20 text-xs font-semibold text-accent hover:bg-accent/15 transition-all cursor-pointer"
                         >
-                          <Waves className="h-4 w-4" aria-hidden="true" />
-                          Nối quẻ với xin keo
+                          <Waves className="h-3.5 w-3.5" aria-hidden="true" />
+                          <span>Nối quẻ với xin keo</span>
                         </button>
                       )}
                       {onGoToExplore && (
                         <button
                           type="button"
                           onClick={onGoToExplore}
-                          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-muted hover:text-accent"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-surface-soft border border-line text-xs font-medium text-muted hover:text-accent hover:border-accent/30 transition-all cursor-pointer"
                         >
-                          Khám phá văn hóa
-                          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                          <span>Khám phá văn hóa</span>
+                          <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         </button>
                       )}
                     </div>

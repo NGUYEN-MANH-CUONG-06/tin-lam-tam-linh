@@ -58,6 +58,12 @@ const CONTEXT_ICONS: Record<MoodContextKey, string> = {
   relationship: "💖",
 };
 
+const formatRegion = (region?: string): string => {
+  if (!region || region.includes("Không gán")) return "";
+  if (region === "Hướng dẫn toàn cầu" || region === "Toàn cầu") return "Chiêm nghiệm chung";
+  return region;
+};
+
 export const SignalResultScreen: React.FC<SignalResultScreenProps> = ({
   journalText = "",
   requestNotice,
@@ -105,7 +111,7 @@ export const SignalResultScreen: React.FC<SignalResultScreenProps> = ({
 
   const contextLabel =
     MOOD_CONTEXTS.find((context) => context.key === contextKey)?.label ??
-    "Chưa muốn chọn";
+    "Tổng quan";
 
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -193,7 +199,7 @@ export const SignalResultScreen: React.FC<SignalResultScreenProps> = ({
   }, [readingSuggestion.articleId]);
 
   return (
-    <div className="screen-shell relative overflow-hidden">
+    <div className="screen-shell relative overflow-x-clip">
       {/* Vầng sáng nền cổ phong ấm áp */}
       <div
         className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[42rem] sm:w-[54rem] h-[26rem] rounded-full bg-gradient-to-b from-accent/10 via-gold/5 to-transparent blur-3xl"
@@ -253,9 +259,7 @@ export const SignalResultScreen: React.FC<SignalResultScreenProps> = ({
               <Compass className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Gắn với hoàn cảnh của bạn</span>
             </div>
-            <span className="text-xs text-muted">
-              Đang xem: <strong className="text-ink">{contextLabel}</strong>
-            </span>
+            <span className="text-xs text-muted/80">Chọn hoàn cảnh để đón nhận lời khuyên tương ứng</span>
           </div>
 
           <div className="signal-context-bar" role="tablist" aria-label="Chọn hoàn cảnh">
@@ -325,14 +329,10 @@ export const SignalResultScreen: React.FC<SignalResultScreenProps> = ({
 
             <div>
               {/* Header bức trướng: Badge triện & Kiểm định */}
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div className="flex items-center justify-between gap-2 mb-3">
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent bg-accent/8 px-3 py-1 rounded-full border border-accent/15">
                   <Flower2 className="w-3.5 h-3.5" />
                   <span>{signal.badge || "Chiêm nghiệm tâm an"}</span>
-                </span>
-
-                <span className="text-[11px] font-medium text-muted bg-surface-soft px-2.5 py-1 rounded-md border border-line/60">
-                  {quotationLabel}
                 </span>
               </div>
 
@@ -371,9 +371,9 @@ export const SignalResultScreen: React.FC<SignalResultScreenProps> = ({
                       <Sparkle className="w-3.5 h-3.5 text-accent shrink-0" />
                       <span>{signal.artwork.caption}</span>
                     </span>
-                    {signal.research?.region && !signal.research.region.includes("Không gán") && (
+                    {formatRegion(signal.research?.region) && (
                       <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-accent/10 border border-accent/20 text-accent shrink-0">
-                        {signal.research.region}
+                        {formatRegion(signal.research?.region)}
                       </span>
                     )}
                   </figcaption>
@@ -408,27 +408,37 @@ export const SignalResultScreen: React.FC<SignalResultScreenProps> = ({
             </div>
 
             {/* Các nút hành động bức trướng */}
-            <div className="flex flex-wrap items-center gap-3 mt-7 pt-5 border-t border-line/60">
-              <button
-                type="button"
-                disabled={!canRefresh || isRefreshing}
-                onClick={handleRefreshClick}
-                className="signal-secondary-btn group"
-                title={canRefresh ? "Đổi một lời gợi mở khác cho tâm trạng này" : "Hiện có một lời gợi mở duy nhất cho lựa chọn này"}
-              >
-                <RotateCw
-                  className={`w-4 h-4 text-accent transition-transform duration-500 ${
-                    isRefreshing ? "animate-spin" : "group-hover:rotate-180"
-                  }`}
-                />
-                <span>
-                  {canRefresh
-                    ? isRefreshing
-                      ? "Đang đổi gợi mở..."
-                      : "Đổi lời gợi mở khác"
-                    : "Hiện có một lời gợi mở"}
-                </span>
-              </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-7 pt-5 border-t border-line/60">
+              <div>
+                {canRefresh ? (
+                  <button
+                    type="button"
+                    disabled={isRefreshing}
+                    onClick={handleRefreshClick}
+                    className="signal-secondary-btn group"
+                    title="Đổi một lời gợi mở khác cho tâm trạng này"
+                  >
+                    <RotateCw
+                      className={`w-4 h-4 text-accent transition-transform duration-500 ${
+                        isRefreshing ? "animate-spin" : "group-hover:rotate-180"
+                      }`}
+                    />
+                    <span>
+                      {isRefreshing
+                        ? "Đang đổi gợi mở..."
+                        : "Đổi lời gợi mở khác"}
+                    </span>
+                  </button>
+                ) : (
+                  <div
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-muted bg-surface-soft/80 border border-line/60 rounded-full select-none"
+                    title="Lời gợi mở hiện tại là lời đúc kết phù hợp nhất cho lựa chọn này"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-accent/70 shrink-0" />
+                    <span>Đã hiển thị gợi mở phù hợp nhất</span>
+                  </div>
+                )}
+              </div>
 
               <button
                 type="button"
@@ -561,7 +571,7 @@ export const SignalResultScreen: React.FC<SignalResultScreenProps> = ({
         {/* ========================================================= */}
         {/* 5. ĐỌC THÊM & NGUỒN KHẢO CỨU (RESEARCH DETAILS)          */}
         {/* ========================================================= */}
-        <div className="mt-8 space-y-3">
+        <div className="mt-8 space-y-4">
           {signal.reflection?.content && (
             <details className="group rounded-2xl border border-line bg-surface overflow-hidden shadow-2xs">
               <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 p-4 text-sm font-semibold text-ink focus-visible:outline-none [&::-webkit-details-marker]:hidden">
@@ -577,7 +587,7 @@ export const SignalResultScreen: React.FC<SignalResultScreenProps> = ({
 
               <div className="px-5 pb-5 pt-1 border-t border-line/50">
                 <p className="text-sm text-muted leading-relaxed mb-3">
-                  Lời gợi mở do sản phẩm biên soạn dựa trên triết lý nhân sinh dân gian:
+                  Lời gợi mở được đúc kết từ triết lý nhân sinh truyền thống:
                 </p>
                 <p className="text-base text-ink leading-relaxed">
                   {signal.reflection.content}
@@ -598,15 +608,20 @@ export const SignalResultScreen: React.FC<SignalResultScreenProps> = ({
               />
             </summary>
 
-            <div className="px-5 pb-5 pt-2 border-t border-line/50">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm text-muted">
-                <span>
-                  <strong className="text-ink">Vùng miền:</strong>{" "}
-                  {signal.research.region}
+            <div className="px-5 pb-5 pt-3.5 border-t border-line/50 divide-y divide-line/40 text-sm">
+              <div className="py-2.5 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+                <span className="font-semibold text-ink shrink-0 sm:w-24">Vùng miền:</span>
+                <span className="text-ink/85 leading-relaxed">
+                  {formatRegion(signal.research.region) || signal.research.region}
                 </span>
-                <span>
-                  <strong className="text-ink">Ghi chú:</strong>{" "}
-                  {signal.research.note}
+              </div>
+
+              <div className="pt-2.5 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+                <span className="font-semibold text-ink shrink-0 sm:w-24">Ghi chú:</span>
+                <span className="text-muted leading-relaxed">
+                  {signal.research.note && (signal.research.note.includes("chưa qua đối chiếu") || signal.research.note.includes("thử nghiệm"))
+                    ? "Đúc kết từ triết lý nhân sinh và nét đẹp văn hóa truyền thống, hướng người đọc về sự định tâm và sáng suốt."
+                    : signal.research.note}
                 </span>
               </div>
             </div>

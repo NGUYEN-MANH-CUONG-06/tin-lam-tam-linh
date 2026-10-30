@@ -55,8 +55,8 @@ function DemoPremiumPurchaseDialog({ onClose }: { onClose: () => void }) {
   const benefitItems = [
     { label: `${DEMO_PREMIUM_BENEFITS.xamDetailedReadings} lượt luận giải xăm`, Icon: ScrollText },
     { label: `${DEMO_PREMIUM_BENEFITS.keoDetailedReadings} lượt luận giải keo`, Icon: Scale },
-    { label: `${DEMO_PREMIUM_BENEFITS.virtualChickens} gà ảo`, Icon: Bird },
-    { label: `${DEMO_PREMIUM_BENEFITS.royalLanterns} hoa đăng xịn`, Icon: Flower2 },
+    { label: `${DEMO_PREMIUM_BENEFITS.virtualChickens} lễ vật Gà ngậm hoa`, Icon: Bird },
+    { label: `${DEMO_PREMIUM_BENEFITS.royalLanterns} hoa đăng Hoàng Kim`, Icon: Flower2 },
   ];
 
   return (

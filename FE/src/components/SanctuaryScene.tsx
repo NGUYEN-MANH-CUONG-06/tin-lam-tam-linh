@@ -21,6 +21,41 @@ interface SanctuarySceneProps {
   children?: React.ReactNode;
 }
 
+function playIncenseBellSound() {
+  try {
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const now = ctx.currentTime;
+
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(528, now); // 528Hz Solfeggio bell
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(528 * 2.76, now); // Warm harmonic
+
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.16, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 2.8);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc1.start(now);
+    osc2.start(now);
+    osc1.stop(now + 2.9);
+    osc2.stop(now + 2.9);
+  } catch {
+    // Audio optional
+  }
+}
+
 export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
   decoration = null,
   children,
@@ -1600,116 +1635,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     }
     scene.add(sourceIncense);
 
-    const heldIncense = new THREE.Group();
-    heldIncense.visible = false;
-    const heldEmbers: THREE.Mesh[] = [];
-    for (const x of [-0.044, 0, 0.044]) {
-      const stick = new THREE.Mesh(ritualStickGeometry, incenseMaterial);
-      stick.position.set(x, 0.26, 0);
-      heldIncense.add(stick);
-
-      const ember = new THREE.Mesh(emberGeometry, emberMaterial);
-      ember.position.set(x, 0.52, 0);
-      ember.visible = false;
-      heldIncense.add(ember);
-      heldEmbers.push(ember);
-    }
-    scene.add(heldIncense);
-
-    const handRoot = new THREE.Group();
-    handRoot.visible = false;
-    scene.add(handRoot);
-
-    const handTexture = textureLoader.load("/images/ritual-hand-pinch-v1.png");
-    handTexture.colorSpace = THREE.SRGBColorSpace;
-    const handSpriteMaterial = new THREE.MeshBasicMaterial({
-      map: handTexture,
-      transparent: true,
-      alphaTest: 0.035,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-      toneMapped: false,
-    });
-    const handSpriteGeometry = new THREE.PlaneGeometry(0.85, 0.567);
-    const handSprite = new THREE.Mesh(handSpriteGeometry, handSpriteMaterial);
-    handSprite.position.z = -0.22;
-    handSprite.renderOrder = 8;
-    handSprite.userData.excludeFromAltarBounds = true;
-    handSprite.userData.skipShadow = true;
-    handRoot.add(handSprite);
-
-    const lighterHandRoot = new THREE.Group();
-    lighterHandRoot.visible = false;
-    scene.add(lighterHandRoot);
-
-    const lighterHandTexture = textureLoader.load(
-      "/images/ritual-lighter-hand-v1.png",
-    );
-    lighterHandTexture.colorSpace = THREE.SRGBColorSpace;
-    const lighterHandMaterial = new THREE.MeshBasicMaterial({
-      map: lighterHandTexture,
-      transparent: true,
-      alphaTest: 0.035,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-      toneMapped: false,
-    });
-    const lighterHandGeometry = new THREE.PlaneGeometry(1.15, 0.767);
-    const lighterHandSprite = new THREE.Mesh(
-      lighterHandGeometry,
-      lighterHandMaterial,
-    );
-    lighterHandSprite.position.z = 0.12;
-    lighterHandSprite.renderOrder = 7;
-    lighterHandSprite.userData.excludeFromAltarBounds = true;
-    lighterHandSprite.userData.skipShadow = true;
-    lighterHandRoot.add(lighterHandSprite);
-
-    const lighterFlame = new THREE.Group();
-    lighterFlame.position.set(-0.32, 0.28, 0.25);
-    lighterFlame.visible = false;
-    const lighterFlameOuterGeometry = new THREE.ConeGeometry(
-      0.025,
-      0.12,
-      12,
-    );
-    const lighterFlameInnerGeometry = new THREE.ConeGeometry(
-      0.013,
-      0.075,
-      12,
-    );
-    geometries.push(lighterFlameOuterGeometry, lighterFlameInnerGeometry);
-    const lighterFlameOuterMaterial = new THREE.MeshBasicMaterial({
-      color: "#ff8b32",
-      transparent: true,
-      opacity: 0.92,
-      depthWrite: false,
-      toneMapped: false,
-    });
-    const lighterFlameInnerMaterial = new THREE.MeshBasicMaterial({
-      color: "#fff1a8",
-      transparent: true,
-      opacity: 0.96,
-      depthWrite: false,
-      toneMapped: false,
-    });
-    const lighterFlameOuter = new THREE.Mesh(
-      lighterFlameOuterGeometry,
-      lighterFlameOuterMaterial,
-    );
-    const lighterFlameInner = new THREE.Mesh(
-      lighterFlameInnerGeometry,
-      lighterFlameInnerMaterial,
-    );
-    lighterFlameOuter.renderOrder = 12;
-    lighterFlameInner.renderOrder = 13;
-    lighterFlameOuter.userData.excludeFromAltarBounds = true;
-    lighterFlameInner.userData.excludeFromAltarBounds = true;
-    lighterFlame.add(lighterFlameOuter, lighterFlameInner);
-    lighterHandRoot.add(lighterFlame);
-    const lighterGlow = new THREE.PointLight("#ff9f43", 0, 0.9, 2);
-    lighterGlow.position.set(-0.32, 0.29, 0.29);
-    lighterHandRoot.add(lighterGlow);
+    // 3 nén nhang trong bát hương (plantedIncense) tự động hạ cắm trang nghiêm vào bát hương khi thắp
 
     const incenseLight = new THREE.PointLight("#ff8b45", 0, 2, 2);
     incenseLight.position.set(0, 2.4, 0);
@@ -1955,22 +1881,23 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     };
     renderScene = render;
 
-    // Create a soft smoke texture locally.
+    // Tạo họa tiết khói hương mềm mại, uốn lượn chân thực
     const smokeCanvas = document.createElement("canvas");
-    smokeCanvas.width = 64;
-    smokeCanvas.height = 64;
+    smokeCanvas.width = 128;
+    smokeCanvas.height = 128;
 
     const smokeContext = smokeCanvas.getContext("2d");
 
     if (smokeContext) {
-      const gradient = smokeContext.createRadialGradient(32, 32, 0, 32, 32, 32);
-
-      gradient.addColorStop(0, "rgba(220, 215, 205, 0.65)");
-      gradient.addColorStop(0.45, "rgba(220, 215, 205, 0.25)");
-      gradient.addColorStop(1, "rgba(220, 215, 205, 0)");
+      const gradient = smokeContext.createRadialGradient(64, 64, 0, 64, 64, 64);
+      gradient.addColorStop(0, "rgba(240, 235, 225, 0.75)");
+      gradient.addColorStop(0.25, "rgba(235, 230, 220, 0.45)");
+      gradient.addColorStop(0.55, "rgba(225, 220, 210, 0.18)");
+      gradient.addColorStop(0.85, "rgba(215, 210, 200, 0.04)");
+      gradient.addColorStop(1, "rgba(210, 205, 195, 0)");
 
       smokeContext.fillStyle = gradient;
-      smokeContext.fillRect(0, 0, 64, 64);
+      smokeContext.fillRect(0, 0, 128, 128);
     }
 
     const smokeTexture = new THREE.CanvasTexture(smokeCanvas);
@@ -1979,16 +1906,22 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       sprite: THREE.Sprite;
       material: THREE.SpriteMaterial;
       originX: number;
+      originZ: number;
+      topY: number;
       phase: number;
+      seed: number;
+      speed: number;
     }[] = [];
 
-    for (const originX of [-0.12, 0, 0.12]) {
-      for (let index = 0; index < 6; index += 1) {
+    const particlesPerStick = 12;
+    for (const stick of plantedStickLayout) {
+      for (let index = 0; index < particlesPerStick; index += 1) {
         const material = new THREE.SpriteMaterial({
           map: smokeTexture,
           transparent: true,
           opacity: 0,
           depthWrite: false,
+          toneMapped: false,
         });
 
         const sprite = new THREE.Sprite(material);
@@ -1998,8 +1931,12 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         smokeParticles.push({
           sprite,
           material,
-          originX,
-          phase: index / 6,
+          originX: stick.x,
+          originZ: stick.z,
+          topY: stick.top,
+          phase: index / particlesPerStick,
+          seed: stick.x * 12 + index * 0.7,
+          speed: 0.14 + (index % 4) * 0.015,
         });
       }
     }
@@ -2099,132 +2036,44 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     let ritualStartedAt: number | null = null;
     let onRitualComplete: (() => void) | null = null;
 
-    const ritualKeyframes = [
-      {
-        time: 0,
-        hand: new THREE.Vector3(-3.1, 1.48, 0.78),
-        incense: new THREE.Vector3(-1.08, 1.315, 0.72),
-        incenseRotation: Math.PI / 2,
-        handArcHeight: 0,
-        incenseArcHeight: 0,
-      },
-      {
-        time: 0.75,
-        hand: new THREE.Vector3(-1.38, 1.43, 0.72),
-        incense: new THREE.Vector3(-1.08, 1.315, 0.72),
-        incenseRotation: Math.PI / 2,
-        handArcHeight: 0,
-        incenseArcHeight: 0,
-      },
-      {
-        time: 1.05,
-        hand: new THREE.Vector3(-1.38, 1.62, 0.72),
-        incense: new THREE.Vector3(-1.08, 1.48, 0.72),
-        incenseRotation: 0,
-        handArcHeight: 0,
-        incenseArcHeight: 0,
-      },
-      {
-        time: 2.25,
-        hand: new THREE.Vector3(-1.38, 1.62, 0.72),
-        incense: new THREE.Vector3(-1.08, 1.48, 0.72),
-        incenseRotation: 0,
-        handArcHeight: 0,
-        incenseArcHeight: 0,
-      },
-      {
-        time: 3.0,
-        hand: new THREE.Vector3(-0.3, 1.55, 0.36),
-        incense: new THREE.Vector3(0, 1.517, 0.22),
-        incenseRotation: 0,
-        handArcHeight: 0.4,
-        incenseArcHeight: 0.34,
-      },
-      {
-        time: 3.3,
-        hand: new THREE.Vector3(-0.3, 1.55, 0.36),
-        incense: new THREE.Vector3(0, 1.517, 0.22),
-        incenseRotation: 0,
-        handArcHeight: 0,
-        incenseArcHeight: 0,
-      },
-      {
-        time: 3.65,
-        hand: new THREE.Vector3(-0.92, 1.72, 0.72),
-        incense: new THREE.Vector3(0, 1.517, 0.22),
-        incenseRotation: 0,
-        handArcHeight: 0,
-        incenseArcHeight: 0,
-      },
-      {
-        time: 4.4,
-        hand: new THREE.Vector3(-3.2, 1.92, 0.92),
-        incense: new THREE.Vector3(0, 1.517, 0.22),
-        incenseRotation: 0,
-        handArcHeight: 0,
-        incenseArcHeight: 0,
-      },
-    ];
-
-    const lighterKeyframes = [
-      {
-        time: 0,
-        position: new THREE.Vector3(3.2, 1.55, 0.55),
-        arcHeight: 0,
-      },
-      {
-        time: 0.82,
-        position: new THREE.Vector3(3.2, 1.55, 0.55),
-        arcHeight: 0,
-      },
-      {
-        time: 1.35,
-        position: new THREE.Vector3(-0.76, 1.72, 0.55),
-        arcHeight: 0.3,
-      },
-      {
-        time: 1.9,
-        position: new THREE.Vector3(-0.76, 1.72, 0.55),
-        arcHeight: 0,
-      },
-      {
-        time: 2.25,
-        position: new THREE.Vector3(0.5, 1.92, 0.5),
-        arcHeight: 0.12,
-      },
-      {
-        time: 2.55,
-        position: new THREE.Vector3(3.2, 1.55, 0.55),
-        arcHeight: 0,
-      },
-    ];
-
-    const ritualPickupTime = 0.75;
-    const lighterFlameStart = 1.35;
-    const lighterFlameEnd = 1.95;
-    const ritualIgnitionTime = 1.5;
-    const ritualPlantTime = 3.0;
-    const ritualDuration = 4.4;
+    const ritualDuration = 2.4; // 2.4s hạ cắm êm đềm vào bát hương
 
     const updateSmoke = () => {
+      // Khi 3 nén nhang đang hạ xuống, gốc khói sẽ bám theo cao độ của đầu nhang
+      const currentOffsetY = plantedIncense.position.y;
+
       for (const particle of smokeParticles) {
-        const progress = (particle.phase + smokeTime * 0.15) % 1;
-        const drift = Math.sin(progress * Math.PI * 2 + particle.originX);
+        const progress = (particle.phase + smokeTime * particle.speed) % 1;
 
         particle.sprite.visible = isLit;
+        if (!isLit) {
+          particle.material.opacity = 0;
+          continue;
+        }
+
+        // Dòng khói uốn lượn tự nhiên theo hình sóng mềm mại
+        const driftX =
+          Math.sin(progress * Math.PI * 3.2 + particle.seed) * progress * 0.14 +
+          Math.sin(smokeTime * 0.7 + particle.seed) * 0.02;
+        const driftZ =
+          Math.cos(progress * Math.PI * 2.8 + particle.seed * 1.2) * progress * 0.08;
+
+        const currentY = particle.topY + currentOffsetY + progress * 1.35;
 
         particle.sprite.position.set(
-          particle.originX + drift * progress * 0.14,
-          2.48 + progress * 0.95,
-          progress * 0.04,
+          particle.originX + driftX,
+          currentY,
+          particle.originZ + driftZ,
         );
 
-        const size = 0.07 + progress * 0.2;
-        particle.sprite.scale.set(size, size, 1);
+        // Kích thước khói: nhỏ gọn tại đốm tàn (0.05), cuộn mở mềm mại khi lên cao (0.33)
+        const size = 0.05 + Math.pow(progress, 0.7) * 0.28;
+        particle.sprite.scale.set(size, size * 1.15, 1);
 
-        particle.material.opacity = isLit
-          ? Math.sin(progress * Math.PI) * 0.18
-          : 0;
+        // Độ mờ: bừng sáng dần từ tàn nhang, duy trì dải lụa khói, rồi tan êm ở trên cao
+        const opacityEnvelope = Math.sin(Math.pow(progress, 0.55) * Math.PI);
+        particle.material.opacity = Math.max(0, opacityEnvelope * 0.55);
+        particle.material.rotation = particle.seed + smokeTime * 0.15;
       }
     };
 
@@ -2232,102 +2081,27 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       if (!isLighting || ritualStartedAt === null) return;
 
       const elapsed = (time - ritualStartedAt) / 1000;
-      const nextFrameIndex = ritualKeyframes.findIndex(
-        (frame, index) =>
-          index < ritualKeyframes.length - 1 &&
-          elapsed >= frame.time &&
-          elapsed <= ritualKeyframes[index + 1].time,
-      );
-      const frameIndex = Math.max(
-        0,
-        Math.min(nextFrameIndex, ritualKeyframes.length - 2),
-      );
-      const from = ritualKeyframes[frameIndex];
-      const to = ritualKeyframes[frameIndex + 1];
       const progress = THREE.MathUtils.clamp(
-        (elapsed - from.time) / (to.time - from.time),
+        elapsed / (ritualDuration * 0.88),
         0,
         1,
       );
-      const eased = progress * progress * (3 - 2 * progress);
 
-      handRoot.position.lerpVectors(from.hand, to.hand, eased);
-      handRoot.position.y += from.handArcHeight * Math.sin(eased * Math.PI);
-      heldIncense.position.lerpVectors(from.incense, to.incense, eased);
-      heldIncense.position.y +=
-        from.incenseArcHeight * Math.sin(eased * Math.PI);
-      heldIncense.rotation.x = THREE.MathUtils.lerp(
-        from.incenseRotation,
-        to.incenseRotation,
-        eased,
-      );
+      // Đường cong mượt mà ease-in-out
+      const eased =
+        progress < 0.5
+          ? 2 * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
 
-      const lighterNextFrameIndex = lighterKeyframes.findIndex(
-        (frame, index) =>
-          index < lighterKeyframes.length - 1 &&
-          elapsed >= frame.time &&
-          elapsed <= lighterKeyframes[index + 1].time,
-      );
-      if (lighterNextFrameIndex < 0) {
-        lighterHandRoot.position.copy(
-          lighterKeyframes[lighterKeyframes.length - 1].position,
-        );
-      } else {
-        const lighterFrom = lighterKeyframes[lighterNextFrameIndex];
-        const lighterTo = lighterKeyframes[lighterNextFrameIndex + 1];
-        const lighterProgress = THREE.MathUtils.clamp(
-          (elapsed - lighterFrom.time) /
-            (lighterTo.time - lighterFrom.time),
-          0,
-          1,
-        );
-        const lighterEased =
-          lighterProgress * lighterProgress * (3 - 2 * lighterProgress);
-        lighterHandRoot.position.lerpVectors(
-          lighterFrom.position,
-          lighterTo.position,
-          lighterEased,
-        );
-        lighterHandRoot.position.y +=
-          lighterFrom.arcHeight * Math.sin(lighterEased * Math.PI);
-      }
-      lighterHandRoot.visible = elapsed >= 0.82 && elapsed < 2.55;
-      const isLighterFlameOn =
-        elapsed >= lighterFlameStart && elapsed < lighterFlameEnd;
-      lighterFlame.visible = isLighterFlameOn;
-      lighterGlow.intensity = isLighterFlameOn
-        ? 1.1 + Math.sin(time * 0.06) * 0.18
-        : 0;
-      lighterFlame.scale.y = 0.94 + Math.sin(time * 0.08) * 0.12;
-      lighterFlame.rotation.z = Math.sin(time * 0.05) * 0.07;
+      // 3 nén nhang từ từ hạ từ trên cao (0.42m) cắm sâu vào lòng bát hương
+      plantedIncense.position.y = (1 - eased) * 0.42;
 
-      if (elapsed >= ritualPickupTime) {
-        for (const stick of sourceIncenseSticks.slice(3, 6)) {
-          stick.visible = false;
-        }
-      }
-      heldIncense.visible =
-        elapsed >= ritualPickupTime && elapsed < ritualPlantTime;
-
-      if (elapsed >= ritualIgnitionTime) {
-        for (const ember of heldEmbers) ember.visible = true;
-        emberMaterial.color.set("#ff9a50");
-        emberMaterial.emissiveIntensity = elapsed < ritualPlantTime ? 1.5 : 2;
-      }
-
-      if (elapsed >= ritualPlantTime && !isLit) {
-        heldIncense.visible = false;
-        plantedIncense.visible = true;
-        incenseLight.intensity = 4;
-        isLit = true;
-        smokeTime = 0;
-      }
+      // Đốm lửa tàn nhang phát sáng đỏ hồng ấm áp, đung đưa tự nhiên
+      emberMaterial.emissiveIntensity = 1.8 + Math.sin(time * 0.008) * 0.4;
+      incenseLight.intensity = 2.8 + Math.sin(time * 0.01) * 0.6;
 
       if (elapsed >= ritualDuration) {
-        handRoot.visible = false;
-        lighterHandRoot.visible = false;
-        lighterFlame.visible = false;
-        lighterGlow.intensity = 0;
+        plantedIncense.position.y = 0;
         isLighting = false;
         ritualStartedAt = null;
         fireworkStartedAt = time;
@@ -2340,18 +2114,11 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     const finishRitualImmediately = () => {
       if (!isLighting) return;
 
-      for (const stick of sourceIncenseSticks.slice(3, 6)) {
-        stick.visible = false;
-      }
-      heldIncense.visible = false;
-      handRoot.visible = false;
-      lighterHandRoot.visible = false;
-      lighterFlame.visible = false;
-      lighterGlow.intensity = 0;
       plantedIncense.visible = true;
+      plantedIncense.position.y = 0;
       emberMaterial.color.set("#ff9a50");
-      emberMaterial.emissiveIntensity = 2;
-      incenseLight.intensity = 4;
+      emberMaterial.emissiveIntensity = 2.0;
+      incenseLight.intensity = 3.5;
       isLit = true;
       isLighting = false;
       ritualStartedAt = null;
@@ -2480,16 +2247,18 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       light: (onComplete) => {
         if (isLit || isLighting) return;
 
+        playIncenseBellSound();
+
         isLighting = true;
         ritualStartedAt = performance.now();
         onRitualComplete = onComplete;
-        handRoot.visible = true;
-        heldIncense.visible = false;
-        plantedIncense.visible = false;
-        for (const ember of heldEmbers) ember.visible = false;
-        emberMaterial.color.set("#55403a");
-        emberMaterial.emissiveIntensity = 0;
-        incenseLight.intensity = 0;
+        plantedIncense.visible = true;
+        plantedIncense.position.y = 0.42;
+        emberMaterial.color.set("#ff9a50");
+        emberMaterial.emissiveIntensity = 2.0;
+        incenseLight.intensity = 2.5;
+        isLit = true;
+        smokeTime = 0;
 
         syncSmokeAnimation();
       },
@@ -2647,15 +2416,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         burst.points.material.dispose();
       }
 
-      scene.remove(sourceIncense, heldIncense, handRoot, lighterHandRoot);
-      handSpriteGeometry.dispose();
-      handSpriteMaterial.dispose();
-      handTexture.dispose();
-      lighterHandGeometry.dispose();
-      lighterHandMaterial.dispose();
-      lighterHandTexture.dispose();
-      lighterFlameOuterMaterial.dispose();
-      lighterFlameInnerMaterial.dispose();
+      scene.remove(sourceIncense);
 
       smokeTexture.dispose();
       sparkleTexture.dispose();

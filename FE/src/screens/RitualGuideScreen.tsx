@@ -46,7 +46,7 @@ function RitualCardImage({ image, title, approvedByContent }: { image: string; t
         decoding="async"
         approvedByContent={approvedByContent}
         onLoadError={() => setFailed(true)}
-        className="h-full w-full object-cover object-[center_30%]"
+        className="h-full w-full object-cover object-[center_35%] transition-transform duration-500 group-hover:scale-105"
       />
     </div>
   );
@@ -66,7 +66,7 @@ export const RitualGuideScreen: React.FC<
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOccasion, setSelectedOccasion] = useState<RitualOccasionKey>("all");
   const [selectedRegion, setSelectedRegion] = useState<RitualRegionKey>("all");
-  const [visibleCount, setVisibleCount] = useState(4);
+  const [visibleCount, setVisibleCount] = useState(6);
   const [rituals, setRituals] = useState<RitualGuideItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -160,7 +160,7 @@ export const RitualGuideScreen: React.FC<
     setSearchQuery("");
     setSelectedOccasion("all");
     setSelectedRegion("all");
-    setVisibleCount(4);
+    setVisibleCount(6);
   };
 
   return (
@@ -192,9 +192,8 @@ export const RitualGuideScreen: React.FC<
           </div>
         </div>
 
-
         {/* Header Title Section */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent mb-2">
             <BookOpen className="w-4 h-4" />
             <span>TÌM HIỂU & CHUẨN BỊ</span>
@@ -205,10 +204,28 @@ export const RitualGuideScreen: React.FC<
           </h1>
           <p className="max-w-3xl text-sm leading-relaxed text-muted sm:text-base">
             Tìm hướng dẫn theo dịp và vùng miền.
-            Tham khảo cách chuẩn bị, rồi điều chỉnh theo
-            nếp nhà và điều kiện của bạn.
+            Tham khảo cách chuẩn bị chu đáo, rồi linh hoạt điều chỉnh theo
+            nếp nhà và điều kiện thực tế của bạn.
           </p>
         </div>
+
+        {/* Philosophy Pledge Banner */}
+        <Card className="p-4 sm:p-5 rounded-2xl bg-surface/80 border border-line mb-8 shadow-xs">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-accent-soft border border-accent/20 flex items-center justify-center text-accent shrink-0">
+              <Flower2 className="w-5 h-5 text-accent" />
+            </div>
+            <div>
+              <div className="text-xs font-bold uppercase tracking-wider text-accent mb-1 flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4" />
+                <span>NGUYÊN TẮC TÙY DUYÊN & TÂM THÀNH LÀM TRỌNG</span>
+              </div>
+              <p className="text-xs sm:text-sm text-ink/85 leading-relaxed max-w-3xl">
+                Phong tục có thể khác nhau giữa các vùng và nếp nhà. Các hướng dẫn dưới đây là gợi ý tham khảo; bạn có thể linh hoạt điều chỉnh theo hoàn cảnh và điều kiện thực tế của gia đình.
+              </p>
+            </div>
+          </div>
+        </Card>
 
         {/* Search & Filter Toolbar */}
         <div className="py-6 border-y border-line mb-10 space-y-5">
@@ -221,7 +238,7 @@ export const RitualGuideScreen: React.FC<
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setVisibleCount(4);
+                setVisibleCount(6);
               }}
               placeholder="Tìm nghi lễ, ngày rằm, mùng một, giỗ..."
               className="w-full pl-11 pr-4 py-3 rounded-panel bg-surface border border-line text-base text-ink placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all"
@@ -243,7 +260,7 @@ export const RitualGuideScreen: React.FC<
                   aria-pressed={isActive}
                   onClick={() => {
                     setSelectedOccasion(occ.key);
-                    setVisibleCount(4);
+                    setVisibleCount(6);
                   }}
                   className={`min-h-11 px-3 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${
                     isActive
@@ -272,7 +289,7 @@ export const RitualGuideScreen: React.FC<
                   aria-pressed={isActive}
                   onClick={() => {
                     setSelectedRegion(reg.key);
-                    setVisibleCount(4);
+                    setVisibleCount(6);
                   }}
                   className={`min-h-11 px-3 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${
                     isActive
@@ -332,27 +349,27 @@ export const RitualGuideScreen: React.FC<
                 return (
                   <Card
                     key={item.id}
-                    className={`flex flex-col overflow-hidden rounded-panel ${
+                    className={`group flex flex-col overflow-hidden rounded-2xl border transition-all duration-300 bg-surface hover:shadow-md ${
                       isHighlight
-                        ? "border-accent/40"
-                        : "border-line"
+                        ? "border-accent/60 ring-1 ring-accent/20"
+                        : "border-line hover:border-accent/40"
                     }`}
                   >
                     <div className="flex items-start gap-4 p-4 md:block md:p-0">
                       <RitualCardImage image={item.image} title={item.title} approvedByContent={item.imageApproved === true} />
 
                       <div className="min-w-0 flex-1 md:p-5">
-                        <p className="mb-1.5 text-xs font-medium text-accent">
-                          {item.occasion}
-                          <span aria-hidden="true"> · </span>
-                          {item.region}
+                        <p className="mb-1.5 text-xs font-semibold text-accent flex items-center gap-1.5">
+                          <span>{item.occasion}</span>
+                          <span aria-hidden="true" className="text-muted">·</span>
+                          <span>{item.region}</span>
                         </p>
 
-                        <h2 className="mb-2 font-display text-base font-bold leading-snug text-ink md:text-xl">
+                        <h2 className="mb-2 font-display text-base font-bold leading-snug text-ink group-hover:text-accent transition-colors md:text-xl">
                           <a
                             href={href}
                             onClick={handleOpen}
-                            className="rounded-sm hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                            className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                           >
                             {item.title}
                           </a>
@@ -364,7 +381,7 @@ export const RitualGuideScreen: React.FC<
                       </div>
                     </div>
 
-                    <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-2 md:px-5">
+                    <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-2.5 md:px-5">
                       <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
                         <span>{item.stepsCount}</span>
                         {item.timeEstimate && <><span aria-hidden="true">·</span><span>{item.timeEstimate}</span></>}
@@ -374,11 +391,11 @@ export const RitualGuideScreen: React.FC<
                         href={href}
                         onClick={handleOpen}
                         aria-label={`Xem hướng dẫn: ${item.title}`}
-                        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-accent hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                        className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-accent hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                       >
-                        Xem hướng dẫn
+                        <span>Xem hướng dẫn</span>
                         <ArrowRight
-                          className="h-4 w-4"
+                          className="h-4 w-4 transition-transform group-hover:translate-x-1"
                           aria-hidden="true"
                         />
                       </a>
@@ -399,20 +416,20 @@ export const RitualGuideScreen: React.FC<
                 {filteredItems.length} hướng dẫn.
               </p>
 
-              {filteredItems.length > 4 && (
+              {filteredItems.length > 6 && (
                 <Button
                   type="button"
                   variant="outline"
                   disabled={!hasMoreItems}
                   aria-controls="ritual-guide-list"
                   onClick={() =>
-                    setVisibleCount((count) => count + 4)
+                    setVisibleCount((count) => count + 6)
                   }
-                  className="min-h-11 w-full sm:w-auto"
+                  className="min-h-11 w-full sm:w-auto cursor-pointer"
                 >
                   {hasMoreItems
                     ? `Xem thêm ${Math.min(
-                        4,
+                        6,
                         filteredItems.length -
                           visibleItems.length
                       )} hướng dẫn`
@@ -468,35 +485,6 @@ export const RitualGuideScreen: React.FC<
             )}
           </div>
         )}
-
-        {/* Philosophy Pledge Banner */}
-        <Card className="p-6 sm:p-7 rounded-card bg-surface/70 border border-line mb-12 shadow-2xs">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-panel bg-surface border border-line flex items-center justify-center text-accent shrink-0 mt-0.5">
-                <Flower2 className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="text-xs font-bold uppercase tracking-wider text-accent mb-1.5 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>NGUYÊN TẮC TÙY DUYÊN & TÂM THÀNH LÀM TRỌNG</span>
-                </div>
-                <p className="text-sm text-ink leading-relaxed max-w-3xl">
-                  Phong tục có thể khác nhau giữa các vùng và gia đình.
-                  Các hướng dẫn dưới đây là gợi ý tham khảo; bạn có thể
-                  điều chỉnh theo nếp nhà và điều kiện thực tế.
-                </p>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Classical Bottom Quote */}
-        <div className="text-center pt-6 border-t border-line">
-          <div className="text-xs uppercase tracking-widest text-muted font-medium">
-            © {new Date().getFullYear()} Tin Lắm Tâm Linh • Chiêm nghiệm dân gian đương đại
-          </div>
-        </div>
       </main>
     </div>
   );

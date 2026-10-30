@@ -44,7 +44,7 @@ function makeDemoSignal(mood: MoodKey, contextKey: MoodContextKey, suffix = "pre
   signal.research = {
     title: "Gợi ý thực hành chăm sóc tinh thần",
     source: "WHO · Doing What Matters in Times of Stress",
-    region: "Hướng dẫn toàn cầu",
+    region: "Chiêm nghiệm chung",
     note: "Thực hành ngắn để chú ý đến hiện tại; không phải chẩn đoán hay thay thế hỗ trợ chuyên môn.",
   };
   return signal;

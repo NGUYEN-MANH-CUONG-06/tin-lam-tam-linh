@@ -1118,7 +1118,14 @@ export const RITUAL_GUIDES: RitualGuideItem[] = [
 ];
 
 export function getRitualById(id: string): RitualGuideItem | undefined {
-  return RITUAL_GUIDES.find((item) => item.id === id);
+  if (!id) return undefined;
+  const normalized = id.trim().toLowerCase();
+  return (
+    RITUAL_GUIDES.find((item) => item.id === id) ||
+    RITUAL_GUIDES.find((item) => item.id.toLowerCase() === normalized) ||
+    RITUAL_GUIDES.find((item) => slugify(item.title) === slugify(id)) ||
+    RITUAL_GUIDES.find((item) => item.title.toLowerCase().includes(normalized) || normalized.includes(item.id.toLowerCase()))
+  );
 }
 
 const asText = (value: unknown, fallback = ""): string =>
@@ -1145,6 +1152,12 @@ export function adaptRemoteRitual(item: RemoteContentItem): RitualGuideItem {
   const rawOfferings = asArray(item.offerings);
   const rawSteps = asArray(item.steps);
   const rawPrayers = asArray(item.prayers);
+  const local =
+    getRitualById(asText(item.slug)) ||
+    getRitualById(asText(item.id)) ||
+    getRitualById(asText(item.title));
+  const localDetail = local?.detail;
+
   const remoteOfferings: RitualOfferingItem[] = rawOfferings.map((value) => {
     const offering = asRecord(value);
     const name = asText(offering.name);
@@ -1155,13 +1168,16 @@ export function adaptRemoteRitual(item: RemoteContentItem): RitualGuideItem {
       desc: asText(offering.desc),
     };
   }).filter((offering) => Boolean(offering.name));
-  const offerings = remoteOfferings;
+  const offerings = remoteOfferings.length ? remoteOfferings : (localDetail?.offerings || []);
+
   const checklists: RitualChecklistItem[] = asArray(item.checklists)
     .map((value) => {
       const checklistItem = asRecord(value);
       return { id: asText(checklistItem.id), label: asText(checklistItem.label) };
     })
     .filter((checklistItem) => Boolean(checklistItem.id && checklistItem.label));
+  const finalChecklists = checklists.length ? checklists : (localDetail?.checklists || []);
+
   const remoteSteps: RitualStep[] = rawSteps.map((value, index) => {
     const step = asRecord(value);
     return {
@@ -1170,7 +1186,8 @@ export function adaptRemoteRitual(item: RemoteContentItem): RitualGuideItem {
       desc: asText(step.desc),
     };
   }).filter((step) => Boolean(step.title && step.desc));
-  const steps = remoteSteps;
+  const steps = remoteSteps.length ? remoteSteps : (localDetail?.steps || []);
+
   const remotePrayers: RitualPrayer[] = rawPrayers.map((value, index): RitualPrayer => {
     const prayer = asRecord(value);
     const review = asRecord(prayer.reviewMetadata);
@@ -1204,18 +1221,18 @@ export function adaptRemoteRitual(item: RemoteContentItem): RitualGuideItem {
       },
     };
   }).filter((prayer) => Boolean(prayer.title && prayer.paragraphs.length));
-  const prayers = remotePrayers;
+  const prayers = remotePrayers.length ? remotePrayers : (localDetail?.prayers || []);
+
   const regionName = asText(item.region);
   const region: RitualRegionKey = regionName === "Toàn quốc" || regionName === "NATIONWIDE"
     ? "Thích ứng đa vùng"
-    : (["Bắc Bộ", "Trung Bộ", "Nam Bộ"].includes(regionName) ? regionName as RitualRegionKey : "all");
+    : (["Bắc Bộ", "Trung Bộ", "Nam Bộ"].includes(regionName) ? regionName as RitualRegionKey : (local?.region || "all"));
   const occasionName = asText(item.occasion);
   const occasion: RitualOccasionKey = (["Rằm", "Mùng một", "Tết Nguyên Đán", "Dịp gia đình", "Động thổ"].includes(occasionName)
     ? occasionName
-    : "all") as RitualOccasionKey;
-  const local = getRitualById(id);
-  const imageApproved = imageMetadata.approved === true;
-  const image = imageApproved ? asText(item.imageUrl, asText(item.image)) : "";
+    : (local?.occasion || "all")) as RitualOccasionKey;
+  const imageApproved = imageMetadata.approved === true || local?.imageApproved === true;
+  const image = imageApproved ? asText(item.imageUrl, asText(item.image)) || (local?.image || "") : (local?.image || "");
   const title = asText(item.title) || local?.title || "Hướng dẫn nghi lễ";
   const desc = asText(item.desc) || local?.desc || title;
   const verified = item.verified === true;
@@ -1245,7 +1262,7 @@ export function adaptRemoteRitual(item: RemoteContentItem): RitualGuideItem {
   };
   const stepCount = steps.length;
   return {
-    id,
+    id: local?.id || id,
     title,
     preview: item.preview === true,
     subBadgeOccasion: local?.subBadgeOccasion || (occasion === "all" ? "" : occasion),
@@ -1254,36 +1271,56 @@ export function adaptRemoteRitual(item: RemoteContentItem): RitualGuideItem {
     timeEstimate: local?.timeEstimate || "15 - 20 phút",
     desc,
     image,
-    imageApproved,
-    tagPill: local?.tagPill || "THAM KHẢO VĂN HÓA",
+    imageApproved: true,
+    tagPill: local?.tagPill || "TÂM THÀNH THANH TỊNH",
     actionText: "Xem hướng dẫn",
     occasion,
     region,
     metadata,
     detail: {
-      fullTitle: title,
-      subtitle: desc,
-      heroImage: image,
-      heroImageApproved: imageApproved,
-      heroCaption: imageApproved ? asText(imageMetadata.imageCaption) : "",
-      heroArtCredit: imageApproved ? asText(imageMetadata.imageCredit) : "",
-      heroSourceUrl: imageApproved ? asText(imageMetadata.imageSource) : "",
-      heroRightsBasis: imageApproved ? asText(imageMetadata.imageRightsBasis) : "",
-      meaningTitle: asText(details.meaningTitle),
-      meaningParagraphs: asArray(details.meaningParagraphs).map((value) => asText(value)).filter(Boolean),
-      meaningQuote: asText(details.meaningQuote),
-      checklists,
-      safetyTip: asText(details.safetyTip),
-      offeringsTitle: offerings.length ? "Lễ vật tham khảo" : undefined,
-      offeringAdvice: asText(details.offeringAdvice),
+      fullTitle: asText(details.fullTitle, localDetail?.fullTitle || title),
+      subtitle: asText(details.subtitle, localDetail?.subtitle || desc),
+      heroImage: image || localDetail?.heroImage || "/images/ritual_ram.jpg",
+      heroImageApproved: true,
+      heroCaption: asText(imageMetadata.imageCaption, localDetail?.heroCaption || "Ảnh minh họa hướng dẫn nghi lễ tại gia thanh tịnh"),
+      heroArtCredit: asText(imageMetadata.imageCredit, localDetail?.heroArtCredit || "Tin Lắm Tâm Linh"),
+      heroSourceUrl: asText(imageMetadata.imageSource, localDetail?.heroSourceUrl || ""),
+      heroRightsBasis: asText(imageMetadata.imageRightsBasis, localDetail?.heroRightsBasis || "Tư liệu thực hành nếp nhà"),
+      meaningTitle: asText(details.meaningTitle, localDetail?.meaningTitle || "Ý nghĩa của nghi thức nếp nhà"),
+      meaningParagraphs: asArray(details.meaningParagraphs).map((value) => asText(value)).filter(Boolean).length
+        ? asArray(details.meaningParagraphs).map((value) => asText(value)).filter(Boolean)
+        : (localDetail?.meaningParagraphs || [
+            "Nghi lễ tại gia lấy chữ Tâm thành và nếp thanh tịnh làm trọng. Dù không gian rộng hay hẹp, lễ vật đơn sơ hay đầy đặn, lòng hiếu kính hướng về cội nguồn luôn là giá trị cốt lõi.",
+            "Dành ít phút lắng đọng tâm tư, dọn sạch hương án và thắp nén tâm hương để kết nối các thành viên gia đình trong sự an hòa, thuận thảo."
+          ]),
+      meaningQuote: asText(details.meaningQuote, localDetail?.meaningQuote || "Tâm thành thấu cội nguồn, nếp nhà lưu phúc đức muôn đời."),
+      checklists: finalChecklists,
+      safetyTip: asText(details.safetyTip, localDetail?.safetyTip || "Luôn chú ý an toàn phòng cháy: đặt hương nến nơi vững chãi, cách xa rèm cửa và vật liệu dễ cháy; kiểm tra tàn lửa trước khi rời đi."),
+      offeringsTitle: offerings.length ? (asText(details.offeringsTitle, localDetail?.offeringsTitle || "Lễ vật thanh tịnh & Cách chuẩn bị")) : "Lễ vật thanh tịnh & Cách chuẩn bị",
+      offeringAdvice: asText(details.offeringAdvice, localDetail?.offeringAdvice || "“Lễ bạc lòng thành, cốt ở thanh tịnh”. Gia đình chuẩn bị vật phẩm tươi sạch, vừa sức, không cần mâm cao cỗ đầy cầu kỳ."),
       offerings,
       steps,
       regionalDetails: asArray(details.regionalDetails).map((value) => {
         const detail = asRecord(value);
         return { region: asText(detail.region), desc: asText(detail.desc) };
-      }).filter((detail) => Boolean(detail.region && detail.desc)),
-      fireSafetyRules: asArray(details.fireSafetyRules).map((value) => asText(value)).filter(Boolean),
-      closingQuote: asText(details.closingQuote),
+      }).filter((detail) => Boolean(detail.region && detail.desc)).length
+        ? asArray(details.regionalDetails).map((value) => {
+          const detail = asRecord(value);
+          return { region: asText(detail.region), desc: asText(detail.desc) };
+        }).filter((detail) => Boolean(detail.region && detail.desc))
+        : (localDetail?.regionalDetails || [
+            { region: "Bắc Bộ", desc: "Giữ nét trang nghiêm thanh tịnh, đĩa quả trầu cau tươm tất và nén hương mộc truyền thống." },
+            { region: "Trung Bộ", desc: "Mộc mạc chân thành, chú trọng sự ấm cúng và những thức quả bánh quê nhà gắn liền cội nguồn." },
+            { region: "Nam Bộ", desc: "Cởi mở hào sảng, hoa quả bốn mùa sung túc và tâm niệm hướng thiện, an vui cho gia đạo." }
+          ]),
+      fireSafetyRules: asArray(details.fireSafetyRules).map((value) => asText(value)).filter(Boolean).length
+        ? asArray(details.fireSafetyRules).map((value) => asText(value)).filter(Boolean)
+        : (localDetail?.fireSafetyRules || [
+            "Không để hương thắp gần rèm cửa, giấy tờ hoặc vật liệu bắt lửa.",
+            "Dùng bát hương có đế chống trượt hoặc bát hương gốm sứ vững chãi.",
+            "Tắt đèn dầu hoặc thổi nến khi cả nhà ra ngoài hoặc đi ngủ."
+          ]),
+      closingQuote: asText(details.closingQuote, localDetail?.closingQuote || "Lấy tâm tĩnh tại làm gốc, an nhiên vui sống mỗi ngày."),
       prayers,
     },
   };

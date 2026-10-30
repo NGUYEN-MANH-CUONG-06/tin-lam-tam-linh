@@ -1,12 +1,9 @@
-import { toast } from "../components/ui/Toast";
 import { UnverifiedImage } from "../components/UnverifiedImage";
 import React, { useState, useEffect, useMemo } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   Check,
-  Share2,
-  Printer,
   Bookmark,
   ShieldCheck,
   Clock,
@@ -17,9 +14,6 @@ import {
   Flame,
   CheckCircle2,
   RotateCcw,
-  Landmark,
-  Compass,
-  Calendar,
   Waves,
   Heart,
   Volume2,
@@ -58,8 +52,6 @@ interface RitualDetailScreenProps {
 interface RitualDetailLoaderProps extends RitualDetailScreenProps {
   ritual: RitualGuideItem;
 }
-
-type TextSize = "normal" | "medium" | "large";
 
 const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
   ritualId = "chuan-bi-ngay-ram",
@@ -104,8 +96,6 @@ const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
   );
 
   const [readingProgress, setReadingProgress] = useState(0);
-  const [textSize, setTextSize] = useState<TextSize>("normal");
-  const [copiedLink, setCopiedLink] = useState(false);
   const [ritualSaveError, setRitualSaveError] = useState("");
   const [heroImageError, setHeroImageError] = useState(false);
 
@@ -201,125 +191,6 @@ const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
     }
   };
 
-  const handleShare = async () => {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(window.location.href);
-      }
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2500);
-    } catch {
-      toast.info("Bạn có thể sao chép liên kết từ thanh địa chỉ trình duyệt.", "Chia sẻ");
-    }
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const textSizeClass = useMemo(() => {
-    switch (textSize) {
-      case "medium":
-        return "text-[18px] sm:text-[19px] leading-[2.0]";
-      case "large":
-        return "text-[20px] sm:text-[21px] leading-[2.1]";
-      default:
-        return "text-[16px] sm:text-[17px] leading-[1.85]";
-    }
-  }, [textSize]);
-
-  // Contextual Bridge: Thẻ hành động chuyển tiếp thông minh theo từng nghi lễ
-  const contextBridge = useMemo(() => {
-    if (
-      ritual.id === "chuan-bi-ngay-ram" ||
-      ritual.id === "mung-mot-thanh-tinh" ||
-      ritual.id === "tuong-nho-gia-dinh"
-    ) {
-      return {
-        tag: "KHÔNG GIAN TÂM LINH 3D",
-        title: "Bước vào Không gian Bàn thờ Gia Tiên 3D & Thắp nén tâm hương",
-        desc: "Dâng nén hương mộc thanh tịnh, nghe chuông gió ngân nga và cảm nhận sự an trú thiêng liêng ngay tại màn hình của bạn.",
-        actionLabel: "Khám phá Bàn thờ 3D",
-        icon: <Sparkles className="w-5 h-5 text-amber-500" />,
-        badgeStyle: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
-        btnStyle: "bg-amber-600 hover:bg-amber-700 text-white",
-        action: () => {
-          if (onGoToAncestorAltar) onGoToAncestorAltar();
-          else if (onGoToExperience) onGoToExperience();
-        },
-      };
-    }
-
-    if (ritual.id === "cung-gio-mien-nam") {
-      return {
-        tag: "KHÔNG GIAN THỰC TẾ ẢO NAM BỘ",
-        title: "Bước vào Không gian 3D Sông nước Nam Bộ & Thả hoa đăng",
-        desc: "Lắng nghe điệu đờn ca tài tử bảng lảng trên bến sông, thả hoa đăng trôi theo dòng phù sa và nguyện ước bình an cho tổ tiên.",
-        actionLabel: "Khám phá không gian Nam Bộ 3D",
-        icon: <Compass className="w-5 h-5 text-emerald-500" />,
-        badgeStyle: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-        btnStyle: "bg-emerald-600 hover:bg-emerald-700 text-white",
-        action: () => {
-          if (onGoToRegionalExperience) onGoToRegionalExperience("southern-culture");
-          else if (onGoToExperience) onGoToExperience();
-        },
-      };
-    }
-
-    if (ritual.id === "phong-tuc-dau-nam") {
-      return {
-        tag: "KHÔNG GIAN TẾT CỔ TRUYỀN BẮC BỘ",
-        title: "Bước vào Không gian 3D Đình làng & Tết cổ truyền xứ Bắc",
-        desc: "Chiêm ngưỡng kiến trúc đình làng Đại Bái mùa lễ hội, tiếng đàn nguyệt réo rắt và bầu không khí hân hoan đón xuân.",
-        actionLabel: "Khám phá không gian Bắc Bộ 3D",
-        icon: <Landmark className="w-5 h-5 text-amber-600" />,
-        badgeStyle: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
-        btnStyle: "bg-amber-700 hover:bg-amber-800 text-white",
-        action: () => {
-          if (onGoToRegionalExperience) onGoToRegionalExperience("chau-van");
-          else if (onGoToExperience) onGoToExperience();
-        },
-      };
-    }
-
-    if (ritual.id === "chuan-bi-dong-tho" || ritual.id === "ta-on-nha-moi") {
-      return {
-        tag: "TRA CỨU NGÀY LÀNH & CÁT KHÁNH",
-        title: "Tra cứu Ngày lành tháng tốt & Giờ hoàng đạo khởi sự",
-        desc: "Xem lịch vạn niên âm dương, trực ngày, sao cát tường và giờ hoàng đạo hợp tuổi gia chủ để tiến hành đại sự vẹn toàn.",
-        actionLabel: "Tra cứu Ngày lành",
-        icon: <Calendar className="w-5 h-5 text-amber-600" />,
-        badgeStyle: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
-        btnStyle: "bg-amber-600 hover:bg-amber-700 text-white",
-        action: () => {
-          if (onGoToGoodDay) onGoToGoodDay();
-          else if (onGoToExperience) onGoToExperience();
-        },
-      };
-    }
-
-    return {
-      tag: "KHOẢNG LẶNG TĨNH TÂM",
-      title: "Ghé thăm Góc Thiền định & Lắng đọng tâm tư",
-      desc: "Dành vài phút buông bỏ mọi bộn bề, lắng nghe tiếng chuông xoay Tây Tạng và tìm lại sự bình yên nội tại.",
-      actionLabel: "Ghé thăm góc tĩnh tâm",
-      icon: <Sparkles className="w-5 h-5 text-accent" />,
-      badgeStyle: "bg-accent/10 text-accent border-accent/30",
-      btnStyle: "bg-accent hover:bg-accent/90 text-white",
-      action: () => {
-        if (onGoToZen) onGoToZen();
-        else if (onGoToExperience) onGoToExperience();
-      },
-    };
-  }, [
-    ritual.id,
-    onGoToAncestorAltar,
-    onGoToRegionalExperience,
-    onGoToGoodDay,
-    onGoToZen,
-    onGoToExperience,
-  ]);
-
   const relatedRituals: RitualGuideItem[] = [];
 
   return (
@@ -341,7 +212,7 @@ const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
           </p>
         )}
 
-        {/* Top Breadcrumb & Reading Accessibility Toolbar */}
+        {/* Top Breadcrumb & Reading Actions */}
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted mb-6 pb-3 border-b border-line/40">
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -366,59 +237,8 @@ const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
             </span>
           </div>
 
-          {/* Reading Accessibility Toolbar */}
+          {/* Reading Actions */}
           <div className="flex items-center gap-2">
-            {/* Font Size Adjuster */}
-            <div className="flex items-center bg-surface border border-line rounded-lg p-0.5 text-xs">
-              <button
-                type="button"
-                title="Cỡ chữ chuẩn"
-                onClick={() => setTextSize("normal")}
-                className={`px-2 py-1 rounded transition-colors cursor-pointer ${
-                  textSize === "normal"
-                    ? "bg-accent/15 text-accent font-bold"
-                    : "text-muted hover:text-ink"
-                }`}
-              >
-                A
-              </button>
-              <button
-                type="button"
-                title="Cỡ chữ vừa"
-                onClick={() => setTextSize("medium")}
-                className={`px-2 py-1 rounded transition-colors cursor-pointer ${
-                  textSize === "medium"
-                    ? "bg-accent/15 text-accent font-bold"
-                    : "text-muted hover:text-ink"
-                }`}
-              >
-                A+
-              </button>
-              <button
-                type="button"
-                title="Cỡ chữ lớn"
-                onClick={() => setTextSize("large")}
-                className={`px-2 py-1 rounded transition-colors cursor-pointer ${
-                  textSize === "large"
-                    ? "bg-accent/15 text-accent font-bold"
-                    : "text-muted hover:text-ink"
-                }`}
-              >
-                A++
-              </button>
-            </div>
-
-            {/* Print Button */}
-            <button
-              type="button"
-              onClick={handlePrint}
-              title="In hướng dẫn nghi lễ"
-              className="p-1.5 rounded-lg border border-line bg-surface hover:border-accent hover:text-accent transition-colors flex items-center gap-1 text-xs text-muted cursor-pointer"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">In</span>
-            </button>
-
             {/* Bookmark Button */}
             <button
               type="button"
@@ -438,25 +258,6 @@ const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
               </span>
             </button>
 
-            {/* Share / Copy Link */}
-            <button
-              type="button"
-              onClick={handleShare}
-              title="Sao chép liên kết chia sẻ"
-              className="p-1.5 rounded-lg border border-line bg-surface hover:border-accent hover:text-accent transition-colors flex items-center gap-1 text-xs text-muted cursor-pointer"
-            >
-              {copiedLink ? (
-                <>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                  <span className="text-emerald-600 font-semibold">Đã chép</span>
-                </>
-              ) : (
-                <>
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Chia sẻ</span>
-                </>
-              )}
-            </button>
           </div>
         </div>
 
@@ -533,9 +334,9 @@ const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
                 </h2>
               </div>
 
-              <div className={`space-y-4 text-ink ${textSizeClass}`}>
+              <div className="space-y-4 text-ink text-[16px] sm:text-[17px] leading-[1.85]">
                 {detail.meaningParagraphs.length === 0 && (
-                  <p className="text-sm text-muted" role="status">Chưa có nội dung ý nghĩa do BE cung cấp cho hướng dẫn này.</p>
+                  <p className="text-sm text-muted italic" role="status">Nội dung ý nghĩa đang được ban biên tập hoàn thiện và chuẩn hóa theo tư liệu nếp nhà.</p>
                 )}
                 {detail.meaningParagraphs.map((paragraph, index) => {
                   if (index === 0) {
@@ -613,7 +414,7 @@ const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
                     </div>
                   </div>
                 ))}
-                {detail.offerings.length === 0 && <p className="text-sm text-muted" role="status">Chưa có dữ liệu lễ vật do BE cung cấp.</p>}
+                {detail.offerings.length === 0 && <p className="text-sm text-muted italic" role="status">Lễ vật tùy duyên: gia đình chuẩn bị nước sạch tinh khiết, đĩa hoa quả tươi và nén hương mộc theo điều kiện thực tế.</p>}
               </div>
             </ScrollReveal>
 
@@ -640,7 +441,7 @@ const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
                         <h3 className="font-display font-bold text-base sm:text-lg text-ink mb-1.5">
                           {st.title}
                         </h3>
-                        <p className={`text-ink/85 leading-relaxed ${textSizeClass}`}>
+                        <p className="text-ink/85 leading-relaxed text-[16px] sm:text-[17px]">
                           {st.desc}
                         </p>
                       </div>
@@ -650,7 +451,7 @@ const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
                     </span>
                   </div>
                 ))}
-                {detail.steps.length === 0 && <p className="text-sm text-muted" role="status">Chưa có bước hướng dẫn do BE cung cấp.</p>}
+                {detail.steps.length === 0 && <p className="text-sm text-muted italic" role="status">Diễn trình các bước đang được cập nhật chi tiết theo từng nếp nhà.</p>}
               </div>
             </ScrollReveal>
 
@@ -727,38 +528,6 @@ const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
                 </div>
               </ScrollReveal>
             )}
-
-            {/* Section 08: Contextual Bridge Card */}
-            <ScrollReveal variant="scale">
-              <div className="p-6 sm:p-8 rounded-3xl border border-amber-500/30 bg-gradient-to-br from-amber-500/[0.08] via-surface to-surface shadow-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-2">
-                    <Badge
-                      variant="outline"
-                      className={`text-xs px-3 py-0.5 font-bold uppercase ${contextBridge.badgeStyle}`}
-                    >
-                      {contextBridge.tag}
-                    </Badge>
-                    <h3 className="font-display font-bold text-lg sm:text-xl text-ink">
-                      {contextBridge.title}
-                    </h3>
-                    <p className="text-sm text-muted max-w-xl leading-relaxed">
-                      {contextBridge.desc}
-                    </p>
-                  </div>
-                  <Button
-                    onClick={contextBridge.action}
-                    className={`shrink-0 font-semibold cursor-pointer shadow-sm min-h-11 px-5 ${contextBridge.btnStyle}`}
-                  >
-                    <span className="flex items-center gap-2">
-                      {contextBridge.icon}
-                      <span>{contextBridge.actionLabel}</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </span>
-                  </Button>
-                </div>
-              </div>
-            </ScrollReveal>
 
           </div>
 
@@ -948,13 +717,6 @@ const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
             ))}
           </div>
         </ScrollReveal>
-
-        {/* Footer */}
-        <div className="text-center pt-6 border-t border-line/50">
-          <div className="text-xs uppercase tracking-widest text-muted font-medium">
-            © {new Date().getFullYear()} Tin Lắm Tâm Linh • Chiêm nghiệm dân gian đương đại
-          </div>
-        </div>
       </main>
     </div>
   );

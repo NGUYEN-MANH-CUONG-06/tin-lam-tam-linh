@@ -121,7 +121,7 @@ const CrescentKeoPiece: React.FC<{
   return (
     <div className="flex flex-col items-center">
       <div
-        className={`relative w-44 sm:w-56 h-28 sm:h-36 select-none ${
+        className={`relative w-28 sm:w-36 h-24 sm:h-30 select-none ${
           isCasting
             ? animClass
             : hasCast
@@ -182,7 +182,7 @@ const CrescentKeoPiece: React.FC<{
 
           <g
             transform={mirror ? "translate(180 0) scale(-1 1)" : undefined}
-            className={isCasting ? `keo-toss-face keo-toss-face-duong keo-toss-face--lands-${side}` : side === "duong" ? "" : "hidden"}
+            className={side === "duong" ? "" : "hidden"}
           >
             {/* Mặt úp (dương): lưng gỗ cong, phủ sơn bóng. */}
             <g filter="url(#kshadow)">
@@ -217,7 +217,7 @@ const CrescentKeoPiece: React.FC<{
           </g>
           <g
             transform={mirror ? "translate(180 0) scale(-1 1)" : undefined}
-            className={isCasting ? `keo-toss-face keo-toss-face-am keo-toss-face--lands-${side}` : side === "am" ? "" : "hidden"}
+            className={side === "am" ? "" : "hidden"}
           >
             {/* Mặt ngửa (âm): mặt gỗ phẳng với thớ gỗ rõ nét. */}
             <g filter="url(#kshadow)">
@@ -263,9 +263,9 @@ const CrescentKeoPiece: React.FC<{
         </svg>
       </div>
 
-      {/* Ground shadow */}
+      {/* Ground shadow - nhỏ gọn, mềm mại trong mâm đĩa */}
       <div
-        className={`w-36 sm:w-48 h-3.5 rounded-full bg-black/55 blur-[5px] -mt-3 ${
+        className={`w-20 sm:w-28 h-2 rounded-full bg-black/40 blur-[3px] -mt-1.5 ${
           isCasting
             ? shadowClass
             : hasCast
@@ -275,28 +275,81 @@ const CrescentKeoPiece: React.FC<{
       />
 
       {/* Badge nhận diện */}
-      <div className="text-center mt-3">
-        <div
-          className={`inline-flex flex-col items-center px-3 py-1.5 rounded-xl border text-xs font-medium ${
-            side === "am"
-              ? "bg-amber-950/70 text-amber-200 border-amber-600/50"
-              : "bg-rose-950/70 text-rose-200 border-rose-700/50"
-          }`}
-        >
-          <span className="font-bold tracking-wide uppercase text-[11px] flex items-center gap-1.5">
-            {side === "am" ? (
-              <><span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)]" />MẶT PHẲNG (ÂM • NGỬA)</>
-            ) : (
-              <><span className="w-2 h-2 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.9)]" />MẶT CONG (DƯƠNG • ÚP)</>
-            )}
+      <div className="text-center mt-3 h-7 flex items-center justify-center">
+        {isCasting ? (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[11px] font-semibold animate-pulse">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+            <span>Đang gieo quẻ...</span>
           </span>
-          <span className="text-[10px] opacity-80 mt-0.5">
-            {side === "am" ? "Thớ gỗ xẻ • mặt phẳng ngửa lên" : "Vòm cong bóng loáng • úp xuống đĩa"}
+        ) : (
+          <span
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[11px] font-semibold transition-colors ${
+              side === "am"
+                ? "bg-amber-500/10 text-amber-800 dark:text-amber-200 border-amber-500/30"
+                : "bg-rose-500/10 text-rose-800 dark:text-rose-200 border-rose-500/30"
+            }`}
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                side === "am"
+                  ? "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]"
+                  : "bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.8)]"
+              }`}
+            />
+            <span>
+              {hasCast
+                ? side === "am"
+                  ? "Mặt phẳng (Âm • Ngửa)"
+                  : "Mặt cong (Dương • Úp)"
+                : "Mặt cong (Chuẩn bị gieo)"}
+            </span>
           </span>
-        </div>
+        )}
       </div>
     </div>
   );
+};
+
+// Web Audio API: Giả lập âm thanh hai mảnh gỗ gieo lách cách chân thực
+const playKeoClackSounds = () => {
+  try {
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    if (ctx.state === "suspended") {
+      void ctx.resume();
+    }
+
+    const playWoodTick = (time: number, freq: number, decay: number, vol = 0.35) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, time);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.45, time + decay * 0.7);
+      gain.gain.setValueAtTime(vol, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + decay);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(time);
+      osc.stop(time + decay);
+    };
+
+    const now = ctx.currentTime;
+    // Nhịp 1: Chạm đĩa lần đầu (t ~ 1.82s trên chu kỳ 2.6s)
+    playWoodTick(now + 1.82, 780, 0.10, 0.45);
+    playWoodTick(now + 1.88, 620, 0.12, 0.38);
+
+    // Nhịp 2: Nảy nhẹ lần hai (t ~ 2.15s)
+    playWoodTick(now + 2.15, 840, 0.08, 0.25);
+    playWoodTick(now + 2.20, 690, 0.09, 0.20);
+
+    // Nhịp 3: Trượt yên vị êm ái (t ~ 2.40s)
+    playWoodTick(now + 2.40, 920, 0.05, 0.12);
+  } catch {
+    // Không làm gián đoạn trải nghiệm nếu trình duyệt chặn tự phát âm thanh
+  }
 };
 
 export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
@@ -605,7 +658,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
       if (version !== sessionVersionRef.current) return;
 
-      setLandingResult(outcome);
+      // Không gán landingResult ngay tại t=0s để người dùng CHƯA BIẾT trước kết quả khi đang bay!
       landingOutcomeRef.current = outcome;
       landingCastIdRef.current = outcomeId;
       setCastResult(null);
@@ -613,20 +666,26 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
       animationStarted = true;
       setIsCasting(true);
 
-      const reducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
-
+      // Luôn phát âm thanh gỗ lách cách đồng bộ chu kỳ
+      playKeoClackSounds();
       settledPiecesRef.current.clear();
-      if (reducedMotion) {
-        requestAnimationFrame(() => {
-          if (version !== sessionVersionRef.current) return;
-          setCastResult(outcome);
-          setCastResultId(outcomeId);
+
+      // ĐÚNG KHOẢNH KHẮC CHẠM ĐĨA LẦN 1 (t = 1.82s): LẬT SANG MẶT KẾT QUẢ THỰC TẾ!
+      setTimeout(() => {
+        if (version !== sessionVersionRef.current) return;
+        setLandingResult(outcome);
+      }, 1820);
+
+      // Bộ đếm an toàn bảo đảm kết quả luôn hiển thị đầy đủ sau 2.8s
+      setTimeout(() => {
+        if (version !== sessionVersionRef.current) return;
+        if (settledPiecesRef.current.size < 2 && landingOutcomeRef.current) {
+          setCastResult(landingOutcomeRef.current);
+          setCastResultId(landingCastIdRef.current);
           setIsCasting(false);
           requestLockRef.current = false;
-        });
-      }
+        }
+      }, 2800);
     } catch {
       if (version !== sessionVersionRef.current) return;
 
@@ -650,44 +709,6 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
   return (
     <div className="screen-shell">
       <main className="page-container max-w-6xl">
-        <section className="mb-5 rounded-xl border border-line bg-surface p-4">
-          <p role="status" className="text-sm text-muted">
-            {sessionLoading
-              ? "Đang khôi phục phiên…"
-              : isRequestingKeo
-                ? "Đang xử lý lượt gieo…"
-                : !sessionReady
-                  ? "Cần tải lại phiên trước khi tiếp tục."
-                  : `Đã gieo ${throwCount}/3 lượt trong phiên này.`}
-          </p>
-
-          {isLoggedIn && !sessionReady && !sessionLoading && (
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-3"
-              onClick={() => {
-                setSessionReload((value) => value + 1);
-              }}
-            >
-              Tải lại phiên
-            </Button>
-          )}
-
-          {sessionReady && throwCount >= 3 && (
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-3"
-              disabled={isCasting || isRequestingKeo}
-              onClick={handleNewSession}
-            >
-              Bắt đầu phiên mới
-            </Button>
-          )}
-        </section>
-        {requestError && <p role="status" className="mb-5 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-muted">{requestError}</p>}
-        {drawId && isLoggedIn && <p className="mb-5 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-muted">Bạn đang mở xin keo từ một lượt xin xăm. Máy chủ sẽ kiểm tra quyền truy cập khi tạo phiên liên kết.</p>}
         {/* Top Breadcrumb & Status Ribbon */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 text-xs text-muted">
           <div className="flex items-center gap-2">
@@ -708,35 +729,64 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
             <span className="text-accent font-semibold">Xin keo âm dương</span>
           </div>
 
-          <button
-            onClick={onBackToExperience}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-accent transition-colors cursor-pointer self-start sm:self-auto"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Về danh mục trải nghiệm</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface border border-line text-xs font-semibold text-ink shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              <span>
+                {sessionLoading
+                  ? "Đang khôi phục phiên…"
+                  : isRequestingKeo
+                    ? "Đang xử lý lượt gieo…"
+                    : `Phiên gieo: ${throwCount}/3 lượt`}
+              </span>
+            </div>
+
+            {sessionReady && throwCount >= 3 && (
+              <button
+                type="button"
+                disabled={isCasting || isRequestingKeo}
+                onClick={handleNewSession}
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-accent/10 hover:bg-accent/20 border border-accent/30 text-accent font-semibold text-xs transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Bắt đầu lại</span>
+              </button>
+            )}
+
+            {isLoggedIn && !sessionReady && !sessionLoading && (
+              <button
+                type="button"
+                onClick={() => setSessionReload((value) => value + 1)}
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-surface border border-line text-muted hover:text-ink text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Tải lại</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Top Tags */}
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span className="px-3 py-1 rounded-full text-xs font-semibold tracking-wider bg-surface text-accent border border-line flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-action animate-pulse"></span>
-            CHIÊM NGHIỆM DÂN GIAN • LẮNG NGHE TÂM TƯ
-          </span>
-          <span className="text-xs text-muted">
-            • Không gian phản tư tinh thần • Không mang tính phán quyết
-          </span>
+        {requestError && <p role="status" className="mb-5 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-muted">{requestError}</p>}
+        {drawId && isLoggedIn && <p className="mb-5 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-muted">Bạn đang mở xin keo từ một lượt xin xăm. Máy chủ sẽ kiểm tra quyền truy cập khi tạo phiên liên kết.</p>}
+
+        {/* Top Badge */}
+        <div className="mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface border border-line text-xs font-semibold text-accent shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" />
+            <span>Chiêm nghiệm âm dương • Lắng nghe tâm tư</span>
+          </div>
         </div>
 
         {/* Header Title Section */}
-        <div className="mb-10">
-          <h1 className="page-title mb-3">
-            Xin keo âm dương
+        <div className="mb-8 sm:mb-10">
+          <h1 className="page-title mb-3 flex items-center gap-2.5 text-2xl sm:text-3xl text-ink font-display">
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-amber-700 to-amber-900 text-amber-100 font-serif font-bold text-base shadow-xs" aria-hidden="true">
+              卦
+            </span>
+            <span>Xin keo âm dương</span>
           </h1>
-          <p className="text-sm sm:text-base text-ink leading-relaxed max-w-4xl">
-            Trên ứng dụng, hai mặt keo được gieo ngẫu nhiên. Kết quả chỉ mô tả tổ hợp xuất hiện;
-            phần gợi mở giúp bạn tự cân nhắc, không xác nhận ý nguyện, dự đoán tương lai hay thay
-            bạn đưa ra quyết định.
+          <p className="text-sm sm:text-base text-muted leading-relaxed max-w-3xl">
+            Lắng lòng định trí, nương vào triết lý âm dương hòa hợp của tiền nhân để tự soi chiếu khúc mắc nội tâm. Lời quẻ là chiếc gương phản chiếu tâm thức, gợi mở góc nhìn để bạn sáng suốt đưa ra quyết định của chính mình.
           </p>
         </div>
 
@@ -744,7 +794,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mb-12">
           {/* Left Column (5 cols): Step 1 Form */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="p-6 sm:p-7 rounded-card bg-surface border border-line shadow-xs">
+            <div className="p-6 sm:p-7 rounded-2xl bg-surface border border-line shadow-xs">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent mb-3">
                 <span className="w-5 h-5 rounded-full bg-action text-white flex items-center justify-center text-xs font-bold">
                   1
@@ -775,7 +825,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                         throwCount > 0
                       }
                       onClick={() => setSelectedTopic(t.id)}
-                      className={`p-3 rounded-panel border text-left text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
+                      className={`p-3.5 rounded-xl border text-left text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
                         isSelected
                           ? "bg-accent/10 border-accent text-accent shadow-2xs"
                           : "bg-surface border-line text-ink hover:border-accent/40"
@@ -804,14 +854,14 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                 />
                 <p className="text-xs text-muted mt-2 leading-relaxed">
                   {isDemoMode()
-                    ? "Ghi chú và kết quả demo chỉ lưu trên trình duyệt này, không gửi lên máy chủ."
-                    : "Ghi chú chỉ nằm trong màn hình này, không được gửi lên máy chủ và sẽ mất khi tải lại hoặc rời màn hình. Khi đăng nhập và gieo, hệ thống lưu chủ đề và kết quả vào tài khoản."}
+                    ? "Ghi chú được lưu tạm thời trên trình duyệt của bạn nhằm bảo đảm quyền riêng tư tuyệt đối."
+                    : "Ghi chú chỉ nằm trong màn hình này và sẽ mất khi tải lại. Khi đăng nhập và gieo, hệ thống lưu kết quả an toàn vào tài khoản của bạn."}
                 </p>
               </div>
             </div>
 
             {/* Cultural Context Box */}
-            <div className="p-5 rounded-panel bg-surface/60 border border-line flex items-start gap-3.5">
+            <div className="p-5 rounded-2xl bg-surface/60 border border-line flex items-start gap-3.5">
               <div className="w-9 h-9 rounded-xl bg-surface border border-line flex items-center justify-center text-accent shrink-0 mt-0.5">
                 <BookOpen className="w-4 h-4 text-accent" />
               </div>
@@ -819,7 +869,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                 <h4 className="font-display font-bold text-sm text-ink mb-1">
                   Triết lý âm dương trong văn hóa Việt
                 </h4>
-                <p className="text-ink/80 leading-relaxed mb-2.5">
+                <p className="text-muted leading-relaxed mb-2.5">
                   Hai mảnh keo gỗ mít hình trăng khuyết thể hiện sự vận động không ngừng của trời đất và lòng người.
                 </p>
                 {onGoToCulture && (
@@ -837,7 +887,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
           {/* Right Column (7 cols): Step 2 Sacred Open Altar */}
           <div className="lg:col-span-7">
-            <div className="p-6 sm:p-8 rounded-card bg-surface border border-line shadow-xs">
+            <div className="p-6 sm:p-8 rounded-2xl bg-surface border border-line shadow-xs">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent">
                   <span className="w-5 h-5 rounded-full bg-action text-white flex items-center justify-center text-xs font-bold">
@@ -851,16 +901,16 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
               </div>
 
               {/* Sacred Altar Tray with Ambient Aura */}
-              <div className="relative rounded-card overflow-visible pt-16 sm:pt-20 bg-gradient-to-b from-surface-soft/80 via-surface/60 to-surface-soft border border-line p-6 sm:p-12 text-center mb-6">
+              <div className={`relative rounded-2xl overflow-visible pt-14 sm:pt-16 bg-gradient-to-b from-surface-soft/80 via-surface/60 to-surface-soft border border-line p-5 sm:p-10 text-center mb-6 transition-all duration-700 ${isCasting ? "border-amber-500/50 shadow-lg shadow-amber-500/10" : ""}`}>
                 {/* Ambient Golden Glow Aura */}
-                <div className="absolute inset-0 bg-radial from-amber-500/15 via-orange-500/5 to-transparent pointer-events-none rounded-card" />
+                <div className={`absolute inset-0 bg-radial from-amber-500/20 via-orange-500/5 to-transparent pointer-events-none rounded-2xl transition-opacity duration-700 ${isCasting ? "opacity-100" : "opacity-60"}`} />
 
                 {/* Circular Stone/Woven Mat Platform */}
-                <div className="relative mx-auto max-w-lg rounded-3xl border border-accent/25 bg-surface/90 backdrop-blur-xs p-6 sm:p-10 shadow-inner">
-                  <div className="flex items-center justify-center gap-6 sm:gap-10 py-4" aria-live="polite">
+                <div className={`relative mx-auto max-w-lg rounded-2xl border border-accent/25 bg-surface/90 backdrop-blur-xs p-6 sm:p-8 shadow-inner ${isCasting ? "anim-keo-tray-impact" : ""}`}>
+                  <div className="flex items-center justify-center gap-3 sm:gap-6 py-2" aria-live="polite">
                     {/* Keo Piece 1 */}
                     <CrescentKeoPiece
-                      side={landingResult ? landingResult.piece1 : "am"}
+                      side={landingResult ? landingResult.piece1 : "duong"}
                       mirror
                       rotationClass={
                         landingResult
@@ -918,16 +968,16 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                     />
                   </div>
 
-                  <div className="h-px w-28 mx-auto bg-line/80 my-4" />
-                  <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-ink/80">
+                  <div className="h-px w-24 mx-auto bg-line/80 my-3.5" />
+                  <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs text-muted">
                     <span className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block shadow-[0_0_6px_rgba(244,63,94,0.6)]"></span>
-                      <span><strong>Mặt cong (Dương / Úp):</strong> Lưng vòm cong tròn</span>
+                      <span className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.6)]" />
+                      <span><strong className="text-ink">Mặt cong (Dương / Úp):</strong> Lưng vòm cong</span>
                     </span>
-                    <span className="hidden sm:inline text-muted">•</span>
+                    <span className="text-line">•</span>
                     <span className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block shadow-[0_0_6px_rgba(251,191,36,0.6)]"></span>
-                      <span><strong>Mặt phẳng (Âm / Ngửa):</strong> Thớ gỗ xẻ phẳng</span>
+                      <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.6)]" />
+                      <span><strong className="text-ink">Mặt phẳng (Âm / Ngửa):</strong> Thớ gỗ phẳng</span>
                     </span>
                   </div>
                 </div>
@@ -935,9 +985,8 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
               {/* Primary Action Button */}
               <div className="text-center">
-                <Button
-                  variant="default"
-                  size="lg"
+                <button
+                  type="button"
                   onClick={handleCastKeo}
                   disabled={
                     isCasting ||
@@ -946,9 +995,9 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                     !sessionReady ||
                     throwCount >= 3
                   }
-                  className="w-full py-4 text-base font-semibold shadow-md bg-action text-white hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full h-13 sm:h-14 rounded-full font-bold text-sm sm:text-base text-white bg-gradient-to-r from-amber-800 via-amber-700 to-amber-800 hover:from-amber-700 hover:to-amber-700 shadow-md shadow-amber-950/20 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 transition-all active:scale-[0.99] relative overflow-hidden group"
                 >
-                  <Sparkles className="w-5 h-5 shrink-0" />
+                  <Sparkles className={`w-5 h-5 text-amber-200 ${isCasting ? "animate-spin" : ""}`} />
                   <span>
                     {isCasting
                       ? "Đang gieo keo trong chánh niệm..."
@@ -956,7 +1005,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                       ? "Gieo lại lần khác"
                       : "Gieo keo âm dương"}
                   </span>
-                </Button>
+                </button>
                 <p className="text-xs text-muted mt-2.5">
                   Chạm để gieo — Hãy hít một hơi thật sâu và buông lỏng tâm trí trước khi bắt đầu
                 </p>
@@ -969,7 +1018,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
         <section className="mb-12">
           {castResult ? (
             /* ================= ACTIVE RESULT: SEAMLESS LITERARY ESSAY ================= */
-            <div className="p-8 sm:p-12 rounded-card bg-surface border border-accent/30 shadow-card">
+            <div className="p-8 sm:p-12 rounded-2xl bg-surface border border-accent/30 shadow-card">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-line mb-8">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent">
                   <span className="w-5 h-5 rounded-full bg-action text-white flex items-center justify-center text-xs font-bold">
@@ -1016,7 +1065,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                     size="sm"
                     onClick={handleCastKeo}
                     disabled={isCasting}
-                    className="gap-2 bg-action text-white cursor-pointer"
+                    className="h-11 px-5 rounded-full text-xs sm:text-sm font-semibold gap-2 bg-action text-white cursor-pointer"
                   >
                     <RotateCcw className="w-4 h-4" />
                     <span>Gieo lại lần khác</span>
@@ -1027,7 +1076,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={onGoToCulture}
-                      className="border-line text-ink hover:text-accent cursor-pointer"
+                      className="h-11 px-5 rounded-full text-xs sm:text-sm font-semibold border-line text-ink hover:text-accent cursor-pointer"
                     >
                       <BookOpen className="w-4 h-4 text-accent" />
                       <span>Đọc bài khảo cứu phong tục</span>

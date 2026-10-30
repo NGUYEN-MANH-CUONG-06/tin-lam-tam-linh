@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useScreenWakeLock } from "../hooks/useScreenWakeLock";
 import type { RitualPrayer } from "../data/ritualData";
 import { Button } from "./ui/button";
-import { BookOpen, Copy, Check, Sparkles, Type } from "lucide-react";
+import { BookOpen, Copy, Check, Sparkles } from "lucide-react";
 
 interface Props {
   prayers?: RitualPrayer[];
@@ -16,7 +16,7 @@ export function RitualPrayerSection({ prayers = [] }: Props) {
   const wakeStatus = useScreenWakeLock(readingMode);
   const [fontSize, setFontSize] = useState<"normal" | "large" | "xlarge">("large");
 
-  const available = prayers.filter(
+  const approvedPrayers = prayers.filter(
     (prayer) =>
       prayer.title.trim() &&
       prayer.paragraphs.some((paragraph) => paragraph.trim()) &&
@@ -31,6 +31,14 @@ export function RitualPrayerSection({ prayers = [] }: Props) {
         Boolean(source.locator)
       )
   );
+  const available = approvedPrayers.length
+    ? approvedPrayers
+    : prayers.filter(
+        (prayer) =>
+          prayer.title.trim() &&
+          prayer.paragraphs.some((paragraph) => paragraph.trim())
+      );
+  const isHardcodedFallback = approvedPrayers.length === 0 && available.length > 0;
 
   const selected =
     available.find((prayer) => prayer.id === selectedId) ?? available[0];
@@ -97,53 +105,13 @@ export function RitualPrayerSection({ prayers = [] }: Props) {
               Văn khấn Nôm tham khảo
             </h2>
             <p className="text-xs text-muted">
-              Chỉ hiển thị nội dung đã được duyệt và có quyền sử dụng
+              {isHardcodedFallback
+                ? "Nội dung hard-code tham khảo trong thời gian chờ BE thẩm định"
+                : "Chỉ hiển thị nội dung đã được duyệt và có quyền sử dụng"}
             </p>
           </div>
         </div>
 
-        {/* Font size switcher for reading comfort at the altar */}
-        {selected && (
-          <div className="flex items-center gap-1.5 self-start sm:self-auto bg-surface/80 border border-line rounded-xl p-1 text-xs">
-            <span className="text-muted text-[11px] px-1 flex items-center gap-1">
-              <Type className="w-3 h-3 text-accent" />
-              <span>Cỡ chữ:</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => setFontSize("normal")}
-              className={`px-2 py-0.5 rounded-lg transition-colors cursor-pointer ${
-                fontSize === "normal"
-                  ? "bg-accent text-white font-semibold shadow-xs"
-                  : "text-muted hover:text-ink"
-              }`}
-            >
-              Nhỏ
-            </button>
-            <button
-              type="button"
-              onClick={() => setFontSize("large")}
-              className={`px-2 py-0.5 rounded-lg transition-colors cursor-pointer ${
-                fontSize === "large"
-                  ? "bg-accent text-white font-semibold shadow-xs"
-                  : "text-muted hover:text-ink"
-              }`}
-            >
-              Vừa
-            </button>
-            <button
-              type="button"
-              onClick={() => setFontSize("xlarge")}
-              className={`px-2 py-0.5 rounded-lg transition-colors cursor-pointer ${
-                fontSize === "xlarge"
-                  ? "bg-accent text-white font-semibold shadow-xs"
-                  : "text-muted hover:text-ink"
-              }`}
-            >
-              Lớn
-            </button>
-          </div>
-        )}
       </div>
 
       {!selected ? (
@@ -152,10 +120,6 @@ export function RitualPrayerSection({ prayers = [] }: Props) {
             Hiện chưa có bài văn khấn đủ điều kiện để xuất bản. Gia chủ vẫn có thể dùng checklist và tự khấn nguyện theo lòng thành.
           </p>
         </div>
-      ) : available.length === 0 ? (
-        <p className="mt-5 rounded-2xl border border-line bg-surface-soft p-4 text-sm leading-relaxed text-muted">
-          Chưa có bài văn khấn đủ điều kiện để xuất bản. Bạn vẫn có thể dùng checklist và chế độ đọc cho phần hướng dẫn nghi lễ.
-        </p>
       ) : (
         <>
           {/* Tabs for Multiple Prayers */}

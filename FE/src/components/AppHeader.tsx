@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { LogOut, Menu, Moon, ShieldCheck, Sun, X } from "lucide-react";
+import { ChevronDown, LogOut, Menu, Moon, ShieldCheck, Sun, X } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { ProfileAvatar } from "./ProfileAvatar";
 
@@ -59,7 +59,7 @@ const navItems: { label: string; target: NavScreen; screens: NavScreen[] }[] = [
   { label: "Trải nghiệm", target: "experience", screens: ["experience", "xinxam", "wish", "zen", "gratitude", "xinkeo", "horoscope", "astrology", "sanctuary", "ancestor-altar"] },
   { label: "Khám phá", target: "culture", screens: ["culture", "culture-detail", "culture-map", "region-culture", "chau-van", "sea-prayer", "southern-culture", "rituals", "ritual-detail", "calendar", "calendar-detail", "good-days"] },
   { label: "Về chúng tôi", target: "about", screens: ["about"] },
-  { label: "Gói đăng ký", target: "membership", screens: ["membership"] },
+  { label: "Gói hội viên", target: "membership", screens: ["membership"] },
 ];
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -177,7 +177,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           </span>
           <span className="min-w-0">
             <span className="brand-name">Tin Lắm Tâm Linh</span>
-            <span className="brand-caption">Chiêm nghiệm dân gian đương đại</span>
+            <span className="brand-caption">Vạn Sự Tùy Duyên</span>
           </span>
         </button>
 
@@ -209,7 +209,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <>
               <button
                 type="button"
-                className="header-account inline-flex min-h-11 max-w-44 items-center gap-2 rounded-control px-2.5 text-sm font-semibold text-ink hover:bg-surface-soft"
+                className="header-account inline-flex min-h-9 max-w-48 items-center gap-2 rounded-full border border-line/60 bg-surface/70 px-2.5 py-1 text-xs font-semibold text-ink hover:border-accent/40 hover:bg-surface-soft transition-all"
                 onClick={() => goTo("account")}
                 title={`Tài khoản: ${user.name}`}
                 aria-label={`Mở Góc của tôi — ${user.name}`}
@@ -217,9 +217,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 <ProfileAvatar
                   email={user?.email}
                   name={user?.name}
-                  className="h-7 w-7 border border-line text-xs"
+                  className="h-6 w-6 border border-line text-[11px]"
                 />
                 <span className="hidden truncate sm:inline">{user.name}</span>
+                <ChevronDown className="h-3 w-3 text-muted shrink-0" aria-hidden="true" />
               </button>
               {onLogout && (
                 <button type="button" className="icon-control hidden sm:inline-grid" onClick={onLogout} aria-label="Đăng xuất" title="Đăng xuất">

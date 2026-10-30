@@ -137,7 +137,13 @@ export const CultureScreen: React.FC<CultureScreenProps> = ({
   const isDefaultView =
     selectedRegion === "all" && selectedCategory === "all" && !searchQuery.trim();
 
-  const catalogArticles = filteredArticles;
+  const catalogArticles = useMemo(() => {
+    if (isDefaultView && featuredArticle && filteredArticles.length > 1) {
+      return filteredArticles.filter((article) => article.id !== featuredArticle.id);
+    }
+    return filteredArticles;
+  }, [isDefaultView, featuredArticle, filteredArticles]);
+
   const visibleArticles = catalogArticles.slice(
     0,
     visibleCount
@@ -247,7 +253,7 @@ export const CultureScreen: React.FC<CultureScreenProps> = ({
 
             <div className="flex items-center gap-2 pt-1 text-xs text-stone-500">
               <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-              <span>Gìn giữ nếp xưa trong nhịp sống đương đại · Đồng hành cùng di sản dân tộc</span>
+              <span>Gìn giữ nếp xưa trong nhịp sống đương đại</span>
             </div>
           </div>
 
@@ -291,7 +297,7 @@ export const CultureScreen: React.FC<CultureScreenProps> = ({
                 </div>
 
                 <div className="pt-3 mt-3 border-t border-line flex items-center justify-between text-xs font-semibold text-amber-800 dark:text-amber-300 group-hover:text-amber-600 transition-colors">
-                  <span>Khám phá chuyên đề này</span>
+                  <span>Đọc chuyên đề</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Card>
@@ -337,7 +343,7 @@ export const CultureScreen: React.FC<CultureScreenProps> = ({
                 setSearchQuery(e.target.value);
                 setVisibleCount(6);
               }}
-              placeholder="Tìm bài viết, phong tục tập quán, lễ hội truyền thống, điển tích..."
+              placeholder="Tìm bài viết, phong tục, lễ hội dân gian..."
               className="w-full pl-11 pr-4 min-h-12 rounded-xl bg-surface-soft/60 focus:bg-surface border border-line text-base text-ink placeholder:text-stone-500 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
             />
             <Search className="w-5 h-5 text-stone-500 absolute left-3.5 top-3.5" />
@@ -514,7 +520,8 @@ export const CultureScreen: React.FC<CultureScreenProps> = ({
               {visibleArticles.map((article) => (
                 <Card
                   key={article.id}
-                  className="group rounded-2xl border-line bg-surface/95 hover:bg-surface-soft/80 p-5 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-amber-500/40 transition-all duration-300"
+                  onClick={() => onSelectArticle(article.id)}
+                  className="group cursor-pointer rounded-2xl border-line bg-surface/95 hover:bg-surface-soft/80 p-5 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-amber-500/40 transition-all duration-300"
                 >
                   <div>
                     <div className="relative overflow-hidden rounded-xl bg-surface-soft aspect-16/10 mb-4">
@@ -538,11 +545,6 @@ export const CultureScreen: React.FC<CultureScreenProps> = ({
                         {article.region}
                       </Badge>
                     </div>
-                    {canShowArticleImage(article) && article.metadata?.imageCredit && (
-                      <p className="-mt-2 mb-3 truncate text-[11px] text-muted">
-                        Ảnh: {article.metadata.imageCredit}
-                      </p>
-                    )}
 
                     <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400 mb-2">
                       <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
@@ -551,7 +553,7 @@ export const CultureScreen: React.FC<CultureScreenProps> = ({
                       <span className="font-medium text-amber-700 dark:text-amber-400">{article.category}</span>
                     </div>
 
-                    <h3 className="font-display text-lg font-bold leading-snug text-ink mb-2 group-hover:text-amber-800 dark:group-hover:text-amber-400 transition-colors">
+                    <h3 className="font-display text-lg font-bold leading-snug text-ink mb-2 group-hover:text-amber-800 dark:group-hover:text-amber-400 transition-colors min-h-[3.25rem] line-clamp-2">
                       <a
                         href={`/culture-detail?articleId=${encodeURIComponent(
                           article.id
@@ -577,10 +579,13 @@ export const CultureScreen: React.FC<CultureScreenProps> = ({
 
                     <button
                       type="button"
-                      onClick={() => onSelectArticle(article.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectArticle(article.id);
+                      }}
                       className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 dark:text-amber-300 hover:text-amber-600 transition-colors cursor-pointer"
                     >
-                      <span>Khám phá</span>
+                      <span>Đọc bài viết</span>
                       <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
@@ -588,17 +593,17 @@ export const CultureScreen: React.FC<CultureScreenProps> = ({
               ))}
             </div>
 
-            <div className="mb-12 flex flex-col items-center gap-3">
-              <p
-                role="status"
-                aria-live="polite"
-                aria-atomic="true"
-                className="text-xs sm:text-sm text-stone-500"
-              >
-                Đang hiển thị {visibleArticles.length} / {catalogArticles.length} bài viết
-              </p>
+            {catalogArticles.length > 6 && (
+              <div className="mb-12 flex flex-col items-center gap-3">
+                <p
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                  className="text-xs sm:text-sm text-stone-500"
+                >
+                  Đang hiển thị {visibleArticles.length} / {catalogArticles.length} bài viết
+                </p>
 
-              {catalogArticles.length > 6 && (
                 <Button
                   type="button"
                   variant="outline"
@@ -612,10 +617,10 @@ export const CultureScreen: React.FC<CultureScreenProps> = ({
                         6,
                         catalogArticles.length - visibleArticles.length
                       )} bài viết`
-                    : "Đã hiển thị tất cả"}
+                    : "Đã hiển thị tất cả bài viết"}
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </>
         )}
 
@@ -638,12 +643,10 @@ export const CultureScreen: React.FC<CultureScreenProps> = ({
             </div>
           </div>
 
-          <Badge
-            variant="outline"
-            className="px-4 py-2 rounded-full bg-amber-500/10 border-amber-400/40 text-xs font-semibold text-amber-800 dark:text-amber-300 shrink-0 self-start sm:self-auto"
-          >
-            Gìn giữ di sản dân gian
-          </Badge>
+          <div className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-400/40 text-xs font-semibold text-amber-800 dark:text-amber-300 shrink-0 self-start sm:self-auto shadow-2xs">
+            <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            <span>Tư liệu đã khảo chứng</span>
+          </div>
         </Card>
       </main>
     </div>

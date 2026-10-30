@@ -24,9 +24,9 @@ export interface DemoCommerceProduct {
 export const DEMO_COMMERCE_CATALOG: Record<DemoCommerceSku, DemoCommerceProduct> = {
   XAM_DETAILED_READING: { sku: "XAM_DETAILED_READING", name: "Luận giải xăm chi tiết", unitPriceVnd: 19_000, unitLabel: "lượt", discountEligible: true },
   KEO_DETAILED_READING: { sku: "KEO_DETAILED_READING", name: "Luận giải keo chi tiết", unitPriceVnd: 19_000, unitLabel: "lượt", discountEligible: true },
-  VIRTUAL_CHICKEN: { sku: "VIRTUAL_CHICKEN", name: "Gà ảo", unitPriceVnd: 10_000, unitLabel: "con", discountEligible: true },
-  ROYAL_LANTERN_BUNDLE: { sku: "ROYAL_LANTERN_BUNDLE", name: "Hoa đăng xịn", unitPriceVnd: 10_000, unitLabel: "bộ 3 chiếc", discountEligible: true },
-  PREMIUM_BENEFITS: { sku: "PREMIUM_BENEFITS", name: "Premium", unitPriceVnd: DEMO_COMMERCE_CONFIG.premiumListPriceVnd, unitLabel: "gói", discountEligible: false },
+  VIRTUAL_CHICKEN: { sku: "VIRTUAL_CHICKEN", name: "Lễ vật Gà ngậm hoa", unitPriceVnd: 10_000, unitLabel: "mâm", discountEligible: true },
+  ROYAL_LANTERN_BUNDLE: { sku: "ROYAL_LANTERN_BUNDLE", name: "Hoa đăng Hoàng Kim", unitPriceVnd: 10_000, unitLabel: "bộ 3 chiếc", discountEligible: true },
+  PREMIUM_BENEFITS: { sku: "PREMIUM_BENEFITS", name: "Gói Hội Viên", unitPriceVnd: DEMO_COMMERCE_CONFIG.premiumListPriceVnd, unitLabel: "gói", discountEligible: false },
 };
 
 export const DEMO_PREMIUM_BENEFITS = {

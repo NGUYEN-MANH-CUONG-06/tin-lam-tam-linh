@@ -80,7 +80,7 @@ h1.zen-page-title,
     0 16px 44px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 235, 205, 0.25),
     0 0 20px rgba(212, 175, 55, 0.1);
-  padding: clamp(1.5rem, 4vw, 2.5rem);
+  padding: clamp(1.25rem, 3.5vw, 2rem);
   text-align: center;
   overflow: hidden;
   color: #ffffff;

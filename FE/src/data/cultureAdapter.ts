@@ -10,7 +10,7 @@ export function toCultureArticle(item: RemoteContentItem): CultureArticle {
     return [{ id: `${item.id}-section-${index}`, title: String(section.title ?? section.heading ?? "Tư liệu"), paragraphs }];
   }) : [];
   const wordCount = sections.reduce((total, section) => total + section.paragraphs.join(" ").trim().split(/\s+/).filter(Boolean).length, 0);
-  const readingTime = `${Math.max(1, Math.ceil(wordCount / 200))} phút`;
+  const readingTime = `${Math.max(3, Math.ceil(wordCount / 90))} phút`;
   const provenance = item.provenance && typeof item.provenance === "object" ? item.provenance as Record<string, unknown> : {};
   const source = typeof item.source === "string" && /^https?:\/\//.test(item.source) ? item.source : undefined;
   const review = item.review && typeof item.review === "object" ? item.review as Record<string, unknown> : undefined;

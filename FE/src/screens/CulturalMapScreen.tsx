@@ -54,7 +54,7 @@ const REGIONS: Record<
     image: "/images/hue_trung_bo.jpg",
     description:
       "Các di sản và thực hành văn hóa tiêu biểu của miền Trung, được sắp xếp theo địa phương.",
-    color: "#fffdfa",
+    color: "#d97706",
     paths: VIETNAM_CENTRAL_PATHS,
   },
   south: {
@@ -155,13 +155,25 @@ const ARCHIPELAGO_LABELS = ARCHIPELAGOS.map((archipelago) => {
     ),
   };
 });
-
 const ISLAND_OUTLINES = [
   "M-5.8-1.2 C-4.7-3.9-1.8-4.5.2-3.2 C2.1-4.7 5.3-2.5 5.7-.3 C6.2 2.4 2.9 4.4.4 3.5 C-1.5 5-5 3.7-5.8 1.8 C-6.2.8-6.2-.2-5.8-1.2Z",
   "M-5.1-.4 C-3.9-2.7-2-2.3-.7-4 C1.1-5.2 4.4-2.7 4.2-.8 C6.2.7 3.5 3.9 1.3 3.4 C-.8 4.7-4.7 2.2-5.1-.4Z",
   "M-5.7.2 C-4.1-1.2-4.2-3.4-1.6-3.1 C.2-4.4 1.4-2.2 3.8-2.5 C5.5-.6 3.1 1.1 4.2 2.6 C2.5 4.2.4 2.7-1.4 3.7 C-3.6 3.4-5.8 2.4-5.7.2Z",
   "M-4.7-1.8 C-2.2-4.1-.7-2.2 1-3.4 C3.4-3.1 5.2-1 4.1.4 C4.7 2.6 1.8 3.8-.2 2.9 C-2.1 4.3-5.4 1.2-4.7-1.8Z",
 ] as const;
+
+const cleanSpiritualRelevance = (category: string, spiritual: string) => {
+  if (!spiritual) return category;
+  const catLower = category.toLowerCase().trim();
+  const parts = spiritual.split("/").map((s) => s.trim()).filter(Boolean);
+  const uniqueParts = parts.filter(
+    (p) => !catLower.includes(p.toLowerCase()) && !p.toLowerCase().includes(catLower),
+  );
+  if (uniqueParts.length === 0) {
+    return `${category} · Di sản tâm linh`;
+  }
+  return `${category} · ${uniqueParts.join(" · ")}`;
+};
 
 export const CulturalMapScreen: React.FC<CulturalMapScreenProps> = ({
   onBackToCulture,
@@ -327,7 +339,7 @@ export const CulturalMapScreen: React.FC<CulturalMapScreenProps> = ({
         </div>
 
         <div className="culture-map-layout">
-          <Card className="w-full min-w-0 overflow-hidden border-line bg-surface p-3 shadow-[0_16px_45px_rgba(69,37,27,0.10)] sm:p-5">
+          <Card className="w-full min-w-0 overflow-hidden border-line bg-surface p-3 shadow-[0_16px_45px_rgba(69,37,27,0.10)] sm:p-5 lg:sticky lg:top-6 lg:self-start">
             <div className="mb-4 flex items-center justify-between gap-2 border-b border-line pb-3">
               <div className="flex items-center gap-2 font-display text-base font-bold text-ink">
                 <Compass className="h-4 w-4 text-accent" /> Bản đồ văn hóa
@@ -381,8 +393,8 @@ export const CulturalMapScreen: React.FC<CulturalMapScreenProps> = ({
                     x2="100%"
                     y2="100%"
                   >
-                    <stop offset="0%" stopColor="#fffdf8" />
-                    <stop offset="100%" stopColor="#e8d9c7" />
+                    <stop offset="0%" stopColor="#f59e0b" />
+                    <stop offset="100%" stopColor="#b45309" />
                   </linearGradient>
                   <linearGradient
                     id="region-south"
@@ -457,7 +469,7 @@ export const CulturalMapScreen: React.FC<CulturalMapScreenProps> = ({
                               count
                                 ? "#9b1c28"
                                 : slug === "central"
-                                  ? "#a58e78"
+                                  ? "#b45309"
                                   : slug === "north"
                                     ? "#6f1620"
                                     : "#246c5e"
@@ -608,21 +620,22 @@ export const CulturalMapScreen: React.FC<CulturalMapScreenProps> = ({
                         <circle
                           cx={position.x}
                           cy={position.y}
-                          r={Math.min(13, 6 + sites.length)}
-                          fill="#9b1c28"
-                          fillOpacity={activeRegion === regionSlug ? 1 : 0.65}
+                          r={selectedProvince === province ? Math.min(16, 9 + sites.length) : Math.min(13, 6 + sites.length)}
+                          fill={selectedProvince === province ? "#c2410c" : (activeRegion === regionSlug ? "#9b1c28" : "#854d0e")}
+                          fillOpacity={activeRegion === regionSlug ? 1 : 0.75}
                           stroke={
                             selectedProvince === province
-                              ? "#f4c96b"
+                              ? "#fef08a"
                               : "#fffaf0"
                           }
-                          strokeWidth={selectedProvince === province ? 4 : 3}
+                          strokeWidth={selectedProvince === province ? 3.5 : 2}
+                          className="transition-all duration-200"
                         />
                         <text
                           x={position.x}
                           y={position.y + 3.5}
                           textAnchor="middle"
-                          fontSize="8"
+                          fontSize={selectedProvince === province ? "9" : "8"}
                           fontWeight="700"
                           fill="#fffaf0"
                         >
@@ -658,47 +671,54 @@ export const CulturalMapScreen: React.FC<CulturalMapScreenProps> = ({
               </span>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-muted">
-              Nền bản đồ giữ đường biên theo bộ SVG cũ; hồ sơ bên cạnh ghi rõ
-              tỉnh gốc và tỉnh hiện hành. Đây là bản đồ khám phá, không thay thế
-              bản đồ hành chính.
+              Bản đồ mang tính ước lệ văn hóa và gợi mở không gian di sản tâm linh dân tộc, không dùng làm bản đồ đo đạc địa giới hành chính.
             </p>
-            {geometryGaps.length > 0 && (
-              <p className="mt-2 text-xs leading-relaxed text-muted">
-                Bộ SVG chưa có hình tỉnh riêng cho: {geometryGaps.join(", ")}.
-                Các di sản của tỉnh này vẫn có trong danh sách bên cạnh.
-              </p>
-            )}
           </Card>
 
           <Card className="w-full min-w-0 overflow-hidden border-line bg-surface shadow-[0_16px_45px_rgba(69,37,27,0.10)]">
-            <div className="relative h-48 overflow-hidden bg-surface-soft sm:h-52">
+            <div className="relative h-48 overflow-hidden bg-surface-soft sm:h-56">
               <img
                 src={current.image}
                 alt={`Ảnh minh họa ${current.title}`}
                 className="h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
-              <Badge className="absolute left-4 top-4 border-white/40 bg-black/45 text-white">
+              <Badge className="absolute left-4 top-4 border-white/60 bg-black/50 text-white backdrop-blur-xs font-semibold text-xs">
                 {current.title}
               </Badge>
-              <h2 className="absolute bottom-4 left-4 right-4 font-display text-2xl font-bold text-white sm:text-3xl">
-                {current.subtitle}
-              </h2>
             </div>
-            <div className="space-y-5 p-5 sm:p-7">
-              <p className="text-sm leading-relaxed text-muted sm:text-base">
-                {current.description}
-              </p>
+            <div className="space-y-4 p-5 sm:p-7">
+              <div>
+                <h2 className="font-display text-2xl font-bold text-ink sm:text-[26px] leading-snug">
+                  {current.subtitle}
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted sm:text-base">
+                  {current.description}
+                </p>
+              </div>
               {!selectedArchipelago && (
                 <section aria-labelledby="heritage-points-heading">
-                  <div className="mb-3 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-accent" />
-                    <h3
-                      id="heritage-points-heading"
-                      className="font-display font-bold text-ink"
-                    >
-                      Điểm đến văn hóa
-                    </h3>
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-accent" />
+                      <h3
+                        id="heritage-points-heading"
+                        className="font-display font-bold text-ink"
+                      >
+                        {selectedProvince ? `Di sản tại ${selectedProvince}` : "Điểm đến văn hóa"}
+                      </h3>
+                    </div>
+                    {selectedProvince && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedProvince(null);
+                          setHeritagePage(1);
+                        }}
+                        className="text-xs font-semibold text-accent hover:underline flex items-center gap-1 cursor-pointer bg-accent/10 px-2.5 py-1 rounded-full transition-colors hover:bg-accent/20"
+                      >
+                        <span>✕ Hiện tất cả {current.title}</span>
+                      </button>
+                    )}
                   </div>
                   <div className="space-y-3">
                     {filteredHeritageSites.length ? (
@@ -706,24 +726,36 @@ export const CulturalMapScreen: React.FC<CulturalMapScreenProps> = ({
                         {visibleHeritageSites.map((site) => (
                           <article
                             key={site.id}
-                            className="rounded-xl border border-line bg-surface-soft p-4"
+                            className="rounded-xl border border-line bg-surface-soft p-4 transition-all duration-200 hover:border-accent/40 hover:shadow-xs"
                           >
                             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                               <div>
-                                <p className="text-xs font-semibold text-muted">
-                                  Tỉnh theo hồ sơ gốc: {site.province_legacy}
-                                </p>
-                                <p className="mt-1 text-sm font-semibold text-ink">
-                                  Địa giới hiện hành: {site.province_current}
-                                </p>
+                                {site.province_legacy === site.province_current ? (
+                                  <p className="text-sm font-semibold text-ink flex items-center gap-1.5">
+                                    <MapPin className="w-3.5 h-3.5 text-accent" />
+                                    <span>Địa bàn: {site.province_current}</span>
+                                  </p>
+                                ) : (
+                                  <>
+                                    <p className="text-xs font-semibold text-muted">
+                                      Hồ sơ gốc: {site.province_legacy}
+                                    </p>
+                                    <p className="mt-0.5 text-sm font-semibold text-ink flex items-center gap-1.5">
+                                      <MapPin className="w-3.5 h-3.5 text-accent" />
+                                      <span>Hiện thuộc: {site.province_current}</span>
+                                    </p>
+                                  </>
+                                )}
                               </div>
-                              <Badge variant="outline">Di sản</Badge>
+                              <Badge variant="outline" className="border-accent/30 text-accent font-semibold text-xs">
+                                Di sản
+                              </Badge>
                             </div>
-                            <h4 className="border-t border-line/70 pt-3 font-semibold text-ink">
+                            <h4 className="border-t border-line/70 pt-3 font-semibold text-ink text-base">
                               {site.name}
                             </h4>
                             <p className="mt-1 text-xs leading-relaxed text-muted">
-                              {site.category} · {site.spiritual_relevance}
+                              {cleanSpiritualRelevance(site.category, site.spiritual_relevance)}
                             </p>
                           </article>
                         ))}

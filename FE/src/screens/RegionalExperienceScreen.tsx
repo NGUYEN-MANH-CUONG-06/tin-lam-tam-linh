@@ -51,6 +51,7 @@ interface RegionalExperienceScreenProps {
   currentUserEmail?: string;
   onBack: () => void;
   onGoToWish: () => void;
+  onNavigateRegion?: (kind: RegionalExperienceKind) => void;
 }
 
 // Danh sách các bản văn Chầu Văn kinh điển mẫu mực
@@ -149,6 +150,7 @@ export const RegionalExperienceScreen: React.FC<RegionalExperienceScreenProps> =
   currentUserEmail,
   onBack,
   onGoToWish,
+  onNavigateRegion,
 }) => {
   const [activeKind, setActiveKind] = useState<RegionalExperienceKind>(initialKind);
 
@@ -396,57 +398,6 @@ export const RegionalExperienceScreen: React.FC<RegionalExperienceScreenProps> =
           </Badge>
         </div>
 
-        {/* Regional Experience Switcher Tabs */}
-        <div className="flex items-center gap-2.5 mb-8 overflow-x-auto pb-1">
-          <button
-            type="button"
-            onClick={() => {
-              stopAudioSynthesizer();
-              setActiveKind("chau-van");
-            }}
-            className={`min-h-11 px-5 rounded-xl text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
-              activeKind === "chau-van"
-                ? "bg-gradient-to-r from-red-800 via-amber-700 to-amber-900 text-white shadow-md ring-2 ring-amber-500/30"
-                : "bg-surface text-stone-700 dark:text-stone-300 border border-line hover:border-amber-500/40 hover:text-amber-800"
-            }`}
-          >
-            <span>⛩️</span>
-            <span>Nhịp Chầu Văn (Bắc Bộ)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              stopAudioSynthesizer();
-              setActiveKind("sea-prayer");
-            }}
-            className={`min-h-11 px-5 rounded-xl text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
-              activeKind === "sea-prayer"
-                ? "bg-gradient-to-r from-rose-800 via-rose-700 to-rose-950 text-white shadow-md ring-2 ring-rose-500/30"
-                : "bg-surface text-stone-700 dark:text-stone-300 border border-line hover:border-rose-500/40 hover:text-rose-800"
-            }`}
-          >
-            <span>🌊</span>
-            <span>Lời Cầu Bình An Ra Biển (Trung Bộ)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              stopAudioSynthesizer();
-              setActiveKind("southern-culture");
-            }}
-            className={`min-h-11 px-5 rounded-xl text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
-              activeKind === "southern-culture"
-                ? "bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-950 text-white shadow-md ring-2 ring-emerald-500/30"
-                : "bg-surface text-stone-700 dark:text-stone-300 border border-line hover:border-emerald-500/40 hover:text-emerald-800"
-            }`}
-          >
-            <span>🚣</span>
-            <span>Sông Nước Nghĩa Tình (Nam Bộ)</span>
-          </button>
-        </div>
-
         {/* ========================================================================= */}
         {/* ================= 1. TRẢI NGHIỆM CHẦU VĂN BẮC BỘ ======================== */}
         {/* ========================================================================= */}
@@ -527,21 +478,10 @@ export const RegionalExperienceScreen: React.FC<RegionalExperienceScreenProps> =
                     alt="Đình làng và không gian thờ Mẫu Bắc Bộ"
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
-
                   <div className="absolute top-4 left-4">
                     <Badge className="bg-surface/90 text-amber-800 border-amber-400/40 text-xs font-bold px-3 py-1 backdrop-blur-md">
                       ✦ DI SẢN PHI VẬT THỂ UNESCO
                     </Badge>
-                  </div>
-
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <span className="text-[11px] uppercase tracking-wider text-amber-300 font-semibold block mb-1">
-                      KHÔNG GIAN ĐỀN PHỦ
-                    </span>
-                    <p className="font-display text-xs sm:text-sm font-medium leading-snug drop-shadow-sm text-stone-100">
-                      Mùi hương trầm thoảng nhẹ, bóng áo thụng khăn xếp hòa nhịp phách tiền tao nhã
-                    </p>
                   </div>
                 </div>
               </div>
@@ -549,8 +489,9 @@ export const RegionalExperienceScreen: React.FC<RegionalExperienceScreenProps> =
 
             {/* Trình Diễn & Thưởng Thức Văn Ca Cổ Truyền */}
             <section className="p-6 sm:p-8 rounded-2xl border border-line bg-surface/95 shadow-xs">
-              <p className="mb-5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs leading-relaxed text-amber-950">
-                Phần thơ và diễn giải bên dưới là nội dung minh họa do sản phẩm biên soạn, không phải bản văn Chầu văn cổ đã xác minh. Tư liệu này chỉ mô phỏng trải nghiệm đọc và nghe nhịp.
+              <p className="mb-5 text-xs text-muted leading-relaxed italic flex items-center gap-1.5 opacity-85">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>Lời văn và nhịp phách được tuyển lựa nhằm gợi mở thanh âm chốn đền phủ linh thiêng, giúp người thưởng thức lắng lòng tĩnh tại.</span>
               </p>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-line">
                 <div>
@@ -623,29 +564,30 @@ export const RegionalExperienceScreen: React.FC<RegionalExperienceScreenProps> =
                     </div>
                   </Card>
 
-                  {/* Toggle 3D Northern Shrine */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowNorthernShrine(!showNorthernShrine)}
-                    className="w-full min-h-11 rounded-xl border-amber-500/40 text-amber-800 dark:text-amber-300 hover:bg-amber-500/10 font-semibold cursor-pointer gap-2"
-                  >
-                    <Flame className="w-4 h-4 text-amber-600" />
-                    <span>{showNorthernShrine ? "Thu gọn không gian 3D" : "Mở không gian Phủ Điện 3D & Thắp nhang"}</span>
-                  </Button>
                 </div>
               </div>
 
-              {/* 3D Shrine Canvas */}
-              {showNorthernShrine && (
-                <div className="mt-6 pt-6 border-t border-line">
-                  <SceneErrorBoundary onClose={() => setShowNorthernShrine(false)}>
-                    <Suspense fallback={<p className="text-xs text-stone-500 text-center py-6">Đang tải cảnh Phủ Điện 3D...</p>}>
-                      <NorthernShrineScene />
-                    </Suspense>
-                  </SceneErrorBoundary>
+              {/* 3D Shrine Canvas - Hiển thị trực tiếp */}
+              <div className="mt-8 pt-6 border-t border-line space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-amber-800 dark:text-amber-400 block mb-0.5">
+                      KHÔNG GIAN LINH KHÍ 3D TRỰC QUAN
+                    </span>
+                    <h4 className="font-display text-lg sm:text-xl font-bold text-ink flex items-center gap-2">
+                      <Flame className="w-5 h-5 text-amber-600 animate-pulse" />
+                      <span>Phủ Điện Linh Thiêng & Dâng Hương Trầm</span>
+                    </h4>
+                  </div>
+                  
                 </div>
-              )}
+
+                <SceneErrorBoundary onClose={() => {}}>
+                  <Suspense fallback={<div className="h-96 rounded-2xl bg-[#110a06] flex items-center justify-center text-xs text-stone-400">Đang khởi tạo không gian Phủ Điện 3D...</div>}>
+                    <NorthernShrineScene />
+                  </Suspense>
+                </SceneErrorBoundary>
+              </div>
             </section>
           </div>
         )}
@@ -730,21 +672,10 @@ export const RegionalExperienceScreen: React.FC<RegionalExperienceScreenProps> =
                     alt="Biển miền Trung và lăng tẩm Cố đô"
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
-
                   <div className="absolute top-4 left-4">
                     <Badge className="bg-surface/90 text-rose-800 border-rose-400/40 text-xs font-bold px-3 py-1 backdrop-blur-md">
                       ✦ LỄ CẦU NGƯ DUYÊN HẢI
                     </Badge>
-                  </div>
-
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <span className="text-[11px] uppercase tracking-wider text-rose-300 font-semibold block mb-1">
-                      BIỂN MẸ BAO DUNG
-                    </span>
-                    <p className="font-display text-xs sm:text-sm font-medium leading-snug drop-shadow-sm text-stone-100">
-                      Gửi muộn phiền theo ngọn sóng xa, đón nhận lòng kiên cường và bao dung từ biển cả
-                    </p>
                   </div>
                 </div>
               </div>
@@ -846,27 +777,25 @@ export const RegionalExperienceScreen: React.FC<RegionalExperienceScreenProps> =
                 </div>
               )}
 
-              {/* Toggle 3D Central Sea Scene */}
-              <div className="mt-8 pt-6 border-t border-line text-center">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowSeaScene(!showSeaScene)}
-                  className="rounded-xl border-rose-500/40 text-rose-800 dark:text-rose-300 hover:bg-rose-500/10 font-semibold cursor-pointer gap-2"
-                >
-                  <Waves className="w-4 h-4 text-rose-600" />
-                  <span>{showSeaScene ? "Thu gọn cảnh biển 3D" : "Mở không gian biển 3D quan sát sóng nước"}</span>
-                </Button>
-
-                {showSeaScene && (
-                  <div className="mt-5 text-left">
-                    <SceneErrorBoundary onClose={() => setShowSeaScene(false)}>
-                      <Suspense fallback={<p className="text-xs text-stone-500 text-center py-6">Đang tải cảnh biển 3D...</p>}>
-                        <CentralSeaScene />
-                      </Suspense>
-                    </SceneErrorBoundary>
+              {/* 3D Central Sea Scene - Hiển thị trực tiếp */}
+              <div className="mt-8 pt-6 border-t border-line space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-rose-800 dark:text-rose-400 block mb-0.5">
+                      KHÔNG GIAN BIỂN 3D TRỰC QUAN
+                    </span>
+                    <h4 className="font-display text-lg sm:text-xl font-bold text-ink flex items-center gap-2">
+                      <Waves className="w-5 h-5 text-rose-600 animate-pulse" />
+                      <span>Biển Khơi Duyên Hải & Thuyền Nan Vượt Sóng</span>
+                    </h4>
                   </div>
-                )}
+                </div>
+
+                <SceneErrorBoundary onClose={() => {}}>
+                  <Suspense fallback={<div className="h-96 rounded-2xl bg-[#0a2333] flex items-center justify-center text-xs text-stone-400">Đang khởi tạo không gian biển 3D...</div>}>
+                    <CentralSeaScene />
+                  </Suspense>
+                </SceneErrorBoundary>
               </div>
             </section>
           </div>
@@ -952,75 +881,78 @@ export const RegionalExperienceScreen: React.FC<RegionalExperienceScreenProps> =
                     alt="Sông nước miền Tây Nam Bộ"
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
-
                   <div className="absolute top-4 left-4">
                     <Badge className="bg-surface/90 text-emerald-800 border-emerald-400/40 text-xs font-bold px-3 py-1 backdrop-blur-md">
                       ✦ PHÙ SA MIỆT VƯỜN
                     </Badge>
-                  </div>
-
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <span className="text-[11px] uppercase tracking-wider text-emerald-300 font-semibold block mb-1">
-                      BẾN NƯỚC NGHĨA TÌNH
-                    </span>
-                    <p className="font-display text-xs sm:text-sm font-medium leading-snug drop-shadow-sm text-stone-100">
-                      Hoa đăng bồng bềnh trôi theo dòng Cửu Long, chở nặng tấm lòng tri ân tiền nhân khai khẩn
-                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* 3 Nét Đẹp Tâm Linh Đất Phương Nam */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <Card className="p-5 sm:p-6 rounded-2xl border-line bg-surface/95 shadow-xs flex flex-col justify-between">
-                <div>
-                  <span className="text-3xl block mb-3">🌺</span>
-                  <h4 className="font-display text-base font-bold text-ink mb-2">
-                    Vía Bà Chúa Xứ Núi Sam
-                  </h4>
-                  <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
-                    Trung tâm hành hương tâm linh tầm vóc quy tụ hàng triệu người mỗi độ tháng tư âm lịch,
-                    thể hiện ước nguyện cầu bình an, may mắn và che chở của Thánh Mẫu.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-line text-[11px] font-semibold text-emerald-700">
-                  ✦ Di sản Phi vật thể Quốc gia
-                </div>
-              </Card>
+            <div className="space-y-4">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-widest text-emerald-800 dark:text-emerald-400 block mb-1">
+                  DẤU ẤN VĂN HÓA ĐẶC SẮC
+                </span>
+                <h3 className="font-display text-xl sm:text-2xl font-bold text-ink mb-1">
+                  Ba nốt son tâm linh đất phương Nam
+                </h3>
+                <p className="text-xs text-stone-500">
+                  Sự hòa quyện giữa tín ngưỡng thờ Mẫu, văn hóa sông nước miệt vườn và tình đoàn kết Kinh - Khmer - Hoa
+                </p>
+              </div>
 
-              <Card className="p-5 sm:p-6 rounded-2xl border-line bg-surface/95 shadow-xs flex flex-col justify-between">
-                <div>
-                  <span className="text-3xl block mb-3">🛶</span>
-                  <h4 className="font-display text-base font-bold text-ink mb-2">
-                    Lễ Thả Hoa Đăng Bến Ninh Kiều
-                  </h4>
-                  <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
-                    Hàng ngàn ngọn hoa đăng lung linh thả trôi theo dòng sông Hậu, gửi gắm lời tạ ơn đất trời
-                    ban mùa màng tươi tốt và cầu nguyện cho người thân yêu luôn an hòa.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-line text-[11px] font-semibold text-emerald-700">
-                  ✦ Văn hóa Sông nước Cần Thơ
-                </div>
-              </Card>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <Card className="p-5 sm:p-6 rounded-2xl border-line bg-surface/95 shadow-xs flex flex-col justify-between hover:border-emerald-500/40 hover:shadow-sm transition-all">
+                  <div>
+                    <span className="text-3xl block mb-3">🌺</span>
+                    <h4 className="font-display text-base font-bold text-ink mb-2">
+                      Vía Bà Chúa Xứ Núi Sam
+                    </h4>
+                    <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+                      Trung tâm hành hương tâm linh tầm vóc quy tụ hàng triệu người mỗi độ tháng tư âm lịch,
+                      thể hiện ước nguyện cầu bình an, may mắn và che chở của Thánh Mẫu.
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-line text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                    ✦ Di sản Phi vật thể Quốc gia
+                  </div>
+                </Card>
 
-              <Card className="p-5 sm:p-6 rounded-2xl border-line bg-surface/95 shadow-xs flex flex-col justify-between">
-                <div>
-                  <span className="text-3xl block mb-3">🌕</span>
-                  <h4 className="font-display text-base font-bold text-ink mb-2">
-                    Lễ Hội Cúng Trăng Ok Om Bok
-                  </h4>
-                  <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
-                    Lễ hội tạ ơn thần Mặt Trăng của đồng bào Khmer Nam Bộ vào rằm tháng mười,
-                    dâng cốm dẹp và thả đèn gió, đèn nước thắt chặt tình đoàn kết keo sơn Kinh - Khmer - Hoa.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-line text-[11px] font-semibold text-emerald-700">
-                  ✦ Giao lưu văn hóa đa dân tộc
-                </div>
-              </Card>
+                <Card className="p-5 sm:p-6 rounded-2xl border-line bg-surface/95 shadow-xs flex flex-col justify-between hover:border-emerald-500/40 hover:shadow-sm transition-all">
+                  <div>
+                    <span className="text-3xl block mb-3">🛶</span>
+                    <h4 className="font-display text-base font-bold text-ink mb-2">
+                      Lễ Thả Hoa Đăng Bến Ninh Kiều
+                    </h4>
+                    <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+                      Hàng ngàn ngọn hoa đăng lung linh thả trôi theo dòng sông Hậu, gửi gắm lời tạ ơn đất trời
+                      ban mùa màng tươi tốt và cầu nguyện cho người thân yêu luôn an hòa.
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-line text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                    ✦ Văn hóa Sông nước Cần Thơ
+                  </div>
+                </Card>
+
+                <Card className="p-5 sm:p-6 rounded-2xl border-line bg-surface/95 shadow-xs flex flex-col justify-between hover:border-emerald-500/40 hover:shadow-sm transition-all">
+                  <div>
+                    <span className="text-3xl block mb-3">🌕</span>
+                    <h4 className="font-display text-base font-bold text-ink mb-2">
+                      Lễ Hội Cúng Trăng Ok Om Bok
+                    </h4>
+                    <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+                      Lễ hội tạ ơn thần Mặt Trăng của đồng bào Khmer Nam Bộ vào rằm tháng mười,
+                      dâng cốm dẹp và thả đèn gió, đèn nước thắt chặt tình đoàn kết keo sơn Kinh - Khmer - Hoa.
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-line text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                    ✦ Giao lưu văn hóa đa dân tộc
+                  </div>
+                </Card>
+              </div>
             </div>
 
             {/* 3D River Scene Section */}
@@ -1028,16 +960,15 @@ export const RegionalExperienceScreen: React.FC<RegionalExperienceScreenProps> =
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
                   <span className="text-xs font-bold uppercase tracking-widest text-emerald-800 dark:text-emerald-400 block mb-1">
-                    KHÔNG GIAN TRỰC QUAN TƯƠNG TÁC
+                    KHÔNG GIAN SÔNG NƯỚC 3D TRỰC QUAN
                   </span>
                   <h3 className="font-display text-xl sm:text-2xl font-bold text-ink">
-                    Cảnh sông nước 3D & Thả hoa đăng tâm nguyện
+                    Đêm Hội Hoa Đăng Bến Ninh Kiều & Sông Nước Cửu Long
                   </h3>
                   <p className="text-xs text-stone-500 mt-1">
                     Quan sát thuyền nan và hoa đăng trôi trên làn nước chở theo tâm nguyện an lành
                   </p>
                 </div>
-
               </div>
 
               <div className="rounded-xl overflow-hidden border border-line">
@@ -1070,10 +1001,26 @@ export const RegionalExperienceScreen: React.FC<RegionalExperienceScreenProps> =
                 Đọc chậm lại, đặt những xao động thường nhật xuống và giữ lại một điều khiến bạn rung động nhất.
                 Văn hóa dân gian là tấm gương soi chiếu đạo lý làm người: biết ơn cội nguồn, thương quý xóm giềng và sống hướng thiện.
               </p>
-              <div className="p-4 rounded-xl border border-line bg-surface-soft/60 space-y-2 text-xs text-stone-500">
-                <p>✦ <strong>Chầu văn:</strong> Nhắc nhở lòng hiếu kính Mẫu và tiền nhân bảo hộ bờ cõi.</p>
-                <p>✦ <strong>Cầu Ngư:</strong> Dạy con người biết ơn biển cả, sống nghĩa tình đùm bọc.</p>
-                <p>✦ <strong>Sông nước:</strong> Nuôi dưỡng tấm lòng thơm thảo, hào sảng bao dung.</p>
+              <div className="p-4 rounded-xl border border-line bg-surface-soft/60 space-y-2 text-xs text-stone-600 dark:text-stone-300">
+                {activeKind === "chau-van" ? (
+                  <>
+                    <p>✦ <strong>Hiếu kính nguồn cội:</strong> Tôn vinh công đức Thánh Mẫu và các bậc tiền nhân hộ quốc an dân.</p>
+                    <p>✦ <strong>Thanh lọc tâm hồn:</strong> Nhịp đàn phách gạn lọc âu lo, đưa tâm trí về trạng thái định tĩnh thuần khiết.</p>
+                    <p>✦ <strong>Khát vọng hướng thiện:</strong> Cầu mong gia đạo bình an, tai qua nạn khỏi và vạn sự hanh thông.</p>
+                  </>
+                ) : activeKind === "sea-prayer" ? (
+                  <>
+                    <p>✦ <strong>Biết ơn biển mẹ:</strong> Tôn kính sự bao dung và nguồn sống vô tận từ biển khơi bao la.</p>
+                    <p>✦ <strong>Nghĩa tình đùm bọc:</strong> Gắn kết với tinh thần quật cường của những người con vạn chài bám biển.</p>
+                    <p>✦ <strong>Tĩnh tâm vững vàng:</strong> Gửi mọi muộn phiền theo sóng trôi xa, giữ lại sự bình an sâu thẳm.</p>
+                  </>
+                ) : (
+                  <>
+                    <p>✦ <strong>Thơm thảo hào sảng:</strong> Nếp sống nghĩa tình, đôn hậu và bao dung của người phương Nam.</p>
+                    <p>✦ <strong>Tạ ơn đất trời:</strong> Cảm tạ dòng phù sa nuôi dưỡng mùa màng và xóm làng ấm no.</p>
+                    <p>✦ <strong>Ước nguyện thắp sáng:</strong> Ngọn hoa đăng chở theo ước vọng an hòa, may mắn cho muôn nhà.</p>
+                  </>
+                )}
               </div>
             </div>
 
@@ -1113,6 +1060,115 @@ export const RegionalExperienceScreen: React.FC<RegionalExperienceScreenProps> =
                 </div>
               </Card>
             </div>
+          </div>
+        </section>
+
+        {/* Khám phá các không gian vùng miền khác */}
+        <section className="mt-14 pt-8 border-t border-line">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest text-accent block mb-1">
+                TIẾP NỐI HÀNH TRÌNH
+              </span>
+              <h3 className="font-display text-xl sm:text-2xl font-bold text-ink">
+                Không gian văn hóa vùng miền khác
+              </h3>
+            </div>
+            <p className="text-xs text-muted max-w-md sm:text-right">
+              Mỗi vùng đất là một nốt thăng trầm trong bản hòa ca tín ngưỡng và tâm hồn người Việt
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {activeKind !== "chau-van" && (
+              <Card
+                onClick={() => {
+                  stopAudioSynthesizer();
+                  if (onNavigateRegion) onNavigateRegion("chau-van");
+                  else setActiveKind("chau-van");
+                }}
+                className="p-5 sm:p-6 rounded-2xl border border-line bg-surface hover:border-amber-500/50 hover:shadow-md transition-all duration-300 cursor-pointer group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-3xl">⛩️</span>
+                    <Badge variant="outline" className="border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs font-semibold">
+                      Bắc Bộ
+                    </Badge>
+                  </div>
+                  <h4 className="font-display text-base sm:text-lg font-bold text-ink mb-1 group-hover:text-accent transition-colors">
+                    Nhịp Chầu Văn & Đền Phủ Tam Phủ
+                  </h4>
+                  <p className="text-xs text-muted leading-relaxed line-clamp-2">
+                    Thưởng thức thanh âm đàn nguyệt, phách tiền và những áng văn ca kinh điển chốn linh thiêng.
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-line/60 flex items-center justify-between text-xs font-semibold text-accent">
+                  <span>Trải nghiệm không gian</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </Card>
+            )}
+
+            {activeKind !== "sea-prayer" && (
+              <Card
+                onClick={() => {
+                  stopAudioSynthesizer();
+                  if (onNavigateRegion) onNavigateRegion("sea-prayer");
+                  else setActiveKind("sea-prayer");
+                }}
+                className="p-5 sm:p-6 rounded-2xl border border-line bg-surface hover:border-rose-500/50 hover:shadow-md transition-all duration-300 cursor-pointer group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-3xl">🌊</span>
+                    <Badge variant="outline" className="border-rose-500/30 text-rose-800 dark:text-rose-300 text-xs font-semibold">
+                      Trung Bộ
+                    </Badge>
+                  </div>
+                  <h4 className="font-display text-base sm:text-lg font-bold text-ink mb-1 group-hover:text-accent transition-colors">
+                    Lời Cầu Bình An Ra Biển & Lễ Cầu Ngư
+                  </h4>
+                  <p className="text-xs text-muted leading-relaxed line-clamp-2">
+                    Lắng nghe tiếng sóng vỗ bờ, gửi lời nguyện cầu thuận buồm xuôi gió cùng đạo nghĩa vạn chài.
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-line/60 flex items-center justify-between text-xs font-semibold text-accent">
+                  <span>Trải nghiệm không gian</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </Card>
+            )}
+
+            {activeKind !== "southern-culture" && (
+              <Card
+                onClick={() => {
+                  stopAudioSynthesizer();
+                  if (onNavigateRegion) onNavigateRegion("southern-culture");
+                  else setActiveKind("southern-culture");
+                }}
+                className="p-5 sm:p-6 rounded-2xl border border-line bg-surface hover:border-emerald-500/50 hover:shadow-md transition-all duration-300 cursor-pointer group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-3xl">🛶</span>
+                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-semibold">
+                      Nam Bộ
+                    </Badge>
+                  </div>
+                  <h4 className="font-display text-base sm:text-lg font-bold text-ink mb-1 group-hover:text-accent transition-colors">
+                    Sông Nước Nghĩa Tình & Thả Hoa Đăng
+                  </h4>
+                  <p className="text-xs text-muted leading-relaxed line-clamp-2">
+                    Chiêm nghiệm nét đẹp hào sảng, thơm thảo và thả ngọn hoa đăng cầu an trên dòng sông Hậu.
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-line/60 flex items-center justify-between text-xs font-semibold text-accent">
+                  <span>Trải nghiệm không gian</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </Card>
+            )}
           </div>
         </section>
 

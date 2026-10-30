@@ -161,7 +161,7 @@ export const AncestorAltarScreen: React.FC<AncestorAltarScreenProps> = ({
             className="inline-flex cursor-pointer items-center gap-1.5 font-medium transition-colors hover:text-accent"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Không gian của tôi</span>
+            <span>Về Trải nghiệm</span>
           </button>
           <Badge
             variant="outline"
@@ -173,17 +173,16 @@ export const AncestorAltarScreen: React.FC<AncestorAltarScreenProps> = ({
 
         <header className="mb-6 max-w-2xl">
           <span className="text-xs font-bold uppercase tracking-widest text-amber-800 dark:text-amber-400">
-            NẾP NHÀ VIỆT
+            NẾP NHÀ VIỆT · CỘI NGUỒN TÂM LINH
           </span>
           <h1
             tabIndex={-1}
             className="page-title mt-1.5 mb-2.5 border-0 font-display text-3xl font-bold text-ink outline-none focus:outline-none focus-visible:outline-none focus:ring-0 sm:text-4xl"
           >
-            Bàn thờ gia tiên
+            Không gian gia tiên
           </h1>
           <p className="text-sm leading-relaxed text-stone-700 dark:text-stone-300 sm:text-base">
-            Một khoảng lặng để hướng về nguồn cội, thắp nén hương lòng và gửi
-            gắm điều bạn muốn nguyện cầu.
+            Một khoảng lặng thiêng liêng để hướng về nguồn cội, thắp nén tâm nhang, dâng lễ vật và gửi gắm lời nguyện cầu tri ân tổ tiên.
           </p>
         </header>
 

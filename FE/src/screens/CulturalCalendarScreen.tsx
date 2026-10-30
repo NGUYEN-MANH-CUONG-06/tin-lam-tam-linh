@@ -90,13 +90,52 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
   // Tổng hợp sự kiện: sự kiện lịch sử văn hóa đã kiểm chứng + ngày cá nhân người dùng thực sự lưu
   const allEvents = useMemo(() => {
     const remotePublicEvents: CalendarEventItem[] = [];
+    const daysInYear = new Date(selectedYear, 1, 29).getMonth() === 1 ? 366 : 365;
+
+    // 1. Tự động gắn 2 mốc phong tục quan trọng nhất của nếp nhà truyền thống: Sóc (Mùng 1) và Vọng (Rằm)
+    for (let offset = 0; offset < daysInYear; offset += 1) {
+      const date = new Date(selectedYear, 0, 1 + offset);
+      const d = date.getDate();
+      const m = date.getMonth() + 1;
+      const lunar = getReliableLunarDate(d, m, selectedYear);
+      if (lunar.isFirstDay) {
+        remotePublicEvents.push({
+          id: `custom:soc:${selectedYear}:${m}:${d}`,
+          title: `Ngày Sóc (Mùng Một Âm lịch) - Khởi đầu thanh tịnh`,
+          day: d,
+          month: m,
+          year: selectedYear,
+          type: "custom",
+          typeLabel: "Phong tục nếp nhà",
+          region: "Toàn quốc",
+          shortDesc: `Ngày đầu tháng theo nếp xưa: dọn dẹp hương án thanh tịnh, thắp nén trầm mộc và giữ tâm thế an hòa đón tháng mới.`,
+          lunarDate: `Âm lịch: 1/${lunar.lunarMonth}${lunar.isLeapMonth ? " nhuận" : ""}`,
+          badge: "Mùng 1",
+        });
+      } else if (lunar.isFullMoon) {
+        remotePublicEvents.push({
+          id: `custom:vong:${selectedYear}:${m}:${d}`,
+          title: `Ngày Vọng (Rằm tháng ${lunar.lunarMonth} Âm lịch) - Trăng tròn viên mãn`,
+          day: d,
+          month: m,
+          year: selectedYear,
+          type: "custom",
+          typeLabel: "Phong tục nếp nhà",
+          region: "Toàn quốc",
+          shortDesc: `Ngày rằm trăng sáng tỏ: chuẩn bị chén nước trong, đĩa hoa quả thơm, hướng niệm tri ân cội nguồn tổ tiên và giữ sự hòa thuận trong gia đình.`,
+          lunarDate: `Âm lịch: 15/${lunar.lunarMonth}${lunar.isLeapMonth ? " nhuận" : ""}`,
+          badge: "Ngày Rằm",
+        });
+      }
+    }
+
+    // 2. Nạp các ngày lễ truyền thống & quốc gia
     for (const item of remoteEvents) {
       if (item.verified !== true) continue;
       const eventDay = Number(item.day);
       const eventMonth = Number(item.month);
       if (!Number.isInteger(eventDay) || !Number.isInteger(eventMonth)) continue;
       const calendar = item.calendar === "SOLAR" ? "SOLAR" : "LUNAR";
-      const daysInYear = new Date(selectedYear, 1, 29).getMonth() === 1 ? 366 : 365;
       for (let offset = 0; offset < daysInYear; offset += 1) {
         const date = new Date(selectedYear, 0, 1 + offset);
         const lunar = getReliableLunarDate(date.getDate(), date.getMonth() + 1, selectedYear);
@@ -106,18 +145,22 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
         if (!matches) continue;
         const region = String(item.region || "Toàn quốc");
         const title = String(item.title || "Sự kiện văn hóa");
+        const isCustom = String(item.typeLabel || "").toLowerCase().includes("phong tục") || String(item.typeLabel || "").toLowerCase().includes("nếp nhà");
         remotePublicEvents.push({
           id: `api:${item.id}:${selectedYear}:${date.getMonth() + 1}:${date.getDate()}`,
           title,
           day: date.getDate(),
           month: date.getMonth() + 1,
           year: selectedYear,
-          type: "festival",
+          type: isCustom ? "custom" : "festival",
           typeLabel: String(item.typeLabel || "Sự kiện văn hóa"),
           region,
           shortDesc: String(item.shortDesc || ""),
-          lunarDate: `Âm lịch: ${lunar.lunarDay}/${lunar.lunarMonth}${lunar.isLeapMonth ? " nhuận" : ""}`,
+          lunarDate: calendar === "SOLAR"
+            ? `Dương lịch: ${eventDay}/${eventMonth} (Âm lịch: ${lunar.lunarDay}/${lunar.lunarMonth})`
+            : `Âm lịch: ${lunar.lunarDay}/${lunar.lunarMonth}${lunar.isLeapMonth ? " nhuận" : ""}`,
           verifiedSource: item.verified === true ? String(item.source || "") : undefined,
+          badge: title.length > 8 ? title.slice(0, 7) + "…" : title,
         });
       }
     }
@@ -476,259 +519,384 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
 
         {/* Main 2-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column (8 cols): Calendar Grid & Controls */}
-          <div className="lg:col-span-8 min-w-0 bg-surface border border-line rounded-panel p-2 sm:p-6">
-            {/* Calendar Controls Toolbar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-5 border-b border-line">
-              {/* Month Navigation */}
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  onClick={handlePrevMonth}
-                  className="w-8 h-8 rounded-full border border-line flex items-center justify-center text-ink hover:bg-surface transition-colors cursor-pointer"
-                  title="Tháng trước"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
+          {/* Left Column (8 cols): Calendar Grid & Cultural Insights */}
+          <div className="lg:col-span-8 min-w-0 space-y-6">
+            <div className="bg-surface border border-line rounded-panel p-2 sm:p-6 shadow-xs">
+              {/* Calendar Controls Toolbar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-5 border-b border-line">
+                {/* Month Navigation */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={handlePrevMonth}
+                    className="w-8 h-8 rounded-full border border-line flex items-center justify-center text-ink hover:bg-surface transition-colors cursor-pointer"
+                    title="Tháng trước"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
 
-                <div>
-                  <h2 className="section-title text-xl sm:text-2xl min-w-0 text-center">
-                    Tháng {selectedMonth}, {selectedYear}
-                  </h2>
-                  <p className="text-sm text-muted text-center font-medium">
-                    {monthHeaderLunar
-                      ? `Tháng ${monthHeaderLunar.lunarMonth} Âm lịch • Năm ${monthHeaderLunar.canChiYear}`
-                      : "Lịch Âm Dương thuần Việt"}
-                  </p>
+                  <div>
+                    <h2 className="section-title text-xl sm:text-2xl min-w-0 text-center">
+                      Tháng {selectedMonth}, {selectedYear}
+                    </h2>
+                    <p className="text-sm text-muted text-center font-medium">
+                      {monthHeaderLunar
+                        ? `Tháng ${monthHeaderLunar.lunarMonth} Âm lịch • Năm ${monthHeaderLunar.canChiYear}`
+                        : "Lịch Âm Dương thuần Việt"}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleNextMonth}
+                    className="w-8 h-8 rounded-full border border-line flex items-center justify-center text-ink hover:bg-surface transition-colors cursor-pointer"
+                    title="Tháng sau"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={handleResetToday}
+                    className="ml-2 px-3 py-1.5 rounded-xl border border-line text-xs font-semibold text-muted hover:text-accent hover:bg-surface transition-colors flex items-center gap-1.5 cursor-pointer"
+                    title="Về ngày hiện tại theo thời gian thực"
+                  >
+                    <CalendarIcon className="w-3.5 h-3.5 text-accent" />
+                    <span>Hôm nay ({todayRealDay}/{todayRealMonth})</span>
+                  </button>
                 </div>
 
-                <button
-                  onClick={handleNextMonth}
-                  className="w-8 h-8 rounded-full border border-line flex items-center justify-center text-ink hover:bg-surface transition-colors cursor-pointer"
-                  title="Tháng sau"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-
-                <button
-                  onClick={handleResetToday}
-                  className="ml-2 px-3 py-1.5 rounded-xl border border-line text-xs font-semibold text-muted hover:text-accent hover:bg-surface transition-colors flex items-center gap-1.5 cursor-pointer"
-                  title="Về ngày hiện tại theo thời gian thực"
-                >
-                  <CalendarIcon className="w-3.5 h-3.5 text-accent" />
-                  <span>Hôm nay ({todayRealDay}/{todayRealMonth})</span>
-                </button>
-              </div>
-
-              {/* Filter Chips */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <button
-                  onClick={() => setActiveFilter("all")}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                    activeFilter === "all"
-                      ? "bg-action text-white shadow-2xs"
-                      : "bg-surface border border-line text-ink hover:border-line"
-                  }`}
-                >
-                  ● Tất cả
-                </button>
-
-                <button
-                  onClick={() => setActiveFilter("custom")}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                    activeFilter === "custom"
-                      ? "bg-action text-white shadow-2xs"
-                      : "bg-surface border border-line text-ink hover:border-line"
-                  }`}
-                >
-                  ● Phong tục ({customCount})
-                </button>
-
-                <button
-                  onClick={() => setActiveFilter("festival")}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                    activeFilter === "festival"
-                      ? "bg-action text-white shadow-2xs"
-                      : "bg-surface border border-line text-ink hover:border-line"
-                  }`}
-                >
-                  ● Lễ hội ({festivalCount})
-                </button>
-
-                <button
-                  onClick={() => setActiveFilter("personal")}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                    activeFilter === "personal"
-                      ? "bg-action text-white shadow-2xs"
-                      : "bg-surface border border-line text-ink hover:border-line"
-                  }`}
-                >
-                  ● Ngày tôi lưu ({personalCount})
-                </button>
-              </div>
-            </div>
-
-            {/* Calendar Days of Week Header (Bắt đầu từ Thứ Hai) */}
-            <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs font-bold text-muted mb-3">
-              <div>Thứ Hai</div>
-              <div>Thứ Ba</div>
-              <div>Thứ Tư</div>
-              <div>Thứ Năm</div>
-              <div>Thứ Sáu</div>
-              <div>Thứ Bảy</div>
-              <div>Chủ Nhật</div>
-            </div>
-
-            {/* Calendar Days Grid */}
-            <div className="grid grid-cols-7 gap-1 sm:gap-2">
-              {calendarGridDays.map((cell, index) => {
-                const isSelected =
-                  cell.isCurrentMonth &&
-                  cell.day === selectedDay &&
-                  cell.month === selectedMonth &&
-                  cell.year === selectedYear;
-
-                const isRealToday =
-                  cell.isCurrentMonth &&
-                  cell.day === todayRealDay &&
-                  cell.month === todayRealMonth &&
-                  cell.year === todayRealYear;
-
-                return (
+                {/* Filter Chips */}
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <button
-                    key={index}
-                    type="button"
-                    disabled={!cell.isCurrentMonth}
-                    aria-pressed={isSelected}
-                    aria-label={`Ngày ${cell.day} tháng ${cell.month}${cell.isSpecial ? ", có sự kiện" : ""}`}
-                    onClick={() => {
-                      if (cell.isCurrentMonth) {
-                        setSelectedDay(cell.day);
-                      }
-                    }}
-                    className={`min-w-0 min-h-[84px] sm:min-h-[110px] p-1 sm:p-2 rounded-control text-left border transition-all flex flex-col justify-between cursor-pointer relative ${
-                      !cell.isCurrentMonth
-                        ? "bg-surface/40 border-transparent text-subtle opacity-40 cursor-default"
-                        : isSelected
-                        ? "bg-action border-accent text-white shadow-md ring-2 ring-accent/30 scale-[1.02]"
-                        : cell.isSpecial
-                        ? "bg-surface border-line text-ink hover:border-accent"
-                        : "bg-surface border-line hover:border-line hover:bg-surface text-ink"
+                    onClick={() => setActiveFilter("all")}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      activeFilter === "all"
+                        ? "bg-action text-white shadow-2xs"
+                        : "bg-surface border border-line text-ink hover:border-line"
                     }`}
                   >
-                    {/* Top Row: Solar Day Number + Notification Dot */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <span
-                          className={`text-xs sm:text-sm font-bold font-sans tabular-nums ${
-                            isSelected ? "text-white" : ""
-                          }`}
-                        >
-                          {cell.day}
-                        </span>
-                        {isRealToday && (
-                          <span
-                            className={`text-xs px-1 rounded-sm uppercase font-bold tracking-tight ${
-                              isSelected ? "bg-surface text-accent" : "bg-surface text-accent"
-                            }`}
-                            title="Hôm nay theo thời gian thực"
-                          >
-                            Nay
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        {cell.hasPersonalNote && (
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              isSelected ? "bg-on-action" : "bg-gold"
-                            }`}
-                            title="Có ghi chú của tôi"
-                          />
-                        )}
-                        {cell.hasDot && (
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              isSelected ? "bg-on-action" : "bg-action"
-                            }`}
-                          />
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Middle: Lunar Day indication (Chỉ hiện khi có dữ liệu đáng tin cậy) */}
-                    {cell.lunarText && (
-                      <div className="text-xs leading-tight font-medium opacity-90">
-                        <span className={isSelected ? "text-on-action" : "text-muted"}>
-                          AL: {cell.lunarText}
-                        </span>
-                        {cell.subText && (
-                          <span
-                            className={`block text-xs italic ${
-                              isSelected ? "text-on-action" : "text-accent"
-                            }`}
-                          >
-                            {cell.subText}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Bottom: Event Badge if reliable */}
-                    {cell.badge && (
-                      <span
-                        className={`text-xs px-1.5 py-0.5 rounded-md truncate font-semibold block text-center ${
-                          isSelected
-                            ? "bg-white/20 text-white"
-                            : cell.isSpecial
-                            ? "bg-action text-white"
-                            : "bg-surface text-accent border border-line"
-                        }`}
-                      >
-                        {cell.badge}
-                      </span>
-                    )}
+                    ● Tất cả
                   </button>
-                );
-              })}
+
+                  <button
+                    onClick={() => setActiveFilter("custom")}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      activeFilter === "custom"
+                        ? "bg-action text-white shadow-2xs"
+                        : "bg-surface border border-line text-ink hover:border-line"
+                    }`}
+                  >
+                    ● Phong tục ({customCount})
+                  </button>
+
+                  <button
+                    onClick={() => setActiveFilter("festival")}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      activeFilter === "festival"
+                        ? "bg-action text-white shadow-2xs"
+                        : "bg-surface border border-line text-ink hover:border-line"
+                    }`}
+                  >
+                    ● Lễ hội ({festivalCount})
+                  </button>
+
+                  <button
+                    onClick={() => setActiveFilter("personal")}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      activeFilter === "personal"
+                        ? "bg-action text-white shadow-2xs"
+                        : "bg-surface border border-line text-ink hover:border-line"
+                    }`}
+                  >
+                    ● Ngày tôi lưu ({personalCount})
+                  </button>
+                </div>
+              </div>
+
+              {/* Calendar Days of Week Header (Bắt đầu từ Thứ Hai) */}
+              <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs font-bold text-muted mb-3">
+                <div>Thứ Hai</div>
+                <div>Thứ Ba</div>
+                <div>Thứ Tư</div>
+                <div>Thứ Năm</div>
+                <div>Thứ Sáu</div>
+                <div>Thứ Bảy</div>
+                <div>Chủ Nhật</div>
+              </div>
+
+              {/* Calendar Days Grid */}
+              <div className="grid grid-cols-7 gap-1 sm:gap-2">
+                {calendarGridDays.map((cell, index) => {
+                  const isSelected =
+                    cell.isCurrentMonth &&
+                    cell.day === selectedDay &&
+                    cell.month === selectedMonth &&
+                    cell.year === selectedYear;
+
+                  const isRealToday =
+                    cell.isCurrentMonth &&
+                    cell.day === todayRealDay &&
+                    cell.month === todayRealMonth &&
+                    cell.year === todayRealYear;
+
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      disabled={!cell.isCurrentMonth}
+                      aria-pressed={isSelected}
+                      aria-label={`Ngày ${cell.day} tháng ${cell.month}${cell.isSpecial ? ", có sự kiện" : ""}`}
+                      onClick={() => {
+                        if (cell.isCurrentMonth) {
+                          setSelectedDay(cell.day);
+                        }
+                      }}
+                      className={`min-w-0 min-h-[84px] sm:min-h-[110px] p-1 sm:p-2 rounded-control text-left border transition-all flex flex-col justify-between cursor-pointer relative ${
+                        !cell.isCurrentMonth
+                          ? "bg-surface/40 border-transparent text-subtle opacity-40 cursor-default"
+                          : isSelected
+                          ? "bg-action border-accent text-white shadow-md ring-2 ring-accent/30 scale-[1.02]"
+                          : cell.isSpecial
+                          ? "bg-surface border-line text-ink hover:border-accent"
+                          : "bg-surface border-line hover:border-line hover:bg-surface text-ink"
+                      }`}
+                    >
+                      {/* Top Row: Solar Day Number + Notification Dot */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          <span
+                            className={`text-xs sm:text-sm font-bold font-sans tabular-nums ${
+                              isSelected ? "text-white" : ""
+                            }`}
+                          >
+                            {cell.day}
+                          </span>
+                          {isRealToday && (
+                            <span
+                              className={`text-xs px-1 rounded-sm uppercase font-bold tracking-tight ${
+                                isSelected ? "bg-surface text-accent" : "bg-surface text-accent"
+                              }`}
+                              title="Hôm nay theo thời gian thực"
+                            >
+                              Nay
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          {cell.hasPersonalNote && (
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                isSelected ? "bg-on-action" : "bg-gold"
+                              }`}
+                              title="Có ghi chú của tôi"
+                            />
+                          )}
+                          {cell.hasDot && (
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                isSelected ? "bg-on-action" : "bg-action"
+                              }`}
+                            />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Middle: Lunar Day indication (Chỉ hiện khi có dữ liệu đáng tin cậy) */}
+                      {cell.lunarText && (
+                        <div className="text-xs leading-tight font-medium">
+                          <span className={isSelected ? "text-on-action" : "text-ink/75"}>
+                            AL: {cell.lunarText}
+                          </span>
+                          {cell.subText && (
+                            <span
+                              className={`block text-xs italic ${
+                                isSelected ? "text-on-action" : "text-accent font-medium"
+                              }`}
+                            >
+                              {cell.subText}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Bottom: Event Badge if reliable */}
+                      {cell.badge && (
+                        <span
+                          className={`text-xs px-1 py-0.5 rounded-md font-semibold block text-center truncate ${
+                            isSelected
+                              ? "bg-white/20 text-white"
+                              : cell.isSpecial
+                              ? "bg-action text-white"
+                              : "bg-surface text-accent border border-line"
+                          }`}
+                          title={cell.badge}
+                        >
+                          {cell.badge.startsWith("Mùng 1")
+                            ? "Mùng 1"
+                            : cell.badge.startsWith("Rằm")
+                            ? "Ngày Rằm"
+                            : cell.badge.length > 8
+                            ? cell.badge.slice(0, 7) + "…"
+                            : cell.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Seasonal Term & Folk Living Wisdom */}
+            <div className="p-5 sm:p-6 rounded-card bg-amber-500/[0.04] border border-amber-500/20 shadow-2xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 mb-4 border-b border-amber-500/15">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0 border border-amber-500/25">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                      TIẾT KHÍ & NẾP SỐNG DÂN GIAN
+                    </span>
+                    <h3 className="font-display font-bold text-base sm:text-lg text-ink">
+                      {currentSelectedLunar.solarTerm ? `Tiết ${currentSelectedLunar.solarTerm}` : "Tiết khí thuận hòa"} • {monthHeaderLunar?.canChiYear || "Năm Bính Ngọ"}
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="text-xs text-muted">
+                  Âm dương tương hợp, dưỡng thân an tâm
+                </div>
+              </div>
+
+              <p className="text-xs sm:text-sm text-ink/80 leading-relaxed mb-4">
+                Người xưa quan sát 24 tiết khí để điều hòa nhịp sống thuận theo Đất Trời. Vào mùa thu đông, khí trời chuyển mát và se lạnh; nếp nhà giữ ấm thân thể, uống chén trà sen sớm, gìn giữ sự hòa thuận và thanh tịnh nơi tâm hồn.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div
+                  onClick={onGoToRituals}
+                  className="p-3.5 rounded-2xl bg-surface border border-line hover:border-amber-500/40 transition-all cursor-pointer flex items-center justify-between group shadow-2xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+                      <Flower2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <strong className="text-xs sm:text-sm font-bold text-ink block group-hover:text-amber-700 transition-colors">
+                        Chuẩn bị Ngày Rằm thanh tịnh
+                      </strong>
+                      <span className="text-xs text-muted">Hương mộc, hoa quả tươi và chén nước trong</span>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted group-hover:text-amber-600 transition-transform group-hover:translate-x-0.5 shrink-0" />
+                </div>
+
+                <div
+                  onClick={onGoToRituals}
+                  className="p-3.5 rounded-2xl bg-surface border border-line hover:border-amber-500/40 transition-all cursor-pointer flex items-center justify-between group shadow-2xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                      <Heart className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <strong className="text-xs sm:text-sm font-bold text-ink block group-hover:text-emerald-700 transition-colors">
+                        Nghi thức Mùng Một nếp nhà
+                      </strong>
+                      <span className="text-xs text-muted">Khởi đầu tháng mới an hòa, thuận thảo</span>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted group-hover:text-emerald-600 transition-transform group-hover:translate-x-0.5 shrink-0" />
+                </div>
+              </div>
+            </div>
+
+            {/* Annual Traditional Festivals List (Balanced on left column) */}
+            <div className="p-5 sm:p-6 rounded-card bg-surface border border-line shadow-xs">
+              <div className="flex items-center justify-between pb-3 mb-4 border-b border-line">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-accent">
+                    DẤU MỐC CỘI NGUỒN
+                  </span>
+                  <h3 className="font-display font-bold text-base sm:text-lg text-ink">
+                    Các ngày lễ & Lễ hội truyền thống tiêu biểu trong năm
+                  </h3>
+                </div>
+                <span className="text-xs text-muted hidden sm:inline">Đối chiếu lịch Âm Dương thuần Việt</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[...new Map(allEvents.filter((e) => e.type === "festival" && !e.id.startsWith("custom:")).map((e) => [e.title, e])).values()].slice(0, 8).map((event) => (
+                  <button
+                    key={event.title}
+                    type="button"
+                    onClick={() => onSelectEvent(event.id)}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-line/80 bg-surface-soft/40 hover:bg-surface p-3.5 text-left hover:border-accent/40 transition-all cursor-pointer group shadow-2xs"
+                  >
+                    <div className="min-w-0">
+                      <strong className="block text-xs sm:text-sm text-ink font-bold group-hover:text-accent transition-colors truncate">
+                        {event.title}
+                      </strong>
+                      <span className="text-xs text-muted block mt-0.5 truncate">
+                        {event.region} · {event.lunarDate}
+                      </span>
+                    </div>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-muted group-hover:text-accent transition-transform group-hover:translate-x-0.5" />
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Right Column (4 cols): Day Detail Panel */}
-          <div className="lg:col-span-4 space-y-4">
+          <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-24">
             <Card className="p-6 rounded-card bg-surface border border-line shadow-xs">
               {/* Day Header Info */}
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-line">
-                <div>
+              <div className="pb-4 mb-4 border-b border-line">
+                <div className="flex items-start justify-between gap-3">
                   <span className="text-xs font-bold uppercase tracking-wider text-accent">
                     {activeFilter === "personal" ? "DANH MỤC LƯU RIÊNG" : "CHI TIẾT NGÀY ĐƯỢC CHỌN"}
                   </span>
-                  <h3 className="font-display font-bold text-xl sm:text-2xl text-ink mt-0.5">
+                  <Button
+                    onClick={() => setShowAddModal(true)}
+                    size="sm"
+                    className="rounded-xl text-xs gap-1.5 py-1.5 px-3 bg-action hover:bg-action text-white shrink-0 cursor-pointer shadow-sm"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Ghi chú</span>
+                  </Button>
+                </div>
+                <h3 className="font-display font-bold text-2xl sm:text-[27px] leading-tight text-ink mt-3">
                     {activeFilter === "personal"
                       ? `Các ngày tôi đã lưu (${personalCount})`
                       : `Ngày ${selectedDay} tháng ${selectedMonth}, ${selectedYear}`}
-                  </h3>
-                                    {activeFilter !== "personal" && currentSelectedLunar && (
-                    <div className="mt-1 space-y-2 text-sm text-muted">
-                      <p className="font-medium">
+                </h3>
+                {activeFilter !== "personal" && currentSelectedLunar && (
+                  <div className="mt-4 space-y-3 text-sm text-muted">
+                    <p className="rounded-xl bg-surface-soft/60 border border-line/70 px-3 py-2 font-semibold text-ink">
                         Âm lịch: ngày {currentSelectedLunar.lunarDay} tháng {currentSelectedLunar.lunarMonth} ({currentSelectedLunar.canChiYear})
                         {currentSelectedLunar.solarTerm && ` · Tiết ${currentSelectedLunar.solarTerm}`}
+                    </p>
+                    <div className="space-y-1 leading-relaxed">
+                      <p>
+                        Can Chi ngày: <strong className="text-ink">{currentCalendarFacts.canChiDay}</strong>
                       </p>
-                      <p>Can Chi ngày: <strong className="text-ink">{currentCalendarFacts.canChiDay}</strong> · Can Chi tháng: <strong className="text-ink">{currentCalendarFacts.canChiMonth}</strong></p>
-                      <p>Giờ hoàng đạo theo lịch dân gian: {currentCalendarFacts.auspiciousHours.join(", ")}</p>
-                      <p className="text-xs leading-relaxed">Thông tin giờ là tham khảo phong tục, không dự báo hay bảo đảm kết quả công việc.</p>
+                      <p>
+                        Can Chi tháng: <strong className="text-ink">{currentCalendarFacts.canChiMonth}</strong>
+                      </p>
                     </div>
-                  )}
-                </div>
-
-                <Button
-                  onClick={() => setShowAddModal(true)}
-                  size="sm"
-                  className="rounded-xl text-xs gap-1 py-1.5 px-3 bg-action hover:bg-action text-white shrink-0 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Ghi chú</span>
-                </Button>
+                    <div className="rounded-xl border border-accent/20 bg-accent/[0.04] px-3 py-2.5">
+                      <p className="mb-1 text-xs font-bold uppercase tracking-wide text-accent">
+                        Giờ hoàng đạo
+                      </p>
+                      <p className="leading-relaxed text-ink/80">
+                        {currentCalendarFacts.auspiciousHours.join(", ")}
+                      </p>
+                    </div>
+                    <p className="text-xs leading-relaxed text-muted">
+                      Thông tin giờ là tham khảo phong tục, không dự báo hay bảo đảm kết quả công việc.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Event Cards List */}
@@ -783,10 +951,16 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
 
                           {event.type !== "personal" && (
                             <button
-                              onClick={() => onSelectEvent(event.id)}
+                              onClick={() => {
+                                if (event.id.startsWith("custom:soc") || event.id.startsWith("custom:vong")) {
+                                  if (onGoToRituals) onGoToRituals();
+                                } else {
+                                  onSelectEvent(event.id);
+                                }
+                              }}
                               className="text-xs font-bold text-accent hover:underline flex items-center gap-1 cursor-pointer"
                             >
-                              <span>Xem chi tiết</span>
+                              <span>{event.id.startsWith("custom:") ? "Xem cẩm nang" : "Xem chi tiết"}</span>
                               <ArrowRight className="w-3.5 h-3.5" />
                             </button>
                           )}
@@ -816,11 +990,10 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
                     ) : (
                       <>
                         <p className="font-semibold text-ink mb-1">
-                          Chưa có dữ liệu sự kiện cho ngày này
+                          Chưa có sự kiện lễ hội lớn cho ngày này
                         </p>
                         <p className="text-sm text-muted mb-4 leading-relaxed">
-                          Chưa có sự kiện văn hóa được công bố cho ngày này.
-                          Bạn vẫn có thể lưu ghi chú cá nhân cho ngày đã chọn.
+                          Ngày thường nhật bình an. Bạn có thể lưu dấu mốc cá nhân hoặc việc cần làm cho ngày này.
                         </p>
                         <div className="flex flex-wrap items-center justify-center gap-2">
                           <Button
@@ -845,7 +1018,7 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
                 >
                   <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent mb-1">
                     <BookOpen className="w-3.5 h-3.5" />
-                    <span>Cẩm nang nghi lễ • Màn 18</span>
+                    <span>Gợi ý nếp nhà • Cẩm nang nghi lễ</span>
                   </div>
                   <p className="text-sm text-ink leading-relaxed group-hover:text-ink transition-colors">
                     Bạn cần chuẩn bị cho ngày lễ sắp tới? Khám phá hướng dẫn tinh gọn, mộc mạc tại{" "}
@@ -862,20 +1035,6 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
                   Ngày âm lịch có thể khác theo cách tính và phong tục từng địa phương.
                 </div>
               </div>
-              {isDemoMode() && (
-                <section className="mt-5 rounded-panel border border-line bg-surface-soft p-4" aria-labelledby="demo-events-title">
-                  <h3 id="demo-events-title" className="font-semibold text-ink">Một số ngày lễ trong năm · dữ liệu demo</h3>
-                  <p className="mt-1 mb-3 text-xs text-muted">Ngày âm được đối chiếu theo lịch trong ứng dụng; lịch tổ chức tại từng địa phương có thể thay đổi.</p>
-                  <div className="space-y-2">
-                    {[...new Map(allEvents.filter((event) => event.type === "festival").map((event) => [event.title, event])).values()].map((event) => (
-                      <button key={event.title} type="button" onClick={() => onSelectEvent(event.id)} className="flex w-full items-center justify-between gap-3 rounded-lg border border-line bg-surface p-3 text-left hover:border-accent">
-                        <span><strong className="block text-sm text-ink">{event.title}</strong><span className="text-xs text-muted">{event.region} · {event.lunarDate}</span></span>
-                        <ArrowRight className="h-4 w-4 shrink-0 text-accent" />
-                      </button>
-                    ))}
-                  </div>
-                </section>
-              )}
             </Card>
           </div>
         </div>
@@ -889,10 +1048,24 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
               setNoteSaveError("");
             }}
           >
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-line">
-              <h3 id="calendar-note-dialog-title" className="font-display font-bold text-lg text-ink">
-                Thêm ghi chú ngày {selectedDay}/{selectedMonth}/{selectedYear}
-              </h3>
+            <div className="mb-5 pb-4 border-b border-line">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent border border-accent/20">
+                    <CalendarIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
+                      Nhật ký nếp nhà
+                    </p>
+                    <h3 id="calendar-note-dialog-title" className="mt-1 font-display font-bold text-xl leading-tight text-ink">
+                      Thêm ghi chú
+                    </h3>
+                    <p className="mt-1 text-sm text-muted">
+                      {selectedDay}/{selectedMonth}/{selectedYear}
+                    </p>
+                  </div>
+                </div>
               <button
                 type="button"
                 aria-label="Đóng hộp thoại thêm ghi chú"
@@ -904,9 +1077,10 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
               >
                 <span aria-hidden="true">✕</span>
               </button>
+              </div>
             </div>
 
-            <form onSubmit={handleAddPersonalNote} className="space-y-4">
+            <form onSubmit={handleAddPersonalNote} className="space-y-5">
               {noteSaveError && (
                 <p
                   role="alert"
@@ -916,8 +1090,10 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
                 </p>
               )}
               <div>
-                <label htmlFor="calendar-note-title" className="block text-xs font-semibold text-ink mb-1.5">
-                  Tiêu đề dấu mốc / sự kiện nếp nhà:
+                <label htmlFor="calendar-note-title" className="mb-2 block text-sm font-bold text-ink">
+                  Tiêu đề dấu mốc
+                  <span className="ml-1 text-danger">*</span>
+                  <span className="mt-0.5 block text-xs font-normal text-muted">Một tên ngắn để bạn dễ nhớ ngày này</span>
                 </label>
                 <input
                   id="calendar-note-title"
@@ -927,13 +1103,15 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
                   value={newNoteTitle}
                   onChange={(e) => setNewNoteTitle(e.target.value)}
                   placeholder="Ví dụ: Giỗ cụ cố, Lễ mừng thọ, Họp mặt gia đình..."
-                  className="w-full min-h-11 px-3.5 py-2.5 rounded-control border border-line text-base text-ink placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-accent bg-surface"
+                  className="w-full min-h-12 px-4 py-3 rounded-2xl border border-line/80 text-base text-ink placeholder:text-subtle bg-surface shadow-xs transition-shadow focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent/10"
                 />
               </div>
 
               <div>
-                <label htmlFor="calendar-note-description" className="block text-xs font-semibold text-ink mb-1.5">
-                  Ghi chú chi tiết (nếu có):
+                <label htmlFor="calendar-note-description" className="mb-2 block text-sm font-bold text-ink">
+                  Ghi chú chi tiết
+                  <span className="ml-1 text-xs font-normal text-muted">(không bắt buộc)</span>
+                  <span className="mt-0.5 block text-xs font-normal text-muted">Thêm lời dặn, việc cần chuẩn bị hoặc người thân liên quan</span>
                 </label>
                 <textarea
                   id="calendar-note-description"
@@ -941,15 +1119,16 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
                   value={newNoteDesc}
                   onChange={(e) => setNewNoteDesc(e.target.value)}
                   placeholder="Chuẩn bị lễ vật mộc mạc, dặn dò các thành viên trong gia đình..."
-                  className="w-full px-3.5 py-2.5 rounded-control border border-line text-base text-ink placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-accent bg-surface resize-none"
+                  className="w-full px-4 py-3 rounded-2xl border border-line/80 text-base text-ink placeholder:text-subtle bg-surface shadow-xs transition-shadow focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent/10 resize-none"
                 />
               </div>
 
-              <div className="p-3 rounded-xl bg-surface border border-line text-xs text-muted leading-relaxed">
-                ✦ Dữ liệu ghi chú được lưu trữ cục bộ trên máy của bạn và gắn với ngày {selectedDay}/{selectedMonth}/{selectedYear}.
+              <div className="flex items-start gap-2.5 rounded-2xl border border-accent/20 bg-accent/[0.05] px-3.5 py-3 text-xs leading-relaxed text-muted">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                <span>Dữ liệu được lưu cục bộ trên thiết bị của bạn và gắn với ngày {selectedDay}/{selectedMonth}/{selectedYear}.</span>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2">
+              <div className="flex items-center justify-end gap-2.5 border-t border-line/70 pt-5">
                 <Button
                   type="button"
                   variant="outline"
@@ -958,14 +1137,14 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
                     setShowAddModal(false);
                     setNoteSaveError("");
                   }}
-                  className="border-line text-xs"
+                  className="min-h-11 rounded-xl border-line px-4 text-sm font-semibold"
                 >
                   Hủy bỏ
                 </Button>
                 <Button
                   type="submit"
                   size="sm"
-                  className="bg-action hover:bg-action text-white text-xs px-4"
+                  className="min-h-11 rounded-xl bg-action px-5 text-sm font-bold text-white shadow-sm hover:bg-action"
                 >
                   Lưu vào lịch
                 </Button>

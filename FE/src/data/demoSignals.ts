@@ -103,13 +103,13 @@ export const ALL_SIGNALS: SignalData[] = [
     poem: {
       line1: "Nước trong hoa nở ngát dòng",
       line2: "Tâm an vạn nẻo bụi trần hóa sen.",
-      subtext: "Nội dung biên soạn minh họa",
+      subtext: "Lời gợi mở chiêm nghiệm đương đại · Đồng hành cùng tâm an.",
     },
     research: {
       title: "VÙNG 2 • TƯ LIỆU THAM KHẢO & KHẢO CỨU",
       source: "Nội dung biên soạn minh họa",
       region: "Không gian văn hóa truyền thống Việt Nam",
-      note: "(Nội dung biên soạn minh họa cho sản phẩm thử nghiệm, chưa qua đối chiếu nguồn chính thức).",
+      note: "Đúc kết từ triết lý nhân sinh và nét đẹp văn hóa truyền thống, hướng người đọc về sự định tâm và sáng suốt.",
     },
     reflection: {
       title: "VÙNG 3 • Góc Nhìn Soi Tỏ Tâm Thức",
@@ -156,13 +156,13 @@ export const ALL_SIGNALS: SignalData[] = [
     poem: {
       line1: "Gió lay cành trúc bên đồi",
       line2: "Cội sâu rễ chắc mặc đời chuyển rung.",
-      subtext: "Nội dung biên soạn minh họa",
+      subtext: "Lời gợi mở chiêm nghiệm đương đại · Đồng hành cùng tâm an.",
     },
     research: {
       title: "VÙNG 2 • TƯ LIỆU THAM KHẢO & KHẢO CỨU",
       source: "Nội dung biên soạn minh họa",
       region: "Không gian văn hóa truyền thống Việt Nam",
-      note: "(Nội dung biên soạn minh họa cho sản phẩm thử nghiệm, chưa qua đối chiếu nguồn chính thức).",
+      note: "Đúc kết từ triết lý nhân sinh và nét đẹp văn hóa truyền thống, hướng người đọc về sự định tâm và sáng suốt.",
     },
     reflection: {
       title: "VÙNG 3 • Góc Nhìn Soi Tỏ Tâm Thức",
@@ -210,13 +210,13 @@ export const ALL_SIGNALS: SignalData[] = [
     poem: {
       line1: "Gió mát trăng thanh ngàn thuở rạng",
       line2: "Lòng không vướng bận giấc nồng say.",
-      subtext: "Nội dung biên soạn minh họa",
+      subtext: "Lời gợi mở chiêm nghiệm đương đại · Đồng hành cùng tâm an.",
     },
     research: {
       title: "VÙNG 2 • TƯ LIỆU THAM KHẢO & KHẢO CỨU",
       source: "Nội dung biên soạn minh họa",
       region: "Không gian văn hóa truyền thống Việt Nam",
-      note: "(Nội dung biên soạn minh họa cho sản phẩm thử nghiệm, chưa qua đối chiếu nguồn chính thức).",
+      note: "Đúc kết từ triết lý nhân sinh và nét đẹp văn hóa truyền thống, hướng người đọc về sự định tâm và sáng suốt.",
     },
     reflection: {
       title: "VÙNG 3 • Góc Nhìn Soi Tỏ Tâm Thức",
@@ -263,13 +263,13 @@ export const ALL_SIGNALS: SignalData[] = [
     poem: {
       line1: "Sớm mai mây lượn đầu non biếc",
       line2: "Tách trà nghi ngút nhẹ lòng son.",
-      subtext: "Nội dung biên soạn minh họa",
+      subtext: "Lời gợi mở chiêm nghiệm đương đại · Đồng hành cùng tâm an.",
     },
     research: {
       title: "VÙNG 2 • TƯ LIỆU THAM KHẢO & KHẢO CỨU",
       source: "Nội dung biên soạn minh họa",
       region: "Không gian văn hóa truyền thống Việt Nam",
-      note: "(Nội dung biên soạn minh họa cho sản phẩm thử nghiệm, chưa qua đối chiếu nguồn chính thức).",
+      note: "Đúc kết từ triết lý nhân sinh và nét đẹp văn hóa truyền thống, hướng người đọc về sự định tâm và sáng suốt.",
     },
     reflection: {
       title: "VÙNG 3 • Góc Nhìn Soi Tỏ Tâm Thức",
@@ -317,13 +317,13 @@ export const ALL_SIGNALS: SignalData[] = [
     poem: {
       line1: "Đường dài vạn dặm khởi đầu bước",
       line2: "Mây tỏ trăng soi lối định hình.",
-      subtext: "Nội dung biên soạn minh họa",
+      subtext: "Lời gợi mở chiêm nghiệm đương đại · Đồng hành cùng tâm an.",
     },
     research: {
       title: "VÙNG 2 • TƯ LIỆU THAM KHẢO & KHẢO CỨU",
       source: "Nội dung biên soạn minh họa",
       region: "Không gian văn hóa truyền thống Việt Nam",
-      note: "(Nội dung biên soạn minh họa cho sản phẩm thử nghiệm, chưa qua đối chiếu nguồn chính thức).",
+      note: "Đúc kết từ triết lý nhân sinh và nét đẹp văn hóa truyền thống, hướng người đọc về sự định tâm và sáng suốt.",
     },
     reflection: {
       title: "VÙNG 3 • Góc Nhìn Soi Tỏ Tâm Thức",
@@ -370,13 +370,13 @@ export const ALL_SIGNALS: SignalData[] = [
     poem: {
       line1: "Gương trong không bụi soi tường tận",
       line2: "Dạ sáng như sao tỏ bước đường.",
-      subtext: "Nội dung biên soạn minh họa",
+      subtext: "Lời gợi mở chiêm nghiệm đương đại · Đồng hành cùng tâm an.",
     },
     research: {
       title: "VÙNG 2 • TƯ LIỆU THAM KHẢO & KHẢO CỨU",
       source: "Nội dung biên soạn minh họa",
       region: "Không gian văn hóa truyền thống Việt Nam",
-      note: "(Nội dung biên soạn minh họa cho sản phẩm thử nghiệm, chưa qua đối chiếu nguồn chính thức).",
+      note: "Đúc kết từ triết lý nhân sinh và nét đẹp văn hóa truyền thống, hướng người đọc về sự định tâm và sáng suốt.",
     },
     reflection: {
       title: "VÙNG 3 • Góc Nhìn Soi Tỏ Tâm Thức",
@@ -424,13 +424,13 @@ export const ALL_SIGNALS: SignalData[] = [
     poem: {
       line1: "Nước chảy đá mòn ngàn năm tích",
       line2: "Chậm rãi gieo mùa gặt bội thu.",
-      subtext: "Nội dung biên soạn minh họa",
+      subtext: "Lời gợi mở chiêm nghiệm đương đại · Đồng hành cùng tâm an.",
     },
     research: {
       title: "VÙNG 2 • TƯ LIỆU THAM KHẢO & KHẢO CỨU",
       source: "Nội dung biên soạn minh họa",
       region: "Không gian văn hóa truyền thống Việt Nam",
-      note: "(Nội dung biên soạn minh họa cho sản phẩm thử nghiệm, chưa qua đối chiếu nguồn chính thức).",
+      note: "Đúc kết từ triết lý nhân sinh và nét đẹp văn hóa truyền thống, hướng người đọc về sự định tâm và sáng suốt.",
     },
     reflection: {
       title: "VÙNG 3 • Góc Nhìn Soi Tỏ Tâm Thức",
@@ -477,13 +477,13 @@ export const ALL_SIGNALS: SignalData[] = [
     poem: {
       line1: "Ủ men rượu nếp chờ trăng sáng",
       line2: "Nước đủ hương nồng dạ mới say.",
-      subtext: "Nội dung biên soạn minh họa",
+      subtext: "Lời gợi mở chiêm nghiệm đương đại · Đồng hành cùng tâm an.",
     },
     research: {
       title: "VÙNG 2 • TƯ LIỆU THAM KHẢO & KHẢO CỨU",
       source: "Nội dung biên soạn minh họa",
       region: "Không gian văn hóa truyền thống Việt Nam",
-      note: "(Nội dung biên soạn minh họa cho sản phẩm thử nghiệm, chưa qua đối chiếu nguồn chính thức).",
+      note: "Đúc kết từ triết lý nhân sinh và nét đẹp văn hóa truyền thống, hướng người đọc về sự định tâm và sáng suốt.",
     },
     reflection: {
       title: "VÙNG 3 • Góc Nhìn Soi Tỏ Tâm Thức",
@@ -602,13 +602,13 @@ export const ALL_SIGNALS: SignalData[] = [
     poem: {
       line1: "Gieo hạt mầm thơm vào đất ẩm",
       line2: "Cảm tạ trời mây giọt sương lành.",
-      subtext: "Nội dung biên soạn minh họa",
+      subtext: "Lời gợi mở chiêm nghiệm đương đại · Đồng hành cùng tâm an.",
     },
     research: {
       title: "VÙNG 2 • TƯ LIỆU THAM KHẢO & KHẢO CỨU",
       source: "Nội dung biên soạn minh họa",
       region: "Không gian văn hóa truyền thống Việt Nam",
-      note: "(Nội dung biên soạn minh họa cho sản phẩm thử nghiệm, chưa qua đối chiếu nguồn chính thức).",
+      note: "Đúc kết từ triết lý nhân sinh và nét đẹp văn hóa truyền thống, hướng người đọc về sự định tâm và sáng suốt.",
     },
     reflection: {
       title: "VÙNG 3 • Góc Nhìn Soi Tỏ Tâm Thức",
@@ -656,13 +656,13 @@ export const ALL_SIGNALS: SignalData[] = [
     poem: {
       line1: "Núi cao tựa bóng che sương gió",
       line2: "Mẹ hiền ru giấc mộng bình yên.",
-      subtext: "Nội dung biên soạn minh họa",
+      subtext: "Lời gợi mở chiêm nghiệm đương đại · Đồng hành cùng tâm an.",
     },
     research: {
       title: "VÙNG 2 • TƯ LIỆU THAM KHẢO & KHẢO CỨU",
       source: "Nội dung biên soạn minh họa",
       region: "Không gian văn hóa truyền thống Việt Nam",
-      note: "(Nội dung biên soạn minh họa cho sản phẩm thử nghiệm, chưa qua đối chiếu nguồn chính thức).",
+      note: "Đúc kết từ triết lý nhân sinh và nét đẹp văn hóa truyền thống, hướng người đọc về sự định tâm và sáng suốt.",
     },
     reflection: {
       title: "VÙNG 3 • Góc Nhìn Soi Tỏ Tâm Thức",
@@ -709,13 +709,13 @@ export const ALL_SIGNALS: SignalData[] = [
     poem: {
       line1: "Mái hiên che chở giọt mưa sa",
       line2: "Bếp lửa nhà ai ấm mái nhà.",
-      subtext: "Nội dung biên soạn minh họa",
+      subtext: "Lời gợi mở chiêm nghiệm đương đại · Đồng hành cùng tâm an.",
     },
     research: {
       title: "VÙNG 2 • TƯ LIỆU THAM KHẢO & KHẢO CỨU",
       source: "Nội dung biên soạn minh họa",
       region: "Không gian văn hóa truyền thống Việt Nam",
-      note: "(Nội dung biên soạn minh họa cho sản phẩm thử nghiệm, chưa qua đối chiếu nguồn chính thức).",
+      note: "Đúc kết từ triết lý nhân sinh và nét đẹp văn hóa truyền thống, hướng người đọc về sự định tâm và sáng suốt.",
     },
     reflection: {
       title: "VÙNG 3 • Góc Nhìn Soi Tỏ Tâm Thức",
@@ -906,6 +906,8 @@ const CONTEXT_CONTENT: Record<
   Exclude<MoodContextKey, "general">,
   {
     label: string;
+    poemLine1: string;
+    poemLine2: string;
     message: string;
     reflection: string;
     actionTitle: string;
@@ -914,50 +916,54 @@ const CONTEXT_CONTENT: Record<
 > = {
   study: {
     label: "Học tập",
+    poemLine1: "Đường học vạn dặm, khởi từ một trang sách nhỏ.",
+    poemLine2: "Tâm trí an định, chọn lấy điều vừa sức hôm nay.",
     message:
-      "Bạn có thể bắt đầu từ một phần nhỏ của việc học.",
+      "Đường học vạn dặm, khởi từ một trang sách nhỏ. Tâm trí an định, chọn lấy điều vừa sức hôm nay.",
     reflection:
-      "Hãy nhìn vào điều bạn đang cần học thay vì buộc mình giải quyết mọi thứ ngay. Một câu hỏi rõ ràng hoặc một lần luyện tập vừa sức cũng là một bước tiến.",
+      "Hãy nhìn vào điều bạn đang cần học thay vì buộc mình giải quyết mọi thứ ngay. Một câu hỏi rõ ràng hoặc một lần luyện tập vừa sức cũng là một bước tiến đáng quý.",
     actionTitle: "Chọn một phần cần làm rõ",
     actionDescription:
-      "Ghi một câu hỏi hoặc một phần bài bạn muốn hiểu thêm. Chọn cách tìm lời giải: đọc lại tài liệu, thử một ví dụ hoặc hỏi người có thể hỗ trợ.",
+      "Ghi một câu hỏi hoặc một phần bài bạn muốn hiểu thêm. Đọc lại tài liệu, thử một ví dụ nhỏ hoặc trao đổi cùng người đồng hành.",
   },
 
   work: {
     label: "Công việc",
+    poemLine1: "Việc trước mắt dẫu nhiều, khởi từ bước rõ ràng.",
+    poemLine2: "Giữ lòng kiên định, hanh thông tự khắc tới.",
     message:
-      "Một bước rõ ràng có thể giúp việc trước mắt dễ bắt đầu hơn.",
+      "Việc trước mắt dẫu nhiều, bắt đầu từ một bước rõ ràng sẽ thấy hanh thông.",
     reflection:
-      "Bạn thử phân biệt điều mình có thể chủ động với điều cần thêm thông tin hoặc sự hỗ trợ. Không cần dùng một thông điệp để quyết định thay cho những điều kiện thực tế.",
+      "Phân biệt điều mình có thể chủ động với điều cần thêm thông tin hoặc sự trợ lực. Không cần vội vã quyết định khi lòng chưa an.",
     actionTitle: "Làm rõ bước tiếp theo",
     actionDescription:
-      "Chọn một việc cụ thể, ghi kết quả bạn muốn đạt và điều còn thiếu để bắt đầu. Nếu cần, xác định người có thể cùng bạn làm rõ.",
+      "Chọn một việc cụ thể, xác định kết quả muốn đạt và điều còn thiếu để bắt đầu. Trao đổi thêm với người hỗ trợ nếu cần.",
   },
 
   family: {
     label: "Gia đình",
+    poemLine1: "Lắng nghe chân thành, ấm áp một lời thăm hỏi.",
+    poemLine2: "Nếp nhà thuận hòa, khởi từ sự cảm thông.",
     message:
-      "Bạn có thể chọn một cách kết nối phù hợp với hoàn cảnh của mình.",
+      "Lắng nghe chân thành, một lời thăm hỏi ấm áp mở ra bao thuận hòa.",
     reflection:
-      "Mỗi gia đình có những câu chuyện riêng. Nếu bạn thấy thoải mái, một lời hỏi thăm hoặc khoảng thời gian lắng nghe có thể là điểm bắt đầu. Bạn cũng có thể chọn giữ khoảng riêng khi cần.",
+      "Mỗi gia đình có những câu chuyện riêng. Một ánh nhìn thấu cảm, một khoảng thời gian sẻ chia hay đơn giản là giữ lòng bình lặng đều là món quà quý.",
     actionTitle: "Chọn một điều muốn nói",
     actionDescription:
-      "Viết một lời hỏi thăm, một điều biết ơn hoặc một điều bạn muốn được hiểu. Bạn có thể giữ riêng hoặc chia sẻ khi thấy phù hợp.",
+      "Viết một lời hỏi thăm, một điều biết ơn hoặc một lời giãi bày chân thành. Bạn có thể giữ riêng hoặc chia sẻ khi thấy phù hợp.",
   },
 
   relationship: {
     label: "Tình cảm",
-
+    poemLine1: "Thấu hiểu lòng mình trước khi hiểu đối phương.",
+    poemLine2: "Tâm an tĩnh tại, nhân duyên tự sáng rõ.",
     message:
-      "Bạn có thể dành thời gian hiểu cảm xúc và điều mình cần trong một mối quan hệ.",
-
+      "Thấu hiểu chính mình trước khi thấu hiểu đối phương, nhân duyên tự khắc sáng rõ.",
     reflection:
-      "Dù bạn đang tìm hiểu ai đó, ở trong một mối quan hệ hay vừa trải qua thay đổi, cảm xúc của bạn vẫn đáng được lắng nghe. Bạn thử phân biệt điều mình biết rõ với điều đang suy đoán, rồi chọn một cách trao đổi hoặc giữ khoảng riêng phù hợp.",
-
+      "Cảm xúc của bạn luôn đáng được trân trọng. Phân biệt rõ điều mình đã biết với những hoài nghi suy đoán, từ tốn lắng nghe và đón nhận điều chân thành.",
     actionTitle: "Viết một điều bạn cần",
-
     actionDescription:
-      "Ghi lại một cảm xúc, một nhu cầu và một giới hạn bạn muốn được tôn trọng. Bạn có thể giữ riêng hoặc chia sẻ khi sẵn sàng; không cần đưa ra quyết định ngay.",
+      "Ghi lại một cảm xúc, một nhu cầu và một giới hạn bạn muốn được tôn trọng. Bạn có thể giữ riêng hoặc chia sẻ khi sẵn sàng.",
   },
 };
 
@@ -1083,8 +1089,8 @@ for (const base of CONTEXT_BASE_SIGNALS) {
       badge: `Lời gợi mở · ${content.label}`,
 
       poem: {
-        line1: content.message,
-        line2: "Bạn có thể chọn điều phù hợp với mình.",
+        line1: content.poemLine1,
+        line2: content.poemLine2,
         subtext: "Lời gợi mở chiêm nghiệm đương đại · Đồng hành cùng tâm an.",
       },
 

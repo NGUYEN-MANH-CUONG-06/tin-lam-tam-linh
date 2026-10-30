@@ -114,7 +114,6 @@ const AstrologyHubScreen = lazy(() => import("./screens/AstrologyHubScreen").the
 const MembershipScreen = lazy(() => import("./screens/MembershipScreen").then((module) => ({ default: module.MembershipScreen })));
 const SettingsScreen = lazy(() => import("./screens/SettingsScreen").then((module) => ({ default: module.SettingsScreen })));
 const AccountScreen = lazy(() => import("./screens/AccountScreen").then((module) => ({ default: module.AccountScreen })));
-const VirtualSanctuaryScreen = lazy(() => import("./screens/VirtualSanctuaryScreen").then((module) => ({ default: module.VirtualSanctuaryScreen })));
 const AncestorAltarScreen = lazy(() => import("./screens/AncestorAltarScreen").then((module) => ({ default: module.AncestorAltarScreen })));
 const CulturalMapScreen = lazy(() => import("./screens/CulturalMapScreen").then((module) => ({ default: module.CulturalMapScreen })));
 const RegionCultureScreen = lazy(() => import("./screens/RegionCultureScreen").then((module) => ({ default: module.RegionCultureScreen })));
@@ -2691,7 +2690,39 @@ export default function App() {
 
   return (
     <div className={`app-shell ${dark ? "dark" : ""} ${["login", "register", "forgot", "reset-password"].includes(screen) ? "lg:h-screen lg:max-h-screen lg:overflow-hidden" : ""}`}>
-      {isDemoMode() && <div role="status" className="relative z-[80] flex items-center justify-center gap-3 border-b border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold text-ink"><span>{DEMO_MODE_LABEL}</span><a href="/admin?demo=1" className="underline underline-offset-2">Mở admin demo</a><button type="button" onClick={exitDemoMode} className="underline underline-offset-2">Thoát demo</button></div>}
+      {isDemoMode() && (
+        <aside
+          role="status"
+          aria-label="Thông báo chế độ demo"
+          className="relative z-[80] flex flex-wrap items-center justify-between gap-2.5 border-b border-amber-600/30 bg-gradient-to-r from-amber-500/12 via-amber-500/18 to-amber-500/12 px-4 sm:px-6 py-2 text-xs text-ink backdrop-blur-md shadow-2xs"
+        >
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2" aria-hidden="true">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="font-semibold text-amber-950 dark:text-amber-200">Chế độ trải nghiệm mẫu</span>
+            <span className="hidden sm:inline text-line">•</span>
+            <span className="hidden sm:inline text-muted font-normal">Dữ liệu lưu cục bộ trên trình duyệt, không lưu lên máy chủ</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <a
+              href="/admin?demo=1"
+              className="inline-flex items-center gap-1 rounded-full border border-amber-600/35 bg-amber-500/15 hover:bg-amber-500/25 px-3 py-1 font-semibold text-amber-950 dark:text-amber-100 transition-all hover:scale-102 active:scale-98 shadow-2xs"
+            >
+              <span>Vào Cổng Admin Mẫu</span>
+            </a>
+            <button
+              type="button"
+              onClick={exitDemoMode}
+              className="inline-flex items-center gap-1 rounded-full border border-line bg-surface/80 hover:bg-surface px-2.5 py-1 text-muted hover:text-ink font-medium transition-all active:scale-98"
+              title="Thoát chế độ trải nghiệm mẫu"
+            >
+              <span>Thoát</span>
+            </button>
+          </div>
+        </aside>
+      )}
       {/* Universal Header - tự động ẩn khi ấn đăng nhập tại LoginScreen */}
       {!isLoginImmersive && (
         <AppHeader
@@ -2751,6 +2782,7 @@ export default function App() {
             onGoToReminders={() => navigateTo("notifications")}
             onGoToGratitude={() => navigateTo("gratitude")}
             onGoToCultureMap={() => navigateTo("culture-map")}
+            onGoToAbout={() => navigateTo("about")}
           />
         )}
 
@@ -2833,22 +2865,11 @@ export default function App() {
           />
         )}
 
-        {screen === "sanctuary" && (
-          <VirtualSanctuaryScreen
-            key={currentUser?.email ?? "guest"}
-            currentUserEmail={currentUser?.email}
-            onBackToExperience={() => navigateTo("experience")}
-            onGoToAltar={() => navigateTo("ancestor-altar")}
-            onGoToZen={() => navigateTo("zen")}
-            onGoToLogin={() => navigateTo("login")}
-          />
-        )}
-
-        {screen === "ancestor-altar" && (
+        {(screen === "ancestor-altar" || screen === "sanctuary") && (
           <AncestorAltarScreen
             key={currentUser?.email ?? "guest"}
             currentUserEmail={currentUser?.email}
-            onBack={() => navigateTo("sanctuary")}
+            onBack={() => navigateTo("experience")}
             isLoggedIn={Boolean(currentUser) || isDemoMode()}
             onSaveTribute={(text) =>
               handleSavePrivateWish(text, "Tri ân gia tiên")
@@ -2898,6 +2919,7 @@ export default function App() {
             key={`${screen}-${currentUser?.email || "guest"}`}
             currentUserEmail={displayUser?.email}
             kind={screen as RegionalExperienceKind}
+            onNavigateRegion={(targetKind) => navigateTo(targetKind)}
             onBack={() => {
               const region: CultureRegionSlug =
                 screen === "chau-van"
@@ -2922,6 +2944,7 @@ export default function App() {
             articleId={selectedArticleId}
             currentUserEmail={currentUser?.email}
             onBackToCulture={() => navigateTo("culture")}
+            onGoToCultureMap={() => navigateTo("culture-map")}
             onSelectRelatedArticle={(id) => {
               setSelectedArticleId(id);
               navigateTo("culture-detail", id);
@@ -3365,7 +3388,7 @@ export default function App() {
 
       {/* Universal Footer - Ẩn trên các màn Auth (login, register, forgot) */}
       {!["login", "register", "forgot"].includes(screen) && (
-        <AppFooter onNavigate={navigateTo} compactDemo={isDemoMode()} />
+        <AppFooter onNavigate={navigateTo} compactDemo={false} />
       )}
 
       <SavedSignalDialog

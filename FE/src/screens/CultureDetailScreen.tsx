@@ -8,17 +8,13 @@ import {
   BookOpen,
   Flower2,
   Compass,
-  Share2,
   CheckCircle2,
   Bookmark,
   Volume2,
   MapPin,
   Layers,
-  ZoomIn,
-  ZoomOut,
   Landmark,
   Waves,
-  Printer,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
@@ -49,10 +45,8 @@ interface CultureDetailScreenProps {
   ) => void;
   onGoToRituals?: () => void;
   onGoToMood: () => void;
+  onGoToCultureMap?: () => void;
 }
-
-type TextSize = "normal" | "medium" | "large";
-
 const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
   articleId = "dinh-lang-bac-bo",
   resolvedArticle,
@@ -63,13 +57,12 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
   onGoToRegionalExperience,
   onGoToRituals,
   onGoToMood,
+  onGoToCultureMap,
 }) => {
   const article: CultureArticle = resolvedArticle!;
   const [relatedArticles, setRelatedArticles] = useState<CultureArticle[]>([]);
 
   const [readingProgress, setReadingProgress] = useState(0);
-  const [textSize, setTextSize] = useState<TextSize>("normal");
-  const [copiedLink, setCopiedLink] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState<string>("");
 
   useEffect(() => {
@@ -141,22 +134,7 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
     });
   };
 
-  const handleCopyLink = () => {
-    navigator.clipboard?.writeText(window.location.href);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2500);
-  };
 
-  const textSizeClass = useMemo(() => {
-    switch (textSize) {
-      case "medium":
-        return "text-[18px] sm:text-[19px] leading-[2.0]";
-      case "large":
-        return "text-[20px] sm:text-[21px] leading-[2.1]";
-      default:
-        return "text-[16px] sm:text-[17px] leading-[1.85]";
-    }
-  }, [textSize]);
 
   // Contextual Bridge: Liên kết nghiệp vụ chính xác theo từng thể loại bài viết
   const contextBridge = useMemo(() => {
@@ -469,7 +447,7 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
 
       <main className="page-container max-w-5xl pt-4 pb-20">
         {/* Breadcrumb & Navigation Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted mb-6 pb-3 border-b border-line/40">
+        <div className="flex items-center justify-between gap-3 text-xs text-muted mb-6 pb-3 border-b border-line/40">
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={onBackToCulture}
@@ -484,80 +462,6 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
             <span className="text-accent font-semibold truncate max-w-[240px] sm:max-w-md">
               {article.title}
             </span>
-          </div>
-
-          {/* Reading Accessibility Toolbar */}
-          <div className="flex items-center gap-2">
-            {/* Font Size Adjuster */}
-            <div className="flex items-center bg-surface border border-line rounded-lg p-0.5 text-xs">
-              <button
-                type="button"
-                title="Cỡ chữ chuẩn"
-                onClick={() => setTextSize("normal")}
-                className={`px-2 py-1 rounded transition-colors ${
-                  textSize === "normal"
-                    ? "bg-accent/15 text-accent font-bold"
-                    : "text-muted hover:text-ink"
-                }`}
-              >
-                A
-              </button>
-              <button
-                type="button"
-                title="Cỡ chữ vừa"
-                onClick={() => setTextSize("medium")}
-                className={`px-2 py-1 rounded transition-colors ${
-                  textSize === "medium"
-                    ? "bg-accent/15 text-accent font-bold"
-                    : "text-muted hover:text-ink"
-                }`}
-              >
-                A+
-              </button>
-              <button
-                type="button"
-                title="Cỡ chữ lớn"
-                onClick={() => setTextSize("large")}
-                className={`px-2 py-1 rounded transition-colors ${
-                  textSize === "large"
-                    ? "bg-accent/15 text-accent font-bold"
-                    : "text-muted hover:text-ink"
-                }`}
-              >
-                A++
-              </button>
-            </div>
-
-            {/* Print Button */}
-            <button
-              type="button"
-              onClick={() => window.print()}
-              title="In chuyên khảo văn hóa"
-              className="p-1.5 rounded-lg border border-line bg-surface hover:border-accent hover:text-accent transition-colors flex items-center gap-1 text-xs text-muted cursor-pointer"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">In</span>
-            </button>
-
-            {/* Share / Copy Link */}
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              title="Sao chép liên kết chia sẻ"
-              className="p-1.5 rounded-lg border border-line bg-surface hover:border-accent hover:text-accent transition-colors flex items-center gap-1 text-xs text-muted"
-            >
-              {copiedLink ? (
-                <>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                  <span className="hidden sm:inline text-emerald-600 font-medium">Đã chép</span>
-                </>
-              ) : (
-                <>
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Chia sẻ</span>
-                </>
-              )}
-            </button>
           </div>
         </div>
 
@@ -597,8 +501,8 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
           {article.subtitle}
         </p>
 
-        {/* Bookmark & Interactive Actions */}
-        <div className="flex flex-wrap items-center gap-3 mb-8 pb-4 border-b border-line/50">
+        {/* Bookmark Action */}
+        <div className="flex items-center gap-3 mb-8 pb-4 border-b border-line/50">
           <ReadingBookmarkButton
             key={`${currentUserEmail || "guest"}:${article.id}`}
             kind="culture"
@@ -606,16 +510,6 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
             email={currentUserEmail}
             title={article.title}
           />
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={contextBridge.action}
-            className="text-xs border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10 gap-1.5 cursor-pointer"
-          >
-            {contextBridge.icon}
-            <span>{contextBridge.topButtonLabel}</span>
-          </Button>
         </div>
 
         {canShowArticleImage(article) && <ScrollReveal variant="scale" className="mb-12">
@@ -631,13 +525,6 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
                 className="w-full h-full object-cover object-[center_30%]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
-            </div>
-
-            <div className="p-4 sm:p-5 bg-surface/95 backdrop-blur-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-muted border-t border-line">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-accent shrink-0" />
-                <span className="italic text-ink font-medium">{article.caption}</span>
-              </div>
             </div>
           </div>
         </ScrollReveal>}
@@ -709,7 +596,7 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
                 </div>
 
                 {/* Section Paragraphs with Drop Cap for Section 1 first paragraph */}
-                <div className={`space-y-4 text-ink font-normal ${textSizeClass}`}>
+                <div className="space-y-4 text-ink font-normal text-[17px] sm:text-[18px] leading-[1.9]">
                   {section.paragraphs.map((para, pIdx) => {
                     const isDropCap = idx === 0 && pIdx === 0;
                     return (
@@ -842,7 +729,7 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
                 onClick={onGoToExperience}
                 className="w-full sm:w-auto gap-2 text-sm shadow-sm cursor-pointer"
               >
-                <span>Xem tất cả không gian trải nghiệm</span>
+                <span>Về Trung tâm trải nghiệm</span>
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
@@ -856,10 +743,10 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
                 <div className="flex items-center justify-between gap-2 text-xs font-bold uppercase tracking-wider text-accent mb-4 pb-2 border-b border-line/40">
                   <div className="flex items-center gap-2">
                     <BookOpen className="w-4 h-4" />
-                    <span>Mục lục bài viết</span>
+                    <span>Mục lục</span>
                   </div>
-                  <span className="text-[11px] text-muted font-normal lowercase">
-                    {Math.round(readingProgress)}% đã đọc
+                  <span className="text-[11px] text-muted font-normal">
+                    Đã đọc {Math.round(readingProgress)}%
                   </span>
                 </div>
 
@@ -887,31 +774,15 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
                 </nav>
               </Card>
 
-              {/* Mood Check-in Recommendation Callout Box */}
-              <Card className="p-6 rounded-3xl bg-gradient-to-br from-surface to-surface-soft border border-line shadow-xs">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent mb-3">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
-                  <span>Dành một khoảng tĩnh tại</span>
-                </div>
-
-                <p className="text-sm text-ink leading-relaxed mb-4">
-                  Sau khi tìm hiểu trang sử di sản, bạn có thể chọn tâm trạng hôm nay để nhận một thông điệp an trú tâm hồn.
-                </p>
-
-                <Button
-                  variant="default"
-                  size="pill"
-                  onClick={onGoToMood}
-                  className="w-full text-xs font-semibold shadow-xs cursor-pointer"
-                >
-                  Lắng nghe tâm trạng hôm nay
-                </Button>
-              </Card>
-
               {/* Cultural Map Shortcut Box */}
-              <Card className="p-6 rounded-3xl bg-surface border border-line shadow-xs text-center">
-                <Compass className="w-8 h-8 text-accent mx-auto mb-2 opacity-90" />
-                <h4 className="font-display font-bold text-base text-ink mb-1">
+              <Card
+                onClick={onGoToCultureMap}
+                className="p-6 rounded-3xl bg-surface border border-line shadow-xs text-center hover:border-accent/50 hover:shadow-md transition-all duration-300 cursor-pointer group"
+              >
+                <div className="w-12 h-12 rounded-full bg-accent/10 text-accent flex items-center justify-center mx-auto mb-3 group-hover:scale-110 group-hover:bg-accent/20 transition-all duration-300">
+                  <Compass className="w-6 h-6 opacity-90" />
+                </div>
+                <h4 className="font-display font-bold text-base text-ink mb-1 group-hover:text-accent transition-colors">
                   Bản đồ di sản văn hóa
                 </h4>
                 <p className="text-xs text-muted mb-4 leading-relaxed">
@@ -920,8 +791,13 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
                 <Button
                   variant="outline"
                   size="pill"
-                  onClick={onBackToCulture}
-                  className="w-full text-xs font-semibold border-line cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onGoToCultureMap) {
+                      onGoToCultureMap();
+                    }
+                  }}
+                  className="w-full text-xs font-semibold border-line cursor-pointer group-hover:border-accent group-hover:bg-accent group-hover:text-white transition-all"
                 >
                   Mở bản đồ văn hóa
                 </Button>
@@ -997,7 +873,7 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
                 <div className="px-5 py-3.5 border-t border-line/60 flex items-center justify-between text-xs text-muted">
                   <span className="text-xs italic text-muted">Thời lượng: {rel.readingTime}</span>
                   <span className="text-accent font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                    <span>Đọc chuyên khảo</span>
+                    <span>Đọc bài viết</span>
                     <ArrowRight className="w-3 h-3" />
                   </span>
                 </div>
@@ -1006,14 +882,6 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
           </div>
         </ScrollReveal>
         )}
-
-        {/* User's Saved Reading List */}
-        <ScrollReveal variant="up" className="mt-12">
-          <SavedReadingList
-            key={currentUserEmail || "guest"}
-            email={currentUserEmail}
-          />
-        </ScrollReveal>
       </main>
     </div>
   );

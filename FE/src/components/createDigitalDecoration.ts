@@ -35,8 +35,8 @@ export function createDigitalDecoration(
   if (id === "boiled-chicken") {
     // Model 3D gà cúng 180.000 tam giác từ file GLB (tách 3 vật liệu: mâm sứ trắng, da vàng óng, mào đỏ tươi)
     const chickenHolder = new THREE.Group();
-    // Góc xoay hướng nhẹ về trung tâm bàn thờ (~25° - 35°) để lộ cánh, mào và đầu gà uy nghiêm
-    chickenHolder.rotation.y = 0.52;
+    // Xoay đĩa gà nằm ngang song song với mép bàn thờ, đầu gà chầu vào trung tâm bát hương
+    chickenHolder.rotation.y = Math.PI / 2;
     group.add(chickenHolder);
 
     const loader = new GLTFLoader();

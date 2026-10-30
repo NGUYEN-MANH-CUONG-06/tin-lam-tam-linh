@@ -1,10 +1,9 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Water } from "three/examples/jsm/objects/Water.js";
 import { Sky } from "three/examples/jsm/objects/Sky.js";
 import { disposeThreeScene } from "./threeSceneUtils";
-import { Button } from "./ui/button";
 import {
   Waves,
   RotateCcw,
@@ -12,10 +11,13 @@ import {
   Sunset,
   Volume2,
   VolumeX,
-  Compass,
+  Anchor,
 } from "lucide-react";
 
-// HÃ m táº¡o Procedural Normal Map cho sÃ³ng biá»ƒn chuyá»ƒn Ä‘á»™ng tá»± nhiÃªn
+type TimeMode = "dawn" | "day" | "sunset";
+type ViewPreset = "overview" | "boat" | "basket";
+
+// Tạo Procedural Normal Map cho sóng biển chuyển động tự nhiên
 function createProceduralWaterNormalTexture(): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = 512;
@@ -27,10 +29,10 @@ function createProceduralWaterNormalTexture(): THREE.CanvasTexture {
   for (let y = 0; y < 512; y++) {
     for (let x = 0; x < 512; x++) {
       const idx = (y * 512 + x) * 4;
-      const u = (x / 512) * Math.PI * 10;
-      const v = (y / 512) * Math.PI * 10;
+      const u = (x / 512) * Math.PI * 12;
+      const v = (y / 512) * Math.PI * 12;
 
-      // SÃ³ng biá»ƒn phá»©c há»£p Ä‘a táº§ng (trochoidal wave simulation approximation)
+      // Sóng biển phức hợp đa tầng (Trochoidal wave approximation)
       const dx =
         Math.cos(u * 1.2 + v * 0.7) * 1.5 -
         Math.sin(v * 2.2 - u * 0.8) * 1.2 +
@@ -40,8 +42,8 @@ function createProceduralWaterNormalTexture(): THREE.CanvasTexture {
         Math.cos(v * 2.2 - u * 0.8) * 2.0 -
         Math.sin(u * 3.5 - v * 2.1) * 1.1;
 
-      let nx = -dx * 0.16;
-      let ny = -dy * 0.16;
+      let nx = -dx * 0.18;
+      let ny = -dy * 0.18;
       let nz = 1.0;
       const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
       nx /= len;
@@ -63,18 +65,63 @@ function createProceduralWaterNormalTexture(): THREE.CanvasTexture {
   return texture;
 }
 
+// Tạo texture đan nan tre cho thuyền thúng
+function createWovenBambooTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d")!;
+
+  ctx.fillStyle = "#8a6538";
+  ctx.fillRect(0, 0, 256, 256);
+
+  ctx.strokeStyle = "#5a3f20";
+  ctx.lineWidth = 3;
+  for (let i = 0; i <= 256; i += 16) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i, 256);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, i);
+    ctx.lineTo(256, i);
+    ctx.stroke();
+  }
+
+  // Lớp dầu rái (hắc ín) chống thấm truyền thống vùng biển
+  ctx.fillStyle = "rgba(40, 26, 12, 0.4)";
+  for (let y = 0; y < 256; y += 32) {
+    for (let x = 0; x < 256; x += 32) {
+      if ((x + y) % 64 === 0) {
+        ctx.fillRect(x, y, 32, 32);
+      }
+    }
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(4, 4);
+  return texture;
+}
+
 export default function CentralSeaScene() {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
-  const [timeMode, setTimeMode] = useState<"dawn" | "day">("dawn");
+  const [timeMode, setTimeMode] = useState<TimeMode>("dawn");
+  const [currentView, setCurrentView] = useState<ViewPreset>("overview");
   const [soundEnabled, setSoundEnabled] = useState(false);
+
   const audioContextRef = useRef<AudioContext | null>(null);
   const birdTimerRef = useRef<number | null>(null);
 
   const resetRef = useRef<() => void>(() => {});
-  const switchTimeRef = useRef<((mode: "dawn" | "day") => void) | null>(null);
+  const switchTimeRef = useRef<((mode: TimeMode) => void) | null>(null);
+  const setCameraViewRef = useRef<((view: ViewPreset) => void) | null>(null);
 
+  // Âm thanh sóng biển vỗ & hải âu kêu xa
   const handleToggleSound = () => {
     if (audioContextRef.current) {
       if (birdTimerRef.current !== null) window.clearInterval(birdTimerRef.current);
@@ -98,7 +145,7 @@ export default function CentralSeaScene() {
     lowPass.type = "lowpass";
     lowPass.frequency.value = 520;
     const waveGain = context.createGain();
-    waveGain.gain.value = 0.026;
+    waveGain.gain.value = 0.028;
     waves.connect(lowPass).connect(waveGain).connect(context.destination);
     waves.start();
 
@@ -111,23 +158,23 @@ export default function CentralSeaScene() {
 
     const chirp = () => {
       for (let note = 0; note < 3; note++) {
-        const start = context.currentTime + note * 0.19;
+        const start = context.currentTime + note * 0.18;
         const bird = context.createOscillator();
         const envelope = context.createGain();
         bird.type = "sine";
-        bird.frequency.setValueAtTime(1550 + note * 120, start);
-        bird.frequency.exponentialRampToValueAtTime(2450 + note * 100, start + 0.07);
-        bird.frequency.exponentialRampToValueAtTime(1750 + note * 80, start + 0.19);
+        bird.frequency.setValueAtTime(1550 + note * 110, start);
+        bird.frequency.exponentialRampToValueAtTime(2450 + note * 90, start + 0.07);
+        bird.frequency.exponentialRampToValueAtTime(1750 + note * 70, start + 0.18);
         envelope.gain.setValueAtTime(0.0001, start);
         envelope.gain.exponentialRampToValueAtTime(0.022, start + 0.025);
-        envelope.gain.exponentialRampToValueAtTime(0.0001, start + 0.2);
+        envelope.gain.exponentialRampToValueAtTime(0.0001, start + 0.19);
         bird.connect(envelope).connect(context.destination);
         bird.start(start);
-        bird.stop(start + 0.21);
+        bird.stop(start + 0.2);
       }
     };
     chirp();
-    birdTimerRef.current = window.setInterval(chirp, 7200);
+    birdTimerRef.current = window.setInterval(chirp, 7400);
     void context.resume();
     setSoundEnabled(true);
   };
@@ -157,7 +204,7 @@ export default function CentralSeaScene() {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMappingExposure = 0.9;
+    renderer.toneMappingExposure = 0.95;
 
     const canvas = renderer.domElement;
     canvas.style.display = "block";
@@ -166,13 +213,18 @@ export default function CentralSeaScene() {
     host.appendChild(canvas);
 
     const scene = new THREE.Scene();
-    scene.add(new THREE.HemisphereLight("#fff3dc", "#17414a", 1.85));
-    const sunlight = new THREE.DirectionalLight("#ffe8c8", 2.15);
-    sunlight.position.set(-18, 28, 16);
+    scene.fog = new THREE.FogExp2(0x0e2f3d, 0.0065);
+
+    // Ánh sáng môi trường
+    const hemiLight = new THREE.HemisphereLight("#fff3dc", "#17414a", 1.9);
+    scene.add(hemiLight);
+
+    const sunlight = new THREE.DirectionalLight("#ffe8c8", 2.4);
+    sunlight.position.set(-20, 30, 18);
     sunlight.castShadow = true;
     sunlight.shadow.mapSize.set(1024, 1024);
     sunlight.shadow.camera.near = 1;
-    sunlight.shadow.camera.far = 120;
+    sunlight.shadow.camera.far = 140;
     sunlight.shadow.bias = -0.00015;
     scene.add(sunlight);
 
@@ -181,30 +233,48 @@ export default function CentralSeaScene() {
       38,
       host.clientWidth / host.clientHeight,
       0.1,
-      1800
+      2000
     );
-    camera.position.set(0, 14, 12);
+    camera.position.set(0, 10, 16);
 
     // Orbit Controls
     const controls = new OrbitControls(camera, canvas);
     controls.enablePan = false;
-    controls.minDistance = 30;
-    controls.maxDistance = 48;
-    controls.maxPolarAngle = 1.38;
-    controls.minPolarAngle = 0.58;
+    controls.minDistance = 6;
+    controls.maxDistance = 65;
+    controls.maxPolarAngle = 1.42;
+    controls.minPolarAngle = 0.45;
     controls.enableDamping = true;
-    controls.autoRotate = false;
-    controls.target.set(0, 2.4, -25);
+    controls.dampingFactor = 0.05;
+    controls.target.set(0, 1.5, -12);
     controls.update();
 
+    // Hệ thống chuyển góc nhìn mượt mà (smooth camera transition)
+    let targetCameraPos = camera.position.clone();
+    let targetControlsTarget = controls.target.clone();
+    let isTransitioningCamera = false;
+
+    setCameraViewRef.current = (view: ViewPreset) => {
+      setCurrentView(view);
+      isTransitioningCamera = true;
+      if (view === "overview") {
+        targetCameraPos.set(0, 10, 16);
+        targetControlsTarget.set(0, 1.5, -12);
+      } else if (view === "boat") {
+        targetCameraPos.set(6.2, 3.2, -1.8);
+        targetControlsTarget.set(4, 1.2, -5);
+      } else if (view === "basket") {
+        targetCameraPos.set(-6.2, 2.0, 5.8);
+        targetControlsTarget.set(-8, 0.8, 3);
+      }
+    };
+
     resetRef.current = () => {
-      camera.position.set(0, 14, 12);
-      controls.target.set(0, 2.4, -25);
-      controls.update();
+      setCameraViewRef.current?.("overview");
     };
 
     // ==========================================
-    // 1. Báº¦U TRá»œI CHÃ‚N THá»°C Vá»šI RAYLEIGH SCATTERING (SKY SHADER)
+    // 1. BẦU TRỜ CHÂN THỰC VỚI SKY SHADER & RAYLEIGH
     // ==========================================
     const sky = new Sky();
     sky.scale.setScalar(10000);
@@ -212,7 +282,7 @@ export default function CentralSeaScene() {
 
     const skyUniforms = sky.material.uniforms;
     skyUniforms["turbidity"].value = 6;
-    skyUniforms["rayleigh"].value = 1.8;
+    skyUniforms["rayleigh"].value = 2.0;
     skyUniforms["mieCoefficient"].value = 0.005;
     skyUniforms["mieDirectionalG"].value = 0.82;
 
@@ -233,9 +303,9 @@ export default function CentralSeaScene() {
     };
 
     // ==========================================
-    // 2. Máº¶T BIá»‚N CHÃ‚N THáº¬T Vá»šI THREE.JS WATER SHADER
+    // 2. MẶT BIỂN LƯỢN SÓNG VỚI WATER SHADER
     // ==========================================
-    const waterGeometry = new THREE.PlaneGeometry(1200, 1200);
+    const waterGeometry = new THREE.PlaneGeometry(1400, 1400);
     const waterNormals = createProceduralWaterNormalTexture();
 
     const water = new Water(waterGeometry, {
@@ -244,36 +314,63 @@ export default function CentralSeaScene() {
       waterNormals: waterNormals,
       sunDirection: new THREE.Vector3(),
       sunColor: 0xffe2b8,
-      waterColor: 0x124b59,
-      distortionScale: 1.45,
+      waterColor: 0x0a3f55,
+      distortionScale: 2.1,
       fog: scene.fog !== undefined,
     });
     water.rotation.x = -Math.PI / 2;
     scene.add(water);
 
-    // Thiáº¿t láº­p Ã¡nh sÃ¡ng theo cháº¿ Ä‘á»™ BÃ¬nh minh biá»ƒn miá»n Trung
-    updateSun(5.5, 175); // Máº·t trá»i vá»«a nhÃ´ lÃªn khá»i Ä‘Æ°á»ng chÃ¢n trá»i
-
-    switchTimeRef.current = (mode: "dawn" | "day") => {
+    // Xử lý chuyển đổi thời gian: Bình minh / Ban ngày / Hoàng hôn
+    const applyTimeMode = (mode: TimeMode) => {
       if (mode === "dawn") {
         updateSun(5.5, 175);
-        water.material.uniforms["sunColor"].value.setHex(0xffaa55);
-        water.material.uniforms["waterColor"].value.setHex(0x0a3b52);
-        renderer.toneMappingExposure = 0.82;
-      } else {
-        updateSun(28, 175);
+        water.material.uniforms["sunColor"].value.setHex(0xffb066);
+        water.material.uniforms["waterColor"].value.setHex(0x0c394d);
+        hemiLight.color.set("#ffeedd");
+        hemiLight.groundColor.set("#153644");
+        sunlight.color.set("#ffcaa0");
+        sunlight.intensity = 2.2;
+        renderer.toneMappingExposure = 0.95;
+        if (scene.fog) (scene.fog as THREE.FogExp2).color.set(0x0e2f3d);
+      } else if (mode === "day") {
+        updateSun(32, 175);
         water.material.uniforms["sunColor"].value.setHex(0xffffff);
-        water.material.uniforms["waterColor"].value.setHex(0x00415a);
-        renderer.toneMappingExposure = 0.92;
+        water.material.uniforms["waterColor"].value.setHex(0x024563);
+        hemiLight.color.set("#ffffff");
+        hemiLight.groundColor.set("#1a4f5c");
+        sunlight.color.set("#fffdfa");
+        sunlight.intensity = 2.6;
+        renderer.toneMappingExposure = 1.05;
+        if (scene.fog) (scene.fog as THREE.FogExp2).color.set(0x134659);
+      } else {
+        // Sunset
+        updateSun(2.0, 180);
+        water.material.uniforms["sunColor"].value.setHex(0xff6b35);
+        water.material.uniforms["waterColor"].value.setHex(0x082433);
+        hemiLight.color.set("#fca5a5");
+        hemiLight.groundColor.set("#111827");
+        sunlight.color.set("#f97316");
+        sunlight.intensity = 1.8;
+        renderer.toneMappingExposure = 0.88;
+        if (scene.fog) (scene.fog as THREE.FogExp2).color.set(0x1a1a2e);
       }
     };
 
+    switchTimeRef.current = (mode: TimeMode) => {
+      setTimeMode(mode);
+      applyTimeMode(mode);
+    };
+
+    // Khởi tạo ở chế độ Bình minh biển Trung Bộ
+    applyTimeMode("dawn");
+
     // ==========================================
-    // 3. THUYá»€N Gá»– ÄÃNH CÃ Cá»¦A NGÆ¯ DÃ‚N MIá»€N TRUNG
+    // 3. THUYỀN GỖ ĐÁNH CÁ TRUYỀN THỐNG MIỀN TRUNG
     // ==========================================
     const boatGroup = new THREE.Group();
 
-    // ThÃ¢n thuyá»n nan gá»— uá»‘n cong
+    // Thân thuyền nan gỗ uốn lượn
     const hullShape = new THREE.Shape();
     hullShape.moveTo(-3, -0.62);
     hullShape.quadraticCurveTo(-2.8, -0.84, -2.2, -0.82);
@@ -284,82 +381,157 @@ export default function CentralSeaScene() {
     hullShape.quadraticCurveTo(-2.8, 0.84, -3, 0.62);
     hullShape.closePath();
 
-    const hullGeo = new THREE.ExtrudeGeometry(hullShape, { depth: 0.55, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.08, bevelThickness: 0.08 });
+    const hullGeo = new THREE.ExtrudeGeometry(hullShape, {
+      depth: 0.58,
+      bevelEnabled: true,
+      bevelSegments: 3,
+      steps: 1,
+      bevelSize: 0.08,
+      bevelThickness: 0.08,
+    });
     hullGeo.rotateX(-Math.PI / 2);
-    const woodMaterial = new THREE.MeshStandardMaterial({ color: "#60412c", roughness: 0.64 });
+    const woodMaterial = new THREE.MeshStandardMaterial({
+      color: "#5c3d26",
+      roughness: 0.65,
+      metalness: 0.05,
+    });
     woodMaterial.name = "hull-wood";
     const hullMesh = new THREE.Mesh(hullGeo, woodMaterial);
     hullMesh.position.y = 0.1;
+    hullMesh.castShadow = true;
+    hullMesh.receiveShadow = true;
     boatGroup.add(hullMesh);
 
-    const deck = new THREE.Mesh(new THREE.ShapeGeometry(hullShape), new THREE.MeshStandardMaterial({ color: "#a57a4b", roughness: 0.78, side: THREE.DoubleSide }));
+    // Boong thuyền gỗ
+    const deck = new THREE.Mesh(
+      new THREE.ShapeGeometry(hullShape),
+      new THREE.MeshStandardMaterial({
+        color: "#9c7348",
+        roughness: 0.75,
+        side: THREE.DoubleSide,
+      })
+    );
     deck.geometry.rotateX(-Math.PI / 2);
-    deck.position.y = 0.66;
+    deck.position.y = 0.68;
+    deck.receiveShadow = true;
     boatGroup.add(deck);
 
-    const mastMaterial = new THREE.MeshStandardMaterial({ color: "#49301e", roughness: 0.82 });
-    const mastMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.11, 3.65, 10), mastMaterial);
-    mastMesh.position.set(-0.35, 2.49, 0);
+    // Cột buồm chính
+    const mastMaterial = new THREE.MeshStandardMaterial({
+      color: "#422a18",
+      roughness: 0.8,
+    });
+    const mastMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.075, 0.11, 3.8, 10),
+      mastMaterial
+    );
+    mastMesh.position.set(-0.35, 2.58, 0);
+    mastMesh.castShadow = true;
     boatGroup.add(mastMesh);
 
-    const sailMat = new THREE.MeshStandardMaterial({ color: "#e7ce91", roughness: 0.88, side: THREE.DoubleSide });
+    // Cờ đỏ sao vàng / Cờ vạn chài trên đỉnh cột buồm
+    const flagGeo = new THREE.PlaneGeometry(0.48, 0.3);
+    const flagMat = new THREE.MeshStandardMaterial({
+      color: "#dc2626",
+      side: THREE.DoubleSide,
+      roughness: 0.7,
+    });
+    const flagMesh = new THREE.Mesh(flagGeo, flagMat);
+    flagMesh.position.set(-0.1, 4.35, 0);
+    flagMesh.rotation.y = 0.2;
+    boatGroup.add(flagMesh);
+
+    // Mắt thuyền truyền thống (Văn hóa vạn chài miền Trung bảo vệ ngư dân)
+    const eyeWhiteGeo = new THREE.CircleGeometry(0.12, 16);
+    const eyeWhiteMat = new THREE.MeshBasicMaterial({ color: "#ffffff", side: THREE.DoubleSide });
+    const eyeBlackGeo = new THREE.CircleGeometry(0.06, 16);
+    const eyeBlackMat = new THREE.MeshBasicMaterial({ color: "#111827", side: THREE.DoubleSide });
+
+    // Mắt mạn trái
+    const eyeLeftWhite = new THREE.Mesh(eyeWhiteGeo, eyeWhiteMat);
+    eyeLeftWhite.position.set(2.4, 0.45, 0.32);
+    eyeLeftWhite.rotation.y = Math.PI / 2;
+    const eyeLeftBlack = new THREE.Mesh(eyeBlackGeo, eyeBlackMat);
+    eyeLeftBlack.position.set(2.4, 0.45, 0.33);
+    eyeLeftBlack.rotation.y = Math.PI / 2;
+    boatGroup.add(eyeLeftWhite);
+    boatGroup.add(eyeLeftBlack);
+
+    // Mắt mạn phải
+    const eyeRightWhite = new THREE.Mesh(eyeWhiteGeo, eyeWhiteMat);
+    eyeRightWhite.position.set(2.4, 0.45, -0.32);
+    eyeRightWhite.rotation.y = -Math.PI / 2;
+    const eyeRightBlack = new THREE.Mesh(eyeBlackGeo, eyeBlackMat);
+    eyeRightBlack.position.set(2.4, 0.45, -0.33);
+    eyeRightBlack.rotation.y = -Math.PI / 2;
+    boatGroup.add(eyeRightWhite);
+    boatGroup.add(eyeRightBlack);
+
+    // Cánh buồm vải thô màu nâu nhạt
+    const sailMat = new THREE.MeshStandardMaterial({
+      color: "#e8d29b",
+      roughness: 0.88,
+      side: THREE.DoubleSide,
+    });
     sailMat.name = "sail-canvas";
     const addSail = (vertices: number[], material = sailMat) => {
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
       geometry.setIndex([0, 1, 2, 0, 2, 3]);
       geometry.computeVertexNormals();
-      boatGroup.add(new THREE.Mesh(geometry, material));
+      const sail = new THREE.Mesh(geometry, material);
+      sail.castShadow = true;
+      boatGroup.add(sail);
     };
-    addSail([-0.3, 3.92, 0.08, 1.35, 3.66, 0.08, 2.05, 1.0, 0.08, -0.3, 1.0, 0.08]);
+    addSail([-0.3, 4.1, 0.08, 1.45, 3.8, 0.08, 2.1, 1.05, 0.08, -0.3, 1.05, 0.08]);
 
-    const aftMast = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.08, 2.55, 8), mastMaterial);
-    aftMast.position.set(-1.9, 1.94, 0);
+    // Cột buồm đuôi thuyền
+    const aftMast = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.055, 0.08, 2.7, 8),
+      mastMaterial
+    );
+    aftMast.position.set(-1.9, 2.05, 0);
+    aftMast.castShadow = true;
     boatGroup.add(aftMast);
     const aftSailMat = sailMat.clone();
     aftSailMat.name = "aft-sail-canvas";
     aftSailMat.color.set("#d8bd7e");
-    addSail([-1.9, 3.2, -0.07, -0.82, 2.98, -0.07, -0.55, 1.0, -0.07, -1.9, 1.0, -0.07], aftSailMat);
+    addSail([-1.9, 3.3, -0.07, -0.8, 3.05, -0.07, -0.5, 1.05, -0.07, -1.9, 1.05, -0.07], aftSailMat);
 
-    const sparMaterial = new THREE.MeshStandardMaterial({ color: "#765333", roughness: 0.78 });
-    const mainYard = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, 2.2, 8), sparMaterial);
-    mainYard.position.set(0.55, 3.72, 0.1);
-    mainYard.rotation.z = -0.1;
-    boatGroup.add(mainYard);
-    const mainBoom = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 2.5, 8), sparMaterial);
-    mainBoom.position.set(0.88, 0.98, 0.1);
-    mainBoom.rotation.z = -0.04;
-    boatGroup.add(mainBoom);
+    // Lưới đánh cá vắt ngang đuôi thuyền
+    const netGeo = new THREE.TorusGeometry(0.42, 0.16, 8, 16);
+    netGeo.scale(1.2, 0.7, 1);
+    const netMat = new THREE.MeshStandardMaterial({
+      color: "#1e5b53",
+      roughness: 0.95,
+      wireframe: true,
+    });
+    const netMesh = new THREE.Mesh(netGeo, netMat);
+    netMesh.position.set(-2.2, 0.85, 0);
+    netMesh.rotation.x = Math.PI / 2;
+    boatGroup.add(netMesh);
 
-    const ropeMaterial = new THREE.MeshStandardMaterial({ color: "#b39a6c", roughness: 0.9 });
-    const addRigging = (start: THREE.Vector3, end: THREE.Vector3) => {
-      const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, start.distanceTo(end), 5), ropeMaterial);
-      rope.position.copy(start).add(end).multiplyScalar(0.5);
-      rope.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), end.clone().sub(start).normalize());
-      boatGroup.add(rope);
-    };
-    addRigging(new THREE.Vector3(-0.35, 4.31, 0), new THREE.Vector3(2.7, 0.7, 0));
-    addRigging(new THREE.Vector3(-0.35, 4.31, 0), new THREE.Vector3(-2.7, 0.7, 0));
-
-    // ÄÃ¨n bÃ£o treo Ä‘áº§u mÅ©i thuyá»n phÃ¡t sÃ¡ng áº¥m Ã¡p
-    const lanternGeo = new THREE.SphereGeometry(0.2, 12, 12);
+    // Đèn bão treo mũi thuyền phát ánh sáng vàng ấm
+    const lanternGeo = new THREE.SphereGeometry(0.18, 12, 12);
     const lanternMat = new THREE.MeshBasicMaterial({ color: "#fef08a" });
     const lanternMesh = new THREE.Mesh(lanternGeo, lanternMat);
-    lanternMesh.position.set(2.65, 0.83, 0);
+    lanternMesh.position.set(2.7, 0.85, 0);
     boatGroup.add(lanternMesh);
 
-    const lanternLight = new THREE.PointLight("#ffaa33", 2.2, 12);
-    lanternLight.position.set(2.65, 0.83, 0);
+    const lanternLight = new THREE.PointLight("#ffaa33", 2.2, 14);
+    lanternLight.position.set(2.7, 0.85, 0);
     boatGroup.add(lanternLight);
 
     boatGroup.position.set(4, 0, -5);
     boatGroup.rotation.y = -0.4;
-    boatGroup.scale.setScalar(1.22);
+    boatGroup.scale.setScalar(1.25);
     scene.add(boatGroup);
 
     const fishingBoats: Array<{ group: THREE.Group; phase: number; amplitude: number }> = [
-      { group: boatGroup, phase: 0, amplitude: 0.34 },
+      { group: boatGroup, phase: 0, amplitude: 0.35 },
     ];
+
+    // Đoàn thuyền đánh cá ngoài khơi xa
     [
       { x: -11, z: 0, scale: 0.92, rotation: 0.35, phase: 1.4 },
       { x: 12, z: -9, scale: 0.84, rotation: -0.65, phase: 2.7 },
@@ -387,32 +559,135 @@ export default function CentralSeaScene() {
       fishingBoats.push({ group: boat, phase, amplitude: 0.22 * scale });
     });
 
-    // Chiáº¿c thuyá»n thÃºng trÃ²n Ä‘áº·c trÆ°ng xá»© Trung
+    // ==========================================
+    // 4. THUYỀN THÚNG TRE TRUYỀN THỐNG XỨ TRUNG
+    // ==========================================
     const basketBoat = new THREE.Group();
-    const basketGeo = new THREE.SphereGeometry(1.6, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2);
-    basketGeo.scale(1, 0.6, 1);
+    const basketGeo = new THREE.SphereGeometry(1.65, 20, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+    basketGeo.scale(1, 0.62, 1);
+    const wovenBambooTexture = createWovenBambooTexture();
     const basketMat = new THREE.MeshStandardMaterial({
-      color: "#785838",
-      roughness: 0.85,
+      map: wovenBambooTexture,
+      bumpMap: wovenBambooTexture,
+      bumpScale: 0.06,
+      color: "#946f48",
+      roughness: 0.88,
       side: THREE.DoubleSide,
     });
     const basketMesh = new THREE.Mesh(basketGeo, basketMat);
     basketMesh.rotation.x = Math.PI;
-    basketMesh.position.y = 0.7;
+    basketMesh.position.y = 0.72;
+    basketMesh.castShadow = true;
+    basketMesh.receiveShadow = true;
     basketBoat.add(basketMesh);
 
-    // VÃ nh tre Ä‘an quanh miá»‡ng thuyá»n thÃºng
-    const rimGeo = new THREE.TorusGeometry(1.62, 0.08, 8, 24);
+    // Vành tre bao quanh miệng thúng
+    const rimGeo = new THREE.TorusGeometry(1.66, 0.09, 8, 28);
     rimGeo.rotateX(Math.PI / 2);
-    const rimMat = new THREE.MeshStandardMaterial({ color: "#997349", roughness: 0.9 });
+    const rimMat = new THREE.MeshStandardMaterial({ color: "#6e4b25", roughness: 0.9 });
     const rimMesh = new THREE.Mesh(rimGeo, rimMat);
-    rimMesh.position.y = 0.7;
+    rimMesh.position.y = 0.72;
+    rimMesh.castShadow = true;
     basketBoat.add(rimMesh);
+
+    // Mái chèo tre gác ngang thuyền thúng
+    const oarPole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.04, 0.04, 2.6, 8),
+      new THREE.MeshStandardMaterial({ color: "#a17849", roughness: 0.8 })
+    );
+    oarPole.rotation.z = Math.PI / 3;
+    oarPole.rotation.y = 0.4;
+    oarPole.position.set(0.3, 0.78, 0);
+    basketBoat.add(oarPole);
 
     basketBoat.position.set(-8, 0, 3);
     scene.add(basketBoat);
 
-    // Low, broken limestone islets evoke the central coast without copying a landmark.
+    // ==========================================
+    // 5. ĐÈN HOA ĐĂNG NGUYỆN CẦU TRÔI TRÊN SÓNG BIỂN
+    // Tương ứng nghi thức "Thả lời chúc lành vào lòng biển mẹ"
+    // ==========================================
+    const lanterns: Array<{
+      group: THREE.Group;
+      baseX: number;
+      baseZ: number;
+      phase: number;
+      driftSpeed: number;
+      candleLight: THREE.PointLight;
+    }> = [];
+
+    const lanternColors = ["#f472b6", "#fb7185", "#fde047", "#fed7aa", "#fbcfe8"];
+    const petalGeo = new THREE.ConeGeometry(0.24, 0.32, 4);
+    petalGeo.rotateX(Math.PI);
+
+    for (let i = 0; i < 16; i++) {
+      const lanternGroup = new THREE.Group();
+
+      // Cánh hoa sen bằng giấy hoa đăng
+      const flowerColor = lanternColors[i % lanternColors.length];
+      const petalMat = new THREE.MeshStandardMaterial({
+        color: flowerColor,
+        roughness: 0.6,
+        side: THREE.DoubleSide,
+      });
+
+      for (let p = 0; p < 6; p++) {
+        const petal = new THREE.Mesh(petalGeo, petalMat);
+        const angle = (p / 6) * Math.PI * 2;
+        petal.position.set(Math.cos(angle) * 0.22, 0.12, Math.sin(angle) * 0.22);
+        petal.rotation.y = angle;
+        petal.rotation.z = 0.35;
+        lanternGroup.add(petal);
+      }
+
+      // Đế hoa đăng nổi
+      const baseGeo = new THREE.CylinderGeometry(0.28, 0.24, 0.08, 8);
+      const baseMat = new THREE.MeshStandardMaterial({ color: "#3d2b1f", roughness: 0.9 });
+      const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+      baseMesh.position.y = 0.04;
+      lanternGroup.add(baseMesh);
+
+      // Ngọn nến phát sáng lung linh
+      const candleGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.18, 8);
+      const candleMat = new THREE.MeshStandardMaterial({ color: "#fef08a" });
+      const candle = new THREE.Mesh(candleGeo, candleMat);
+      candle.position.y = 0.15;
+      lanternGroup.add(candle);
+
+      const flameGeo = new THREE.ConeGeometry(0.045, 0.12, 6);
+      const flameMat = new THREE.MeshBasicMaterial({ color: "#f59e0b" });
+      const flame = new THREE.Mesh(flameGeo, flameMat);
+      flame.position.y = 0.28;
+      lanternGroup.add(flame);
+
+      // Đèn nến hoa đăng tỏa sáng lấp lánh trên mặt nước
+      const candleLight = new THREE.PointLight("#f59e0b", 1.8, 5);
+      candleLight.position.y = 0.3;
+      lanternGroup.add(candleLight);
+
+      // Vị trí các hoa đăng trôi dập dềnh quanh thuyền và bờ nước
+      const angle = (i / 16) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+      const radius = 6 + (i % 4) * 3.8 + Math.random() * 2;
+      const baseX = Math.cos(angle) * radius - 1;
+      const baseZ = Math.sin(angle) * (radius * 0.7) - 3;
+
+      lanternGroup.position.set(baseX, 0, baseZ);
+      lanternGroup.scale.setScalar(0.95);
+      scene.add(lanternGroup);
+
+      lanterns.push({
+        group: lanternGroup,
+        baseX,
+        baseZ,
+        phase: i * 0.75,
+        driftSpeed: 0.02 + Math.random() * 0.025,
+        candleLight,
+      });
+    }
+
+    // ==========================================
+    // 6. ĐẢO ĐÁ VÙNG DUYÊN HẢI VỚI CÂY CỎ & RẶNG ĐÁ
+    // ==========================================
     const terrainTextureCanvas = document.createElement("canvas");
     terrainTextureCanvas.width = 512;
     terrainTextureCanvas.height = 512;
@@ -434,8 +709,8 @@ export default function CentralSeaScene() {
     terrainTexture.wrapT = THREE.RepeatWrapping;
     terrainTexture.repeat.set(3, 2);
 
-    const terrainWidth = 56;
-    const terrainDepth = 19;
+    const terrainWidth = 58;
+    const terrainDepth = 20;
     const segmentsX = 112;
     const segmentsZ = 48;
     const terrainPositions: number[] = [];
@@ -446,17 +721,20 @@ export default function CentralSeaScene() {
     const scrubColor = new THREE.Color("#52684a");
     const forestColor = new THREE.Color("#35563a");
     const summitColor = new THREE.Color("#53664b");
+
     const terrainHeightAt = (x: number, z: number) => {
       const nx = x / (terrainWidth * 0.5);
       const nz = z / (terrainDepth * 0.5);
       const edge = Math.max(0, 1 - nx * nx - nz * nz * 0.92);
-      const ridge = 0.68
-        + 0.26 * Math.exp(-(((x + 9) / 8) ** 2))
-        + 0.34 * Math.exp(-(((x - 5) / 7) ** 2))
-        + 0.15 * Math.exp(-(((x - 17) / 5) ** 2));
-      const roughness = 0.28 * Math.sin(x * 0.72 + z * 0.38)
-        + 0.16 * Math.sin(x * 1.41 - z * 0.83)
-        + 0.1 * Math.cos(z * 1.8 + x * 0.5);
+      const ridge =
+        0.68 +
+        0.26 * Math.exp(-(((x + 9) / 8) ** 2)) +
+        0.34 * Math.exp(-(((x - 5) / 7) ** 2)) +
+        0.15 * Math.exp(-(((x - 17) / 5) ** 2));
+      const roughness =
+        0.28 * Math.sin(x * 0.72 + z * 0.38) +
+        0.16 * Math.sin(x * 1.41 - z * 0.83) +
+        0.1 * Math.cos(z * 1.8 + x * 0.5);
       return -1.6 + 10.5 * Math.pow(edge, 0.68) * ridge + roughness * Math.sqrt(edge);
     };
 
@@ -468,13 +746,15 @@ export default function CentralSeaScene() {
         terrainPositions.push(x, height, z);
         terrainUvs.push(column / segmentsX, row / segmentsZ);
 
-        const color = height < 0.55
-          ? shoreColor.clone().lerp(scrubColor, THREE.MathUtils.smoothstep(height, -0.2, 1.2))
-          : scrubColor.clone().lerp(height > 6.4 ? summitColor : forestColor, THREE.MathUtils.smoothstep(height, 0.5, 5.4));
+        const color =
+          height < 0.55
+            ? shoreColor.clone().lerp(scrubColor, THREE.MathUtils.smoothstep(height, -0.2, 1.2))
+            : scrubColor.clone().lerp(height > 6.4 ? summitColor : forestColor, THREE.MathUtils.smoothstep(height, 0.5, 5.4));
         const fleck = 0.94 + 0.1 * Math.sin(x * 4.3 + z * 5.1);
         terrainColors.push(color.r * fleck, color.g * fleck, color.b * fleck);
       }
     }
+
     for (let row = 0; row < segmentsZ; row++) {
       for (let column = 0; column < segmentsX; column++) {
         const a = row * (segmentsX + 1) + column;
@@ -491,6 +771,7 @@ export default function CentralSeaScene() {
     terrainGeometry.setAttribute("uv", new THREE.Float32BufferAttribute(terrainUvs, 2));
     terrainGeometry.setIndex(terrainIndices);
     terrainGeometry.computeVertexNormals();
+
     const terrainMaterial = new THREE.MeshStandardMaterial({
       map: terrainTexture,
       bumpMap: terrainTexture,
@@ -505,6 +786,7 @@ export default function CentralSeaScene() {
     island.receiveShadow = true;
     scene.add(island);
 
+    // Mỏm đá hoa cương ven biển
     const rockMaterial = new THREE.MeshStandardMaterial({ color: "#8b8370", map: terrainTexture, roughness: 0.9 });
     const rockGeometry = new THREE.IcosahedronGeometry(1, 1);
     for (let i = 0; i < 34; i++) {
@@ -522,21 +804,12 @@ export default function CentralSeaScene() {
       scene.add(rock);
     }
 
+    // Rặng cây xanh trên sườn núi đảo
     const treeTrunkMaterial = new THREE.MeshStandardMaterial({ color: "#574538", roughness: 0.96 });
     const canopyMaterials = ["#34553b", "#3f6342", "#496943", "#526c45"].map((color) =>
       new THREE.MeshStandardMaterial({ color, roughness: 0.98 })
     );
     const canopyGeometry = new THREE.IcosahedronGeometry(0.8, 1);
-    const canopyPositions = canopyGeometry.attributes.position;
-    for (let i = 0; i < canopyPositions.count; i++) {
-      const x = canopyPositions.getX(i);
-      const y = canopyPositions.getY(i);
-      const z = canopyPositions.getZ(i);
-      const scale = 1 + 0.09 * Math.sin(x * 8 + z * 5) * Math.cos(y * 7);
-      canopyPositions.setXYZ(i, x * scale, y * scale, z * scale);
-    }
-    canopyGeometry.computeVertexNormals();
-
     for (let i = 0; i < 17; i++) {
       const x = -19 + i * 2.35;
       const localZ = -1.8 + Math.sin(i * 2.2) * 3.4;
@@ -555,17 +828,11 @@ export default function CentralSeaScene() {
       }
       tree.position.set(x, ground - 0.05, -54 + localZ);
       tree.rotation.y = i * 0.71;
-      tree.traverse((object) => {
-        if (object instanceof THREE.Mesh) {
-          object.castShadow = true;
-          object.receiveShadow = true;
-        }
-      });
       scene.add(tree);
     }
 
     // ==========================================
-    // 4. ÄÃ€N Háº¢I Ã‚U BAY LÆ¯á»¢N TRÃŠN Máº¶T BIá»‚N
+    // 7. ĐÀN HẢI ÂU BAY LƯỢN TRÊN MẶT BIỂN
     // ==========================================
     const gulls: Array<{
       group: THREE.Group;
@@ -579,13 +846,11 @@ export default function CentralSeaScene() {
 
     for (let i = 0; i < 14; i++) {
       const gullGroup = new THREE.Group();
-
       const wingMat = new THREE.MeshBasicMaterial({
-        color: "#40585d",
+        color: "#f8fafc",
         side: THREE.DoubleSide,
       });
 
-      // CÃ¡nh trÃ¡i
       const makeWing = (side: -1 | 1) => {
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute("position", new THREE.Float32BufferAttribute([
@@ -604,11 +869,11 @@ export default function CentralSeaScene() {
       const wingR = makeWing(1);
       const birdBody = new THREE.Mesh(
         new THREE.SphereGeometry(0.13, 10, 8),
-        new THREE.MeshBasicMaterial({ color: "#34474a" })
+        new THREE.MeshBasicMaterial({ color: "#e2e8f0" })
       );
       birdBody.scale.set(0.72, 0.72, 1.8);
       gullGroup.add(birdBody);
-      gullGroup.scale.setScalar(1.15);
+      gullGroup.scale.setScalar(1.2);
 
       scene.add(gullGroup);
 
@@ -624,7 +889,7 @@ export default function CentralSeaScene() {
     }
 
     // ==========================================
-    // 5. ANIMATION LOOP
+    // 8. ANIMATION LOOP
     // ==========================================
     let animationFrameId: number;
     const clock = new THREE.Clock();
@@ -635,33 +900,58 @@ export default function CentralSeaScene() {
       const delta = Math.min(clock.getDelta(), 0.05);
       const time = clock.elapsedTime;
 
-      // 1. Chuyá»ƒn Ä‘á»™ng sÃ³ng biá»ƒn Water Shader (Realistic fluid)
+      // Xử lý chuyển động camera mượt mà
+      if (isTransitioningCamera) {
+        camera.position.lerp(targetCameraPos, 0.06);
+        controls.target.lerp(targetControlsTarget, 0.06);
+        if (
+          camera.position.distanceTo(targetCameraPos) < 0.05 &&
+          controls.target.distanceTo(targetControlsTarget) < 0.05
+        ) {
+          camera.position.copy(targetCameraPos);
+          controls.target.copy(targetControlsTarget);
+          isTransitioningCamera = false;
+        }
+      }
+
+      // 1. Chuyển động sóng biển Water Shader
       water.material.uniforms["time"].value += delta;
 
-      // 2. Thuyá»n gá»— nháº¥p nhÃ´ theo sÃ³ng biá»ƒn
+      // 2. Thuyền gỗ nhấp nhô theo sóng biển
       fishingBoats.forEach(({ group, phase, amplitude }) => {
         group.position.y = Math.sin(time * 1.6 + phase) * amplitude;
         group.rotation.z = Math.sin(time * 1.2 + phase) * 0.045;
         group.rotation.x = -0.4 + Math.cos(time * 1.4 + phase) * 0.025;
       });
 
-      // Thuyá»n thÃºng dáº­p dá»nh
+      // Thuyền thúng dập dềnh
       basketBoat.position.y = Math.sin(time * 2.1 + 1) * 0.25;
       basketBoat.rotation.z = Math.sin(time * 1.8 + 1) * 0.08;
       basketBoat.rotation.x = Math.cos(time * 1.5 + 1) * 0.06;
 
-      // 3. Háº£i Ã¢u bay lÆ°á»£n & Ä‘áº­p cÃ¡nh
+      // 3. Đèn hoa đăng dập dềnh và ánh lửa lung linh
+      lanterns.forEach((lan) => {
+        lan.group.position.y = Math.sin(time * 2.2 + lan.phase) * 0.14 + 0.04;
+        lan.group.position.x = lan.baseX + Math.sin(time * 0.4 + lan.phase) * 0.35;
+        lan.group.position.z = lan.baseZ + Math.cos(time * 0.35 + lan.phase) * 0.25;
+        lan.group.rotation.z = Math.sin(time * 1.8 + lan.phase) * 0.08;
+        lan.group.rotation.x = Math.cos(time * 1.6 + lan.phase) * 0.06;
+
+        // Nhịp lửa bập bùng
+        lan.candleLight.intensity =
+          1.7 + Math.sin(time * 10 + lan.phase * 3) * 0.35 + (Math.random() - 0.5) * 0.15;
+      });
+
+      // 4. Hải âu bay lượn & đập cánh
       gulls.forEach((g) => {
         g.angle += g.speed * delta;
         g.group.position.x = Math.cos(g.angle) * g.radius;
         g.group.position.z = Math.sin(g.angle) * (g.radius * 0.7) - 23;
         g.group.position.y = g.height + Math.sin(g.angle * 3) * 1.5;
 
-        // HÆ°á»›ng má» bay theo hÆ°á»›ng di chuyá»ƒn
         g.group.rotation.y = -g.angle + Math.PI / 2;
 
-        // Vá»— cÃ¡nh
-        const flap = Math.sin(time * 8 + g.radius) * 0.35;
+        const flap = Math.sin(time * 8 + g.radius) * 0.38;
         g.wingL.rotation.z = flap;
         g.wingR.rotation.z = -flap;
       });
@@ -702,7 +992,7 @@ export default function CentralSeaScene() {
   }, []);
 
   const handleToggleTimeMode = () => {
-    const next = timeMode === "dawn" ? "day" : "dawn";
+    const next: TimeMode = timeMode === "dawn" ? "day" : timeMode === "day" ? "sunset" : "dawn";
     setTimeMode(next);
     if (switchTimeRef.current) {
       switchTimeRef.current(next);
@@ -714,39 +1004,65 @@ export default function CentralSeaScene() {
       {/* 3D Canvas Host */}
       <div
         ref={hostRef}
-        className="w-full h-80 sm:h-96 md:h-[430px] cursor-grab active:cursor-grabbing"
+        className="w-full h-80 sm:h-96 md:h-[450px] cursor-grab active:cursor-grabbing"
       />
 
       {/* Top HUD Badge */}
       <div className="absolute top-3.5 left-4 pointer-events-none flex items-center gap-2">
-        <span className="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-black/65 text-amber-300 border border-amber-500/40 backdrop-blur-md flex items-center gap-2 shadow-sm">
+        <span className="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-black/70 text-amber-300 border border-amber-500/40 backdrop-blur-md flex items-center gap-2 shadow-sm">
           <Waves className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-          <span>BIỂN MIỀN TRUNG 3D · CHÂN THỰC & SỐNG ĐỘNG</span>
+          <span>BIỂN MIỀN TRUNG 3D · SÓNG BIỂN & THUYỀN VẠN CHÀI</span>
         </span>
       </div>
 
       {/* Top Right Controls */}
       <div className="absolute top-3.5 right-4 flex items-center gap-2">
+        {/* Toggle Sound */}
         <button
           type="button"
-          aria-label={soundEnabled ? "Tắt âm thanh sóng biển và chim" : "Bật âm thanh sóng biển và chim"}
+          aria-label={soundEnabled ? "Tắt âm thanh sóng biển" : "Bật âm thanh sóng biển và hải âu"}
           aria-pressed={soundEnabled}
           onClick={handleToggleSound}
-          title={soundEnabled ? "Tắt âm thanh biển" : "Bật tiếng sóng biển và chim"}
+          title={soundEnabled ? "Tắt âm thanh biển" : "Bật tiếng sóng biển và chim hải âu"}
           className="p-2 rounded-xl bg-black/60 hover:bg-black/80 text-amber-200 hover:text-white border border-white/10 backdrop-blur-md transition-all cursor-pointer"
         >
-          {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4" />}
         </button>
+
+        {/* Toggle Time Mode */}
         <button
           type="button"
           onClick={handleToggleTimeMode}
-          title={timeMode === "dawn" ? "Chuyển sang ban ngày" : "Chuyển sang bình minh"}
+          title={
+            timeMode === "dawn"
+              ? "Đang là Bình minh (Bấm để chuyển Ban ngày)"
+              : timeMode === "day"
+              ? "Đang là Ban ngày (Bấm để chuyển Hoàng hôn)"
+              : "Đang là Hoàng hôn (Bấm để chuyển Bình minh)"
+          }
           className="px-3 py-1.5 rounded-xl bg-black/60 hover:bg-black/80 text-amber-300 hover:text-white border border-white/10 backdrop-blur-md transition-all cursor-pointer flex items-center gap-1.5 text-xs font-medium"
         >
-          {timeMode === "dawn" ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Sunset className="w-3.5 h-3.5 text-orange-400" />}
-          <span>{timeMode === "dawn" ? "Bình minh" : "Ban ngày"}</span>
+          {timeMode === "dawn" ? (
+            <>
+              <Sun className="w-3.5 h-3.5 text-amber-400" />
+              <span>Bình minh</span>
+            </>
+          ) : timeMode === "day" ? (
+            <>
+              <Sun className="w-3.5 h-3.5 text-yellow-300" />
+              <span>Ban ngày</span>
+            </>
+          ) : (
+            <>
+              <Sunset className="w-3.5 h-3.5 text-orange-400" />
+              <span>Hoàng hôn</span>
+            </>
+          )}
         </button>
 
+        
+
+        {/* Reset Camera */}
         <button
           type="button"
           onClick={() => resetRef.current()}
@@ -755,18 +1071,6 @@ export default function CentralSeaScene() {
         >
           <RotateCcw className="w-4 h-4" />
         </button>
-      </div>
-
-      {/* Bottom Floating Bar */}
-      <div className="absolute bottom-3.5 inset-x-4 flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-black/60 border border-white/10 p-2.5 sm:px-4 rounded-2xl backdrop-blur-md">
-        <div className="text-xs text-stone-200 flex items-center gap-2">
-          <span className="text-amber-400 font-bold">âœ¦</span>
-          <span>Kéo để xoay quanh đảo và thuyền · Cuộn để phóng to hoặc thu nhỏ</span>
-        </div>
-
-        <span className="text-[11px] text-amber-200/80 italic hidden sm:inline-block">
-          Mô phỏng mặt nước và ánh sáng biển
-        </span>
       </div>
 
       {error && (

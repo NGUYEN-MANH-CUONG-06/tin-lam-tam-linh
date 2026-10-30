@@ -122,35 +122,8 @@
 .mood-context-chip--active {
   border-color: #8b1e28;
   background: rgba(255, 246, 240, 0.95);
-  box-shadow: 0 3px 12px rgba(139, 30, 40, 0.1);
-}
-
-.mood-context-radio-dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid rgba(185, 145, 110, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 180ms ease;
-}
-
-.mood-context-chip--active .mood-context-radio-dot {
-  border-color: #8b1e28;
-}
-
-.mood-context-radio-inner {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #8b1e28;
-  transform: scale(0);
-  transition: transform 180ms ease;
-}
-
-.mood-context-chip--active .mood-context-radio-inner {
-  transform: scale(1);
+  box-shadow: 0 4px 16px rgba(139, 30, 40, 0.12);
+  transform: translateY(-1px);
 }
 
 /* 4. PHONG THƯ TÂM SỰ TRÊN GIẤY DÓ */
@@ -177,9 +150,8 @@
 }
 
 .mood-letter-container textarea {
-  background-image: linear-gradient(transparent 95%, rgba(215, 185, 140, 0.25) 100%);
-  background-size: 100% 28px;
-  line-height: 28px;
+  border-radius: 10px;
+  line-height: 1.6;
 }
 
 /* 5. NÚT SUBMIT ĐỎ TRẦM SON ÁNH KIM */

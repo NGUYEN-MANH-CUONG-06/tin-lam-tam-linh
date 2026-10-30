@@ -37,7 +37,7 @@ export function ScreenFocus({ children }: ScreenFocusProps) {
   }, []);
 
   return (
-    <div ref={containerRef} className="min-w-0">
+    <div ref={containerRef} className="min-w-0 screen-entrance">
       {children}
     </div>
   );

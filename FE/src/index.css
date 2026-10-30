@@ -381,15 +381,56 @@ button {
 }
 
 .app-section-sidebar__back {
-  min-height: 2.8rem;
+  min-height: 3rem;
   font-size: 0.85rem;
   font-weight: 650;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.app-section-sidebar__back:hover {
+  background: color-mix(in srgb, var(--ui-accent, #8f202b) 12%, var(--ui-surface, #ffffff));
+  border-color: color-mix(in srgb, var(--ui-accent, #8f202b) 50%, transparent);
+  color: var(--ui-accent, #8f202b);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px -2px rgba(143, 32, 43, 0.16);
+}
+
+.app-section-sidebar__back:hover svg {
+  transform: scale(1.18);
+  color: var(--ui-accent, #8f202b);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.app-section-sidebar__back:active {
+  transform: scale(0.95) translateY(0);
+  background: color-mix(in srgb, var(--ui-accent, #8f202b) 22%, transparent);
+  box-shadow: 0 1px 4px rgba(143, 32, 43, 0.2);
+  transition-duration: 0.08s;
 }
 
 .app-section-sidebar__back svg {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.15rem;
+  height: 1.15rem;
   color: var(--ui-accent, #8f202b);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+@keyframes screenEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.screen-entrance {
+  animation: screenEntrance 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .app-section-sidebar :focus-visible {
@@ -502,7 +543,7 @@ button {
   width: 100%;
   min-width: 0;
   grid-template-columns: minmax(0, 1fr);
-  align-items: stretch;
+  align-items: start;
   gap: 1.25rem;
 }
 
@@ -679,24 +720,24 @@ button {
 }
 
 .brand-mark {
-  display: grid;
-  width: 2.85rem;
-  height: 2.85rem;
-  padding: 0.15rem;
+  display: flex;
+  width: 2.4rem;
+  height: 2.8rem;
   flex: none;
-  place-items: center;
-  overflow: hidden;
-  border: 1.5px solid rgba(212, 175, 55, 0.75);
-  border-radius: 50%;
-  background: var(--ui-accent);
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.22), 0 2px 8px rgba(143, 32, 43, 0.2);
-  transition: all 240ms ease;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transition: transform 200ms ease;
 }
 
 .brand-link:hover .brand-mark {
-  border-color: #d4af37;
-  box-shadow: 0 0 18px rgba(212, 175, 55, 0.45), 0 3px 10px rgba(143, 32, 43, 0.25);
-  transform: scale(1.05);
+  border: none;
+  box-shadow: none;
+  transform: scale(1.08);
 }
 
 .brand-mark img {
@@ -721,9 +762,9 @@ button {
   display: block;
   margin-top: 0.15rem;
   color: color-mix(in srgb, var(--ui-muted) 82%, var(--ui-gold) 18%);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   line-height: 1.2;
   text-transform: uppercase;
 }
@@ -732,22 +773,24 @@ button {
   display: flex;
   align-items: center;
   gap: clamp(0.2rem, 1vw, 0.75rem);
+  margin-inline: auto;
 }
 
 .nav-link {
   position: relative;
   display: inline-flex;
-  min-height: 2.875rem;
+  min-height: 2.5rem;
   align-items: center;
   justify-content: center;
   border: 0;
   border-radius: 9999px;
-  padding: 0.55rem 1.1rem;
+  padding: 0.45rem 1rem;
   background: transparent;
   color: var(--ui-muted);
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.935rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
   text-decoration: none;
   transition: all 180ms ease;
 }
@@ -767,13 +810,14 @@ button {
 }
 
 .nav-link--offer {
-  border: 1px solid color-mix(in srgb, var(--ui-gold) 55%, transparent);
-  color: var(--ui-accent);
+  border: none;
+  color: var(--ui-muted);
+  font-weight: 600;
 }
 
-.nav-link--offer:hover,
-.nav-link--offer[aria-current="page"] {
-  background: color-mix(in srgb, var(--ui-gold) 16%, var(--ui-surface));
+.nav-link--offer:hover {
+  color: var(--ui-accent);
+  background: color-mix(in srgb, var(--ui-accent-soft) 40%, transparent);
 }
 
 .nav-link[aria-current="page"]::after,
@@ -950,8 +994,8 @@ button {
 .site-footer__inner {
   display: grid;
   width: min(100%, 82.5rem);
-  grid-template-columns: 1.4fr 1fr 1.2fr;
-  gap: 2.5rem;
+  grid-template-columns: 1.3fr 0.9fr 0.9fr 1.25fr;
+  gap: 2rem;
   margin-inline: auto;
   padding: 3rem clamp(1rem, 4vw, 2.75rem) 2.5rem;
 }
@@ -2161,112 +2205,109 @@ button {
 /* ========================================================
    Animation Gieo Keo Âm Dương: Thảy Lên Không Trung & Rơi Xuống Nảy Lách Cách
    ======================================================== */
+/* ========================================================
+   Animation Gieo Keo Âm Dương: Thảy Lên Không Trung & Rơi Xuống Từ Từ Đẹp Mắt
+   Thời lượng: 2.6s - Bay bổng lên cao chậm rãi, lượn trên không trung, rơi xuống từ /* ========================================================
+   Animation Gieo Keo Âm Dương: Bay vòng cung sống động,
+   chạm đĩa mới lộ kết quả, và NẰM NGUYÊN TẠI CHỖ KHÔNG TRÀN KHUNG
+   Thời lượng: 2.6s
+   ======================================================== */
 @keyframes keoTossLeft {
   0% {
-    transform: perspective(900px) translate3d(0, 0, 0) rotateZ(8deg) rotateX(0deg) rotateY(0deg) scale(1);
-    animation-timing-function: cubic-bezier(0.16, 0.85, 0.35, 1.15);
+    transform: translate3d(0, 0, 0) rotate(4deg) scale(1);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
-  34% {
-    /* Đỉnh cao khi thảy bổng lên không trung */
-    transform: perspective(900px) translate3d(-26px, -190px, 60px) rotateZ(-195deg) rotateX(38deg) rotateY(-145deg) scale(1.16);
-    animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+  38% {
+    /* Bay vòng cung lên cao chếch sang trái, chuyển động nhào lộn sống động */
+    transform: translate3d(-18px, -115px, 20px) rotate(-22deg) scale(1.12);
+    animation-timing-function: cubic-bezier(0.35, 0.1, 0.65, 0.4);
   }
-  68% {
-    /* Rơi tự do đập chạm mặt đĩa lần 1 */
-    transform: perspective(900px) translate3d(-36px, 6px, 0) rotateZ(-358deg) rotateX(8deg) rotateY(-18deg) scale(1.03);
-    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  48% {
+    /* Lơ lửng ở đỉnh cao (hang time tự nhiên) */
+    transform: translate3d(-20px, -120px, 22px) rotate(-25deg) scale(1.12);
+    animation-timing-function: cubic-bezier(0.5, 0.05, 0.8, 0.4);
   }
-  78% {
-    /* Nảy lên nhịp 1 */
-    transform: perspective(900px) translate3d(-29px, -27px, 15px) rotateZ(-368deg) rotateX(-16deg) rotateY(35deg) scale(1.01);
-    animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+  70% {
+    /* Rơi xuống chạm mâm đĩa lần 1 - đúng khoảnh khắc chốt kết quả */
+    transform: translate3d(-19px, 10px, 0) rotate(-16deg) scale(1.02);
+    animation-timing-function: cubic-bezier(0.2, 0.75, 0.35, 1);
   }
-  86% {
+  80% {
+    /* Nảy nhẹ nhịp 1 */
+    transform: translate3d(-20px, 0px, 0) rotate(-17deg) scale(1.01);
+    animation-timing-function: cubic-bezier(0.55, 0.05, 0.75, 0.2);
+  }
+  88% {
     /* Chạm đĩa lần 2 */
-    transform: perspective(900px) translate3d(-34px, 6px, 0) rotateZ(-375deg) rotateX(4deg) rotateY(-8deg) scale(1);
-    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-  }
-  93% {
-    /* Nhấp nhô nhẹ nhịp 2 */
-    transform: perspective(900px) translate3d(-32px, -4px, 5px) rotateZ(-383deg) rotateX(-8deg) rotateY(12deg) scale(1);
-    animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+    transform: translate3d(-20px, 10px, 0) rotate(-16deg) scale(1.005);
+    animation-timing-function: cubic-bezier(0.2, 0.75, 0.35, 1);
   }
   100% {
-    /* Yên vị trên đĩa ngay tại chỗ rơi (-18deg tương đương -378deg) */
-    transform: perspective(900px) translate3d(-32px, 6px, 0) rotateZ(-390deg) rotateX(0deg) rotateY(0deg) scale(1);
+    /* NẰM NGUYÊN TẠI VỊ TRÍ ĐÃ RƠI XUỐNG - KHÔNG TRÀN KHUNG */
+    transform: translate3d(-20px, 10px, 0) rotate(-16deg) scale(1);
   }
 }
 
 @keyframes keoTossRight {
   0% {
-    transform: perspective(900px) translate3d(0, 0, 0) rotateZ(-7deg) rotateX(0deg) rotateY(0deg) scale(1);
-    animation-timing-function: cubic-bezier(0.16, 0.85, 0.35, 1.15);
+    transform: translate3d(0, 0, 0) rotate(-4deg) scale(1);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
-  36% {
-    /* Đỉnh cao khi thảy bổng lên không trung lệch nhịp */
-    transform: perspective(900px) translate3d(30px, -205px, 70px) rotateZ(210deg) rotateX(-42deg) rotateY(155deg) scale(1.18);
-    animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+  40% {
+    /* Bay vòng cung lên cao chếch sang phải lệch pha với mảnh trái */
+    transform: translate3d(18px, -120px, 20px) rotate(22deg) scale(1.12);
+    animation-timing-function: cubic-bezier(0.35, 0.1, 0.65, 0.4);
   }
-  70% {
-    /* Rơi tự do đập chạm mặt đĩa lần 1 */
-    transform: perspective(900px) translate3d(39px, -4px, 0) rotateZ(365deg) rotateX(-10deg) rotateY(20deg) scale(1.03);
-    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  50% {
+    /* Lơ lửng ở đỉnh cao (hang time tự nhiên) */
+    transform: translate3d(20px, -125px, 22px) rotate(25deg) scale(1.12);
+    animation-timing-function: cubic-bezier(0.5, 0.05, 0.8, 0.4);
   }
-  80% {
-    /* Nảy lên nhịp 1 */
-    transform: perspective(900px) translate3d(28px, -31px, 18px) rotateZ(379deg) rotateX(18deg) rotateY(-32deg) scale(1.01);
-    animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+  72% {
+    /* Rơi xuống chạm mâm đĩa sau mảnh trái một tích tắc */
+    transform: translate3d(20px, -8px, 0) rotate(18deg) scale(1.02);
+    animation-timing-function: cubic-bezier(0.2, 0.75, 0.35, 1);
   }
-  88% {
+  82% {
+    /* Nảy nhẹ nhịp 1 */
+    transform: translate3d(20px, -16px, 0) rotate(19deg) scale(1.01);
+    animation-timing-function: cubic-bezier(0.55, 0.05, 0.75, 0.2);
+  }
+  90% {
     /* Chạm đĩa lần 2 */
-    transform: perspective(900px) translate3d(35px, -4px, 0) rotateZ(391deg) rotateX(-5deg) rotateY(9deg) scale(1);
-    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-  }
-  94% {
-    /* Nhấp nhô nhẹ nhịp 2 */
-    transform: perspective(900px) translate3d(32px, -10px, 6px) rotateZ(400deg) rotateX(8deg) rotateY(-12deg) scale(1);
-    animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+    transform: translate3d(20px, -8px, 0) rotate(18deg) scale(1.005);
+    animation-timing-function: cubic-bezier(0.2, 0.75, 0.35, 1);
   }
   100% {
-    /* Yên vị trên đĩa ngay tại chỗ rơi (24deg tương đương 384deg) */
-    transform: perspective(900px) translate3d(32px, -4px, 0) rotateZ(408deg) rotateX(0deg) rotateY(0deg) scale(1);
+    /* NẰM NGUYÊN TẠI VỊ TRÍ ĐÃ RƠI XUỐNG - KHÔNG TRÀN KHUNG */
+    transform: translate3d(20px, -8px, 0) rotate(18deg) scale(1);
   }
 }
 
 @keyframes keoShadowLeft {
   0% {
     transform: scale(1) translateX(0);
-    opacity: 0.55;
+    opacity: 0.45;
     filter: blur(3px);
   }
-  34% {
-    transform: scale(0.3) translateX(-20px);
-    opacity: 0.12;
-    filter: blur(10px);
+  38%, 48% {
+    transform: scale(0.65) translateX(-18px);
+    opacity: 0.18;
+    filter: blur(7px);
   }
-  68% {
-    transform: scale(1.22) translateX(-32px);
-    opacity: 0.72;
+  70% {
+    transform: scale(1.1) translateX(-19px) translateY(10px);
+    opacity: 0.65;
     filter: blur(2px);
   }
-  78% {
-    transform: scale(0.7) translateX(-32px);
-    opacity: 0.3;
-    filter: blur(6px);
+  80% {
+    transform: scale(0.9) translateX(-20px) translateY(5px);
+    opacity: 0.35;
+    filter: blur(4px);
   }
-  86% {
-    transform: scale(1.1) translateX(-32px);
-    opacity: 0.6;
-    filter: blur(2.5px);
-  }
-  93% {
-    transform: scale(0.95) translateX(-32px);
-    opacity: 0.48;
-    filter: blur(3.5px);
-  }
-  100% {
-    transform: scale(1) translateX(-32px);
-    opacity: 0.55;
+  88%, 100% {
+    transform: scale(1) translateX(-20px) translateY(10px);
+    opacity: 0.45;
     filter: blur(3px);
   }
 }
@@ -2274,124 +2315,93 @@ button {
 @keyframes keoShadowRight {
   0% {
     transform: scale(1) translateX(0);
-    opacity: 0.55;
+    opacity: 0.45;
     filter: blur(3px);
   }
-  36% {
-    transform: scale(0.3) translateX(22px);
-    opacity: 0.12;
-    filter: blur(10px);
+  40%, 50% {
+    transform: scale(0.65) translateX(18px);
+    opacity: 0.18;
+    filter: blur(7px);
   }
-  70% {
-    transform: scale(1.22) translateX(32px);
-    opacity: 0.72;
+  72% {
+    transform: scale(1.1) translateX(20px) translateY(-8px);
+    opacity: 0.65;
     filter: blur(2px);
   }
-  80% {
-    transform: scale(0.7) translateX(32px);
-    opacity: 0.3;
-    filter: blur(6px);
+  82% {
+    transform: scale(0.9) translateX(20px) translateY(-12px);
+    opacity: 0.35;
+    filter: blur(4px);
   }
-  88% {
-    transform: scale(1.1) translateX(32px);
-    opacity: 0.6;
-    filter: blur(2.5px);
-  }
-  94% {
-    transform: scale(0.95) translateX(32px);
-    opacity: 0.48;
-    filter: blur(3.5px);
-  }
-  100% {
-    transform: scale(1) translateX(32px);
-    opacity: 0.55;
+  90%, 100% {
+    transform: scale(1) translateX(20px) translateY(-8px);
+    opacity: 0.45;
     filter: blur(3px);
   }
 }
 
 .anim-keo-toss-left {
-  animation: keoTossLeft 2.1s linear forwards;
+  animation: keoTossLeft 2.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transform-origin: center center;
   will-change: transform;
 }
 
 .anim-keo-toss-right {
-  animation: keoTossRight 2.1s linear forwards;
+  animation: keoTossRight 2.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transform-origin: center center;
   will-change: transform;
 }
 
-/* Hai mặt cùng tồn tại trong SVG. Khi miếng keo đang xoay, chỉ mặt đang
-   hướng về người xem được hiển thị; frame cuối luôn là mặt đã chốt kết quả. */
-@keyframes keoFaceFront {
-  0%, 18%, 42%, 66%, 100% { opacity: 1; }
-  25%, 35%, 49%, 59%, 73%, 83% { opacity: 0; }
-}
-
-@keyframes keoFaceBack {
-  0%, 18%, 42%, 66%, 100% { opacity: 0; }
-  25%, 35%, 49%, 59%, 73%, 83% { opacity: 1; }
-}
-
-.keo-toss-face {
-  transform-origin: 90px 90px;
-  will-change: opacity;
-}
-
-.keo-toss-face-duong.keo-toss-face--lands-duong,
-.keo-toss-face-am.keo-toss-face--lands-am {
-  animation: keoFaceFront 2.1s linear forwards;
-}
-
-.keo-toss-face-duong.keo-toss-face--lands-am,
-.keo-toss-face-am.keo-toss-face--lands-duong {
-  animation: keoFaceBack 2.1s linear forwards;
-}
-
 .anim-keo-shadow-left {
-  animation: keoShadowLeft 2.1s linear forwards;
+  animation: keoShadowLeft 2.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transform-origin: center center;
   will-change: transform, opacity, filter;
 }
 
 .anim-keo-shadow-right {
-  animation: keoShadowRight 2.1s linear forwards;
+  animation: keoShadowRight 2.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transform-origin: center center;
   will-change: transform, opacity, filter;
 }
 
+/* Hiệu ứng rung đĩa nhẹ khi 2 mảnh keo tiếp đất */
+@keyframes keoTrayThump {
+  0%, 68% { transform: scale(1); }
+  71% { transform: scale(0.995) translateY(1.5px); }
+  78% { transform: scale(1.002) translateY(-0.8px); }
+  86%, 100% { transform: scale(1) translateY(0); }
+}
+
+.anim-keo-tray-impact {
+  animation: keoTrayThump 2.6s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+}
+
 /* ═══════════════════════════════════════════════════════
-   Settled / Landed state — exact final positions from 100% keyframes
-   Applied via hasCast=true so keo stays where it fell
+   Settled / Landed state — KHÓA NGUYÊN TẠI VỊ TRÍ ĐÃ RƠI XUỐNG
+   Tuyệt đối không bao giờ tràn viền và không quay về chỗ cũ
    ═══════════════════════════════════════════════════════ */
 .keo-settled-left {
-  transform: perspective(900px) translate3d(-32px, 6px, 0) rotateZ(-390deg) scale(1);
+  transform: translate3d(-20px, 10px, 0) rotate(-16deg) !important;
+  transition: none !important;
 }
 
 .keo-settled-right {
-  transform: perspective(900px) translate3d(32px, -4px, 0) rotateZ(408deg) scale(1);
+  transform: translate3d(20px, -8px, 0) rotate(18deg) !important;
+  transition: none !important;
 }
 
 .keo-shadow-settled-left {
-  transform: scale(1) translateX(-32px);
-  opacity: 0.55;
-  filter: blur(3px);
+  transform: scale(1) translateX(-20px) translateY(10px) !important;
+  opacity: 0.45 !important;
+  filter: blur(3px) !important;
+  transition: none !important;
 }
 
 .keo-shadow-settled-right {
-  transform: scale(1) translateX(32px);
-  opacity: 0.55;
-  filter: blur(3px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .anim-keo-toss-left,
-  .anim-keo-toss-right,
-  .anim-keo-shadow-left,
-  .anim-keo-shadow-right,
-  .keo-toss-face {
-    animation-duration: 0.01ms;
-  }
+  transform: scale(1) translateX(20px) translateY(-8px) !important;
+  opacity: 0.45 !important;
+  filter: blur(3px) !important;
+  transition: none !important;
 }
 
 .culture-masthead {

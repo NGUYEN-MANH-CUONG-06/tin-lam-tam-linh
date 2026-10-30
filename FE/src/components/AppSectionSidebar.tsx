@@ -4,8 +4,10 @@ import {
   BookOpen,
   CalendarDays,
   Compass,
+  Crown,
   Flower2,
   Heart,
+  Home,
   Landmark,
   Map,
   Music2,
@@ -42,7 +44,7 @@ const groups: Record<Props["area"], { title: string; links: SidebarLink[] }[]> =
       { label: "Hành trình cảm xúc", screen: "mood-journey", icon: Heart },
     ] },
     { title: "CÁ NHÂN", links: [
-      { label: "Hội viên", screen: "membership", icon: UsersRound },
+      { label: "Gói hội viên", screen: "membership", icon: Crown },
       { label: "Nhắc lịch", screen: "notifications", icon: Bell },
       { label: "Cài đặt", screen: "settings", icon: Settings },
     ] },
@@ -73,8 +75,7 @@ const groups: Record<Props["area"], { title: string; links: SidebarLink[] }[]> =
       { label: "Xem tử vi", screen: "astrology", icon: Sparkles },
     ] },
     { title: "GIA TIÊN & TƯỞNG NHỚ", links: [
-      { label: "Không gian gia tiên", screen: "ancestor-altar", icon: Landmark },
-      { label: "Không gian 3D & tưởng niệm", screen: "sanctuary", icon: Flower2 },
+      { label: "Không gian gia tiên", screen: "ancestor-altar", icon: Landmark, activeScreens: ["ancestor-altar", "sanctuary"] },
     ] },
   ],
 };
@@ -132,11 +133,17 @@ export const AppSectionSidebar: React.FC<Props> = ({ area, currentScreen, onNavi
           <span className="app-section-sidebar__avatar">{(user?.name || "A").slice(0, 1).toUpperCase()}</span>
           <span><strong>{user?.name || "Góc cá nhân"}</strong><small>Thông tin tài khoản</small></span>
         </button>
-      ) : area === "discover" ? (
-        <button type="button" className="app-section-sidebar__back" onClick={() => onNavigate("experience")}>
-          <Compass aria-hidden="true" /><span>Về Trải nghiệm</span>
+      ) : (
+        <button
+          type="button"
+          className="app-section-sidebar__back group"
+          onClick={() => onNavigate("today")}
+          title="Quay về Trang chủ"
+        >
+          <Home className="transition-transform duration-200 group-hover:scale-125 group-active:scale-95" aria-hidden="true" />
+          <span className="font-semibold transition-colors duration-200">Về Trang chủ</span>
         </button>
-      ) : null}
+      )}
     </div>
   </aside>
 );

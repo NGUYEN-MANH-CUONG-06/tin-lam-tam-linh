@@ -511,15 +511,16 @@ export const ZenScreen: React.FC<ZenScreenProps> = ({
     <div className="screen-shell">
       <main className="page-container max-w-6xl">
         {/* Top Breadcrumb & Tag */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 text-xs text-muted">
+        {/* Top Breadcrumb & Step Badge */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 text-xs text-muted">
           <nav
             aria-label="Đường dẫn"
-            className="flex flex-wrap items-center gap-2"
+            className="flex items-center gap-2"
           >
             <button
               type="button"
               onClick={onBackToExperience}
-              className="min-h-11 rounded-control hover:text-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="hover:text-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
             >
               Trải nghiệm
             </button>
@@ -534,42 +535,32 @@ export const ZenScreen: React.FC<ZenScreenProps> = ({
             </span>
           </nav>
 
-          <div className="flex items-center gap-1.5 uppercase font-semibold text-xs text-muted">
-            <span className="w-2 h-2 rounded-full bg-action inline-block"></span>
-            <span>TRẢI NGHIỆM TƯƠNG TÁC • NẾP SỐNG CHẬM • PHI TÔN GIÁO & PHI TIÊN TRI</span>
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-line text-xs font-semibold uppercase tracking-wider text-muted shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" />
+              <span>Khoảng lặng an trú</span>
+            </div>
           </div>
         </div>
 
         {/* Header Title Section */}
-        <div className="mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 tabIndex={-1} className="zen-page-title mb-2.5 outline-none focus:outline-none flex items-center">
-                <span className="zen-seal-badge" aria-hidden="true">靜</span>
-                <span>Một khoảng nghỉ ba phút</span>
-              </h1>
-              <p className="text-sm sm:text-base text-ink leading-relaxed max-w-3xl">
-                Một khoảng lặng tương tác tượng trưng lấy cảm hứng từ mỹ thuật và kiến trúc dân
-                gian mộc mạc của hiên nhà Việt. Dành cho bạn 3 phút buông xả căng thẳng, chú tâm
-                vào hơi thở mà không vướng bận lễ nghi.
-              </p>
-            </div>
-
-            <div className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-panel bg-surface border border-line shrink-0 text-xs text-muted shadow-2xs">
-              <Flower2 className="w-4 h-4 text-accent" />
-              <div className="text-left">
-                <div className="font-bold text-ink">Tin Lắm Tâm Linh</div>
-                <div className="text-xs text-muted">Khoảng lặng thảnh thơi</div>
-              </div>
-            </div>
-          </div>
+        <div className="mb-3.5">
+          <h1 tabIndex={-1} className="zen-page-title mb-1.5 outline-none focus:outline-none flex items-center gap-2 text-2xl sm:text-3xl text-ink font-display">
+            <span className="zen-seal-badge" aria-hidden="true">靜</span>
+            <span>Một khoảng nghỉ ba phút</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-muted leading-relaxed max-w-2xl">
+            Một khoảng lặng tương tác tượng trưng lấy cảm hứng từ mỹ thuật và kiến trúc dân
+            gian mộc mạc của hiên nhà Việt. Dành cho bạn vài phút buông xả căng thẳng, chú tâm
+            vào hơi thở mà không vướng bận lễ nghi.
+          </p>
         </div>
 
         {/* Interactive Controls Bar */}
-        <div className="p-3 sm:p-4 rounded-panel bg-surface/50 border border-line mb-6 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="px-3.5 py-2 rounded-full bg-surface/70 border border-line/70 mb-4 flex flex-wrap items-center justify-between gap-3 text-xs shadow-2xs">
           <div className="flex items-center gap-2 text-muted">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-semibold text-ink">KHÔNG GIAN:</span>
+            <span className="font-semibold text-ink">Không gian:</span>
             <span>Hiên chùa ven hồ mộc mạc • Tĩnh tâm chánh niệm</span>
           </div>
 
@@ -586,12 +577,12 @@ export const ZenScreen: React.FC<ZenScreenProps> = ({
               {soundEnabled ? (
                 <>
                   <Volume2 className="w-3.5 h-3.5 text-amber-200" />
-        <span>Âm nền tổng hợp: Bật</span>
+                  <span>Âm nền: Bật</span>
                 </>
               ) : (
                 <>
                   <VolumeX className="w-3.5 h-3.5 text-muted" />
-        <span>Âm nền tổng hợp: Tắt</span>
+                  <span>Âm nền: Tắt</span>
                 </>
               )}
             </button>
@@ -609,7 +600,7 @@ export const ZenScreen: React.FC<ZenScreenProps> = ({
         </div>
 
         {/* 16:9 Cinematic Canvas Scene */}
-        <div className="relative h-[560px] sm:h-[600px] lg:h-auto lg:aspect-[16/9] w-full rounded-card overflow-hidden border border-line shadow-md bg-stone-950 mb-8 select-none">
+        <div className="relative h-[480px] sm:h-[510px] lg:h-[520px] w-full rounded-card overflow-hidden border border-line shadow-md bg-stone-950 mb-8 select-none">
           {/* Bức ảnh hiên chùa Bắc Bộ luôn luôn hiện rõ ràng, sắc nét */}
           <UnverifiedImage
             src="/images/temple_bac_bo.jpg"
@@ -812,11 +803,6 @@ export const ZenScreen: React.FC<ZenScreenProps> = ({
                     {bellError}
                   </p>
                 )}
-
-                <p className="mt-3 text-xs leading-relaxed text-white/60">
-                  Phiên tự tạm dừng khi bạn chuyển sang tab khác.
-                  Khi quay lại, bấm Tiếp tục để tiếp tục phiên.
-                </p>
               </div>
             )}
 
@@ -928,13 +914,6 @@ export const ZenScreen: React.FC<ZenScreenProps> = ({
             </div>
           </div>
         </Card>
-
-        {/* Footer Quote */}
-        <div className="text-center pt-6 border-t border-line">
-          <div className="text-xs uppercase tracking-widest text-muted font-medium">
-            © {new Date().getFullYear()} Tin Lắm Tâm Linh. Mọi quyền được bảo lưu.
-          </div>
-        </div>
       </main>
     </div>
   );

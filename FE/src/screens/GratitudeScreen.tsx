@@ -166,53 +166,37 @@ export const GratitudeScreen: React.FC<GratitudeScreenProps> = ({
     <div className="screen-shell">
       {/* Top Banner & Breadcrumb */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-line">
-          {/* Breadcrumbs */}
-          <div className="flex items-center gap-2 text-sm text-muted">
+        {/* Top Breadcrumb & Step Badge */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 text-xs text-muted">
+          <div className="flex items-center gap-2">
             <button
-              onClick={onBackToHome}
-              className="hover:text-accent transition-colors cursor-pointer"
-            >
-              Hôm nay
-            </button>
-            <span>/</span>
-            <button
+              type="button"
               onClick={onBackToExperience}
               className="hover:text-accent transition-colors cursor-pointer"
             >
               Trải nghiệm
             </button>
             <span>/</span>
-            <span className="text-accent font-semibold">Góc tri ân</span>
+            <span className="text-accent font-semibold">Một lời biết ơn</span>
           </div>
 
-          {/* Center Pill & Right Link */}
-          <div className="flex items-center gap-4">
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold tracking-wider bg-surface text-accent border border-line">
-              <span className="w-1.5 h-1.5 rounded-full bg-action animate-pulse"></span>
-              KHOẢNG LẶNG TRI ÂN • CHIÊM NGHIỆM TÂM THỨC
-            </span>
-
-            <button
-              onClick={onBackToExperience}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-accent transition-colors cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Về danh mục trải nghiệm</span>
-            </button>
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-line text-xs font-semibold uppercase tracking-wider text-muted shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" />
+              <span>Khoảng lặng tri ân</span>
+            </div>
           </div>
         </div>
 
         {/* Page Title & Intro */}
-        <div className="mt-8 mb-10">
-          <h1 tabIndex={-1} className="page-title mb-3 outline-none focus:outline-none flex items-center gap-3">
+        <div className="mb-8">
+          <h1 tabIndex={-1} className="page-title mb-2.5 outline-none focus:outline-none flex items-center gap-2.5 text-2xl sm:text-3xl text-ink font-display">
             <span className="gratitude-seal-badge" aria-hidden="true">恩</span>
             <span>Một nén hương lòng</span>
           </h1>
-          <p className="text-base sm:text-lg text-ink max-w-3xl leading-relaxed">
+          <p className="text-sm sm:text-base text-muted max-w-2xl leading-relaxed">
             Dành một nhịp thở chậm giữa bộn bề đời thường để nhớ về cội nguồn, tri ân cha mẹ,
-            tiền nhân và những người đã trao gửi ân tình trong đời bạn. Một khoảng lặng an hòa
-            để soi tỏ lòng biết ơn.
+            tiền nhân và những người đã trao gửi ân tình trong đời bạn.
           </p>
         </div>
 
@@ -241,33 +225,28 @@ export const GratitudeScreen: React.FC<GratitudeScreenProps> = ({
                 {/* Lớp phủ chuyển sắc thông tin dưới chân ảnh */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 pointer-events-none" />
 
-                {/* Ngọn nến thắp sáng góc ảnh */}
-                {isLampLit && (
-                  <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-400/50 shadow-lg shadow-amber-500/30 animate-pulse">
-                    <span className="text-sm">🕯️</span>
-                    <span className="text-[10px] font-semibold text-amber-200">Đèn tuệ quang chiếu sáng</span>
-                  </div>
-                )}
+                {/* Status badge in corner */}
+                <div className="absolute top-3 right-3 z-10">
+                  {isLampLit ? (
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-amber-400/50 shadow-lg shadow-amber-500/20">
+                      <span className="text-xs">🕯️</span>
+                      <span className="text-[11px] font-semibold text-amber-200">Tâm đăng chiếu rạng</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-stone-300">
+                      <span className="w-1.5 h-1.5 rounded-full bg-stone-400" />
+                      <span className="text-[11px] font-medium">Khoảng lặng tĩnh tâm</span>
+                    </div>
+                  )}
+                </div>
 
-                {/* Overlaid tags */}
-                <div className="absolute bottom-3 left-4 right-4 flex flex-wrap gap-2 items-center justify-between text-xs text-white/95 font-medium">
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${
-                      isLampLit
-                        ? "bg-amber-950/70 border-gold/40 text-amber-200"
-                        : "bg-black/50 border-white/20 text-stone-300"
-                    }`}
-                  >
-                    <Flame
-                      className={`w-3.5 h-3.5 ${
-                        isLampLit ? "text-amber-400 animate-pulse fill-current" : "text-stone-400"
-                      }`}
-                    />
-                    <span>{isLampLit ? "Ngọn đèn đang sáng rạng" : "Chưa thắp nến • Khoảng lặng"}</span>
+                {/* Respectful Caption Across Bottom */}
+                <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-white/90">
+                  <span className="text-[11px] font-medium tracking-wide drop-shadow-sm text-stone-200">
+                    Kính nhớ ân đức sinh thành & tiền nhân
                   </span>
-
-                  <span className="bg-black/50 px-2.5 py-1 rounded-full border border-white/20 text-stone-200">
-                    Tĩnh tại nội tâm
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-black/40 border border-white/20 text-amber-200">
+                    Cội nguồn
                   </span>
                 </div>
               </div>
@@ -298,13 +277,13 @@ export const GratitudeScreen: React.FC<GratitudeScreenProps> = ({
                 >
                   <Flame
                     className={`w-4 h-4 transition-transform duration-300 ${
-                      isLampLit ? "text-amber-200 scale-125 animate-pulse fill-current" : "text-amber-600"
+                      isLampLit ? "text-amber-600 scale-110 fill-current animate-pulse" : "text-amber-600"
                     }`}
                   />
                   <span>
                     {isLampLit
-                      ? "Ngọn đèn đã được thắp sáng • Tâm thành tỏa rạng 🕯️"
-                      : "Chạm để thắp sáng lời tri ân 🕯️"}
+                      ? "Tâm đăng đang tỏa rạng • Chạm để tắt"
+                      : "Thắp sáng ngọn tâm đăng 🕯️"}
                   </span>
                 </button>
               </div>
@@ -403,17 +382,15 @@ export const GratitudeScreen: React.FC<GratitudeScreenProps> = ({
 
                       <span className="min-w-0">
                         <span className="block text-sm font-semibold text-ink">
-                          Gửi biểu tượng rồi buông xuống (Vô vi)
+                          Thắp hương lòng & Thả trôi buông xả (Vô vi)
                         </span>
 
                         <span className="mt-1 block text-sm leading-relaxed text-muted">
-                          Lời viết được hòa vào làn hương sau khi gửi,
-                          không lưu vào nhật ký lưu vết.
+                          Tâm tình được hòa cùng làn hương trầm thinh không, nhẹ lòng và an yên. Không lưu lại dấu vết nhật ký.
                         </span>
 
                         <span className="mt-2 block text-xs leading-relaxed text-muted">
-                          Bạn có thể để trống nếu chỉ muốn thực hiện
-                          một tương tác tri ân trong lòng.
+                          (Bạn có thể để trống ô nhập nếu chỉ muốn hướng tâm tưởng nhớ)
                         </span>
                       </span>
                     </label>
@@ -436,18 +413,17 @@ export const GratitudeScreen: React.FC<GratitudeScreenProps> = ({
 
                       <span className="min-w-0">
                         <span className="block text-sm font-semibold text-ink">
-                          Lưu riêng để đọc lại (Nhật ký)
+                          Lưu giữ riêng tư (Nhật ký ân tình)
                         </span>
 
                         <span className="mt-1 block text-sm leading-relaxed text-muted">
-                          Giữ lời tri ân trong mục “Điều ước & Lời tri ân”
-                          tại Góc của tôi trên trình duyệt này.
+                          Lưu giữ cẩn trọng trong sổ tay cá nhân tại Góc của tôi để bạn luôn có thể nhìn lại và soi chiếu ân tình.
                         </span>
 
                         <span className="mt-2 block text-xs leading-relaxed text-muted [overflow-wrap:anywhere]">
                           {user
-                            ? `Hồ sơ hiện tại: ${user.name}`
-                            : "Bạn sẽ được chuyển đến đăng nhập để lưu."}
+                            ? `Hồ sơ liên kết: ${user.name}`
+                            : "Bạn sẽ được chuyển đến đăng nhập để lưu trữ."}
                         </span>
                       </span>
                     </label>
@@ -491,13 +467,21 @@ export const GratitudeScreen: React.FC<GratitudeScreenProps> = ({
                 </div>
               )}
 
-              {/* Primary Action Button */}
-              <div className="mt-6">
+              {/* Action Buttons: Unified Dual Action */}
+              <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-6 border-t border-amber-900/10 dark:border-amber-400/15">
                 {saveError && (
-                  <p role="alert" className="mt-4 text-sm text-danger">
+                  <p role="alert" className="w-full text-sm text-danger mb-2">
                     {saveError}
                   </p>
                 )}
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={onBackToExperience}
+                  className="h-12 px-6 rounded-full text-sm font-medium border-line hover:border-amber-500/40 text-muted hover:text-ink cursor-pointer whitespace-nowrap"
+                >
+                  Quay lại Trải nghiệm
+                </Button>
                 <button
                   type="button"
                   onClick={handleSendOrSave}
@@ -508,15 +492,15 @@ export const GratitudeScreen: React.FC<GratitudeScreenProps> = ({
                       (!content.trim() || saveSuccess)
                     )
                   }
-                  className="gratitude-submit-btn"
+                  className="gratitude-submit-btn h-12 px-7"
                 >
                   <span className="gratitude-btn-sheen" />
                   <Sparkles className="w-4 h-4 text-amber-200" />
                   <span>
                     {isSubmitting
-                      ? "Đang thả trôi..."
+                      ? "Đang gửi nén hương..."
                       : sendMode === "ephemeral"
-                        ? "Thả trôi — không lưu"
+                        ? "Thắp hương & Buông thư"
                         : saveSuccess
                           ? "Đã lưu lời tri ân"
                           : user
@@ -543,21 +527,14 @@ export const GratitudeScreen: React.FC<GratitudeScreenProps> = ({
           </div>
         </div>
 
-        {/* Disclaimer / Transparency Box */}
-        <div className="mt-10 p-5 rounded-panel bg-surface/80 border border-line flex items-start gap-3.5 text-xs text-muted leading-relaxed">
-          <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+        {/* Reassuring Cultural & Privacy Card */}
+        <div className="mt-10 p-4 sm:p-5 rounded-2xl bg-surface/80 border border-line flex items-start gap-3.5 text-xs text-muted leading-relaxed">
+          <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
           <div>
-            Đây là thực hành mang tính biểu tượng.
-            Nếu chọn lưu, nội dung được giữ trên trình duyệt này;
-            nếu chọn thả trôi, nội dung không được ghi vào nhật ký.
+            <span className="font-semibold text-ink block mb-0.5">Không gian tôn trọng sự tĩnh lặng & quyền riêng tư</span>
+            Mọi tương tác mang tính biểu tượng văn hóa và chữa lành nội tâm.
+            Khi chọn buông xả, lời viết sẽ tan vào khói hương vô vi; khi chọn lưu giữ, nội dung được bảo mật riêng trong tài khoản của bạn.
           </div>
-        </div>
-
-        {/* Closing Calm Banner */}
-        <div className="mt-16 text-center">
-          <span className="text-xs uppercase tracking-widest text-muted font-semibold">
-            LỜI NHẮC AN YÊN MỖI SỚM MAI
-          </span>
         </div>
       </div>
     </div>

@@ -14,6 +14,7 @@ import {
   Lightbulb,
   ExternalLink,
   Flower2,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
@@ -334,34 +335,36 @@ export const WishScreen: React.FC<WishScreenProps> = ({
         {viewState === "form" && (
           <div>
             {/* Top Breadcrumb & Step Badge */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 text-xs text-muted">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 text-xs text-muted">
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={onBackToExperience}
-                  className="hover:text-accent cursor-pointer"
+                  className="hover:text-accent cursor-pointer transition-colors"
                 >
-                  ← Trải nghiệm
+                  Trải nghiệm
                 </button>
                 <span>/</span>
-                <span className="text-accent font-semibold">Gửi gắm điều ước</span>
+                <span className="text-accent font-semibold">Lời nguyện hoa đăng</span>
               </div>
 
-              <div className="flex items-center gap-1.5 uppercase font-semibold text-xs text-muted">
-                <span className="w-2 h-2 rounded-full bg-action inline-block"></span>
-                <span>KHOẢNG LẶNG TỰ NHÌN LẠI • KHÔNG MANG TÍNH TIÊN TRI</span>
+              <div className="flex items-center gap-2">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-line text-xs font-semibold uppercase tracking-wider text-muted shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" />
+                  <span>Khoảng lặng tự soi chiếu</span>
+                </div>
               </div>
             </div>
 
             {/* Main Header */}
             <div className="mx-auto mb-6 max-w-2xl text-center">
-              <h1 tabIndex={-1} className="wish-page-title mb-3 outline-none focus:outline-none flex items-center justify-center">
+              <h1 tabIndex={-1} className="wish-page-title mb-2.5 outline-none focus:outline-none flex items-center justify-center gap-2 text-2xl sm:text-3xl text-ink font-display">
                 <span className="wish-seal-badge" aria-hidden="true">願</span>
-                <span>Lời gửi gắm</span>
+                <span>Lời nguyện & Gửi gắm tâm tư</span>
               </h1>
 
-              <p className="text-sm leading-relaxed text-muted sm:text-base">
-                Viết điều bạn đang nghĩ. Bạn có thể lưu để đọc lại
-                hoặc chọn hiệu ứng buông bỏ mang hình ảnh hoa đăng.
+              <p className="text-sm leading-relaxed text-muted max-w-lg mx-auto">
+                Viết ra những điều bạn đang ấp ủ. Bạn có thể lưu giữ vào sổ tay cá nhân để đọc lại, hoặc thả trôi nhẹ nhàng cùng ánh hoa đăng buông xả.
               </p>
             </div>
 
@@ -479,14 +482,14 @@ export const WishScreen: React.FC<WishScreenProps> = ({
                             value: "journal",
                             title: "Lưu để đọc lại",
                             description: isLoggedIn
-                              ? "Lưu vào Góc của tôi theo tài khoản; nội dung được mã hóa ở backend."
-                              : "Cần đăng nhập để lưu. Bản nháp chưa được giữ khi tải lại trang.",
+                              ? "Lưu vào Góc của tôi để bạn có thể xem lại bất cứ lúc nào, bảo mật an tâm."
+                              : "Đăng nhập để lưu vào Góc của tôi và theo dõi hành trình nội tâm của bạn.",
                           },
                           {
                             value: "ephemeral",
-                            title: "Thả hoa đăng (biểu tượng)",
+                            title: "Thả hoa đăng buông xả",
                             description:
-                              "Thả lời viết thành hoa đăng trong cảnh sông 3D của riêng phiên này. Nội dung không lưu lên máy chủ hay chia sẻ công khai.",
+                              "Gửi gắm lời viết thành ánh hoa đăng trôi trên dòng sông 3D. Lời nguyện sẽ tan biến nhẹ nhàng sau phiên này, không lưu trữ.",
                           },
                         ] satisfies {
                           value: WishMode;
@@ -525,12 +528,14 @@ export const WishScreen: React.FC<WishScreenProps> = ({
                       ))}
                     </div>
 
-                    {mode === "journal" && (
-                      <p className="text-xs leading-relaxed text-muted">
-                        Lời nguyện được lưu vào tài khoản qua máy chủ; backend mã hóa
-                        nội dung trước khi ghi cơ sở dữ liệu. Đây không phải mã hóa đầu cuối.
-                      </p>
-                    )}
+                    <div className="flex items-center gap-2 text-xs text-muted/90 pt-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-accent shrink-0" />
+                      <span>
+                        {mode === "journal"
+                          ? "Lời gửi gắm được lưu giữ an tâm trong tài khoản riêng tư của bạn, không chia sẻ công khai."
+                          : "Ở chế độ hoa đăng, lời viết chỉ xuất hiện trong phiên này để bạn buông xả và không lưu lại bất cứ đâu."}
+                      </span>
+                    </div>
                   </fieldset>
 
                   {saveError && (
@@ -541,43 +546,35 @@ export const WishScreen: React.FC<WishScreenProps> = ({
 
                   {/* Action Buttons Row */}
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-                    <Button
+                    <button
                       type="button"
-                      variant="outline"
-                      size="default"
                       onClick={onBackToExperience}
-                      className="w-full sm:w-auto text-xs border-line text-muted"
+                      className="w-full sm:w-auto h-12 px-6 rounded-full border border-line/80 bg-surface hover:bg-surface-soft text-ink/80 text-sm font-medium inline-flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
                     >
-                      <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+                      <ArrowLeft className="w-4 h-4" />
                       <span>Quay lại Trải nghiệm</span>
-                    </Button>
+                    </button>
 
                     <button
                       type="submit"
                       disabled={isSubmitting || !content.trim()}
-                      className="wish-submit-btn w-full sm:w-auto"
+                      className="wish-submit-btn w-full sm:w-auto h-12 px-8 rounded-full whitespace-nowrap inline-flex items-center justify-center gap-2.5 text-sm sm:text-base cursor-pointer"
                     >
                       <span className="wish-btn-sheen" />
                       <span>
                         {isSubmitting
-                          ? "Đang lưu…"
+                          ? "Đang gửi gắm…"
                           : mode === "journal"
                             ? isLoggedIn
                               ? "Lưu vào Góc của tôi"
                               : "Đăng nhập để lưu"
-                            : "Thả hoa đăng — không lưu"}
+                            : "Thả hoa đăng buông xả"}
                       </span>
                       <ArrowRight className="w-4 h-4 ml-1" />
                     </button>
                   </div>
                 </fieldset>
               </form>
-
-              <p className="text-xs leading-relaxed text-muted">
-                {mode === "ephemeral"
-                  ? "Ở chế độ hoa đăng, lời viết chỉ dùng trong tab này, không gửi lên máy chủ và không chia sẻ công khai. Rời màn hình sẽ kết thúc phiên hoa đăng."
-                  : "Ở chế độ lưu riêng, lời viết được gửi lên máy chủ để lưu theo tài khoản. Chỉ thông báo lưu thành công sau khi nhận được xác nhận."}
-              </p>
               </div>
 
               {/* Sacred Wishing Tree & Silk Streamer Companion */}
@@ -964,17 +961,6 @@ export const WishScreen: React.FC<WishScreenProps> = ({
             </p>
           </div>
         )}
-
-        {/* Global Footer Motto */}
-        <div
-          className={`wish-screen-footer text-center pt-10 border-t border-line mt-16 ${
-            viewState === "variantB" ? "wish-release-footer" : ""
-          }`}
-        >
-          <div className="text-xs uppercase tracking-widest text-muted font-medium">
-            Nơi lưu giữ nét đẹp tín ngưỡng văn hóa dân gian Việt, chiêm nghiệm tinh tế và hướng tâm thiện lành giữa đời sống hiện đại.
-          </div>
-        </div>
       </main>
     </div>
   );

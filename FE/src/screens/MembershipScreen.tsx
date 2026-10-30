@@ -17,6 +17,11 @@ import {
   Building2,
   Handshake,
   Mail,
+  Compass,
+  Crown,
+  Flame,
+  Flower2,
+  ScrollText,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
@@ -104,86 +109,333 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
 
     return (
       <div className="screen-shell">
-        <main className="page-container max-w-4xl">
-          <button type="button" onClick={onBackToHome} className="mb-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-muted hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Hôm nay
-          </button>
+        <main className="page-container max-w-4xl space-y-6 pb-12 pt-1 sm:pt-4">
+          {/* HEADER / BREADCRUMB */}
+          <div className="flex items-center justify-between text-xs text-muted">
+            <span className="font-semibold uppercase tracking-wider text-accent">
+              Góc cá nhân • Quản lý hội viên
+            </span>
+            <button
+              type="button"
+              onClick={onBackToHome}
+              className="inline-flex items-center gap-1.5 font-medium hover:text-accent transition-colors"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Về Trang chủ</span>
+            </button>
+          </div>
 
-          <section className="rounded-3xl border border-amber-500/35 bg-surface p-5 shadow-sm sm:p-8" aria-labelledby="demo-premium-membership-title">
-            <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(240px,0.72fr)] md:items-center">
+          {/* MAIN MEMBERSHIP CARD */}
+          <section
+            className="relative overflow-hidden rounded-3xl border border-amber-600/30 bg-gradient-to-br from-surface via-surface to-amber-500/[0.04] p-6 sm:p-8 shadow-sm"
+            aria-labelledby="demo-premium-membership-title"
+          >
+            <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-amber-500/5 blur-2xl" />
+
+            <div className="grid gap-6 md:grid-cols-[minmax(0,1.2fr)_minmax(220px,0.8fr)] md:items-center">
               <div>
-                <h1 id="demo-premium-membership-title" className="font-display text-3xl font-bold text-ink">TIN LẮM TÂM LINH PREMIUM</h1>
-                <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">Trải nghiệm văn hóa Việt sâu sắc hơn với những quyền lợi dành riêng cho bạn.</p>
-                <p className="mt-3 text-3xl font-bold text-accent">{premiumPrice.toLocaleString("vi-VN")}đ <span className="text-sm font-normal text-muted">/ gói</span></p>
-                <p className="mt-1 text-xs text-muted">Mua một lần — Không tự động gia hạn</p>
-                <Button type="button" className="mt-5 min-h-12 w-full sm:w-auto" onClick={openDemoPremiumPurchase}>Nhận quyền lợi Premium</Button>
+                {demoCommerce.entitlements.premiumOwned ? (
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 shadow-2xs mb-3">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    <span>Đặc quyền Hội viên đang kích hoạt</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-600/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-accent shadow-2xs mb-3">
+                    <Crown className="h-3.5 w-3.5" />
+                    <span>Gói Trải Nghiệm Văn Hóa Số</span>
+                  </div>
+                )}
+
+                <h1 id="demo-premium-membership-title" className="font-display text-2xl sm:text-3xl font-bold text-ink">
+                  Gói Hội Viên • Tin Lắm Tâm Linh
+                </h1>
+
+                <p className="mt-2.5 text-sm leading-relaxed text-muted max-w-xl">
+                  {demoCommerce.entitlements.premiumOwned
+                    ? "Tài khoản của bạn đã được kích hoạt trọn vẹn đặc quyền hội viên. Bạn có thể sử dụng các lượt chiêm nghiệm chuyên sâu và lễ vật dâng cúng ở phía dưới, hoặc nạp thêm khi cần."
+                    : "Mở rộng hành trình trải nghiệm văn hóa truyền thống với các đặc quyền luận giải sâu sắc và lễ vật trang nghiêm dành riêng cho bạn."}
+                </p>
+
+                <div className="mt-4 flex flex-wrap items-baseline gap-2">
+                  <span className="font-display text-3xl font-bold text-accent">
+                    {premiumPrice.toLocaleString("vi-VN")}đ
+                  </span>
+                  <span className="text-xs text-muted">/ gói trọn bộ</span>
+                  <span className="text-xs text-muted ml-2 border-l border-line/80 pl-2">
+                    Mua một lần — Không tự động gia hạn
+                  </span>
+                </div>
+
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <Button
+                    type="button"
+                    className="min-h-12 w-full sm:w-auto px-6 font-semibold shadow-sm"
+                    onClick={openDemoPremiumPurchase}
+                  >
+                    {demoCommerce.entitlements.premiumOwned ? (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        <span>Nạp thêm gói quyền lợi ({premiumPrice.toLocaleString("vi-VN")}đ)</span>
+                      </>
+                    ) : (
+                      <>
+                        <Crown className="mr-2 h-4 w-4" />
+                        <span>Kích hoạt đặc quyền Hội viên</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
-              <div className="overflow-hidden rounded-2xl border border-line bg-surface-soft">
-                <UnverifiedImage src="/images/tea_bowl.jpg" alt="Tách trà trong không gian văn hóa Việt" className="aspect-[4/3] w-full object-cover" />
+
+              <div className="relative overflow-hidden rounded-2xl border border-line bg-surface-soft shadow-xs aspect-[4/3]">
+                <UnverifiedImage
+                  src="/images/tea_bowl.jpg"
+                  alt="Tách trà thanh tịnh trong không gian văn hóa Việt"
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-3 text-center">
+                  <p className="text-[11px] font-medium text-amber-200/90 italic">
+                    “Tâm xuất Phật chứng • Lễ bạc lòng thành”
+                  </p>
+                </div>
               </div>
             </div>
 
-            <ul className="mt-6 grid gap-3 border-t border-line pt-5 text-sm text-ink sm:grid-cols-2">
-              <li>{DEMO_PREMIUM_BENEFITS.xamDetailedReadings} lượt luận giải xăm chi tiết</li>
-              <li>{DEMO_PREMIUM_BENEFITS.keoDetailedReadings} lượt luận giải keo âm dương</li>
-              <li>{DEMO_PREMIUM_BENEFITS.virtualChickens} gà ảo tiêu hao</li>
-              <li>{DEMO_PREMIUM_BENEFITS.royalLanterns} hoa đăng xịn</li>
-              <li>Giảm {DEMO_COMMERCE_CONFIG.memberAdditionalPurchaseDiscountPercent}% cho sản phẩm mua thêm đủ điều kiện</li>
-            </ul>
-            <p role="note" className="mt-5 text-xs text-muted">Thanh toán mô phỏng — Không phát sinh giao dịch thật.</p>
+            {/* BENEFITS MATRIX */}
+            <div className="mt-8 border-t border-line/80 pt-6">
+              <p className="text-xs font-bold uppercase tracking-wider text-accent mb-4">
+                Đặc quyền gói hội viên bao gồm:
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="flex items-start gap-3 rounded-2xl border border-line/60 bg-surface-soft/40 p-3.5 transition-colors hover:border-accent/30">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-ink text-sm block">
+                      {DEMO_PREMIUM_BENEFITS.xamDetailedReadings} lượt Luận giải xăm chuyên sâu
+                    </span>
+                    <span className="text-xs text-muted leading-relaxed block mt-0.5">
+                      Phân tích toàn văn thơ quẻ, điển tích cổ nhân và lời khuyên ứng xử minh triết.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-2xl border border-line/60 bg-surface-soft/40 p-3.5 transition-colors hover:border-accent/30">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-ink text-sm block">
+                      {DEMO_PREMIUM_BENEFITS.keoDetailedReadings} lượt Luận giải keo Âm Dương
+                    </span>
+                    <span className="text-xs text-muted leading-relaxed block mt-0.5">
+                      Chiêm nghiệm điềm ứng Âm - Dương thấu đáo, định tâm trước các ngã rẽ cuộc sống.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-2xl border border-line/60 bg-surface-soft/40 p-3.5 transition-colors hover:border-accent/30">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-ink text-sm block">
+                      {DEMO_PREMIUM_BENEFITS.virtualChickens} mâm Lễ vật Gà ngậm hoa
+                    </span>
+                    <span className="text-xs text-muted leading-relaxed block mt-0.5">
+                      Vật phẩm lễ vật cúng trang nghiêm dâng lên Bàn thờ Gia Tiên 3D.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-2xl border border-line/60 bg-surface-soft/40 p-3.5 transition-colors hover:border-accent/30">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-ink text-sm block">
+                      {DEMO_PREMIUM_BENEFITS.royalLanterns} Hoa đăng Hoàng Kim cầu an
+                    </span>
+                    <span className="text-xs text-muted leading-relaxed block mt-0.5">
+                      Hoa đăng đặc biệt tỏa sáng rực rỡ, gửi gắm ước nguyện bình an trên dòng sông ảo.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-2xl border border-line/60 bg-surface-soft/40 p-3.5 sm:col-span-2 transition-colors hover:border-accent/30">
+                  <CheckCircle2 className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-ink text-sm block">
+                      Ưu đãi thành viên: Giảm {DEMO_COMMERCE_CONFIG.memberAdditionalPurchaseDiscountPercent}% khi thỉnh thêm
+                    </span>
+                    <span className="text-xs text-muted leading-relaxed block mt-0.5">
+                      Áp dụng tự động cho mọi lượt chiêm nghiệm hoặc vật phẩm thỉnh thêm trên nền tảng.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <p role="note" className="mt-5 text-xs text-muted text-center sm:text-left">
+              * Thanh toán mô phỏng trong bản trải nghiệm mẫu — Không phát sinh giao dịch thật.
+            </p>
           </section>
 
-          <section className="mt-5 rounded-2xl border border-line bg-surface p-5 sm:p-6" aria-labelledby="demo-my-benefits-title">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* MY BENEFITS & INVENTORY */}
+          <section className="rounded-3xl border border-line bg-surface p-6 sm:p-8 shadow-sm" aria-labelledby="demo-my-benefits-title">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line/80 pb-5">
               <div>
-                <h2 id="demo-my-benefits-title" className="font-display text-xl font-semibold text-ink">Quyền lợi của tôi</h2>
-                {!demoCommerce.entitlements.premiumOwned && <p className="mt-1 text-sm text-muted">Bạn chưa sở hữu Premium. Quyền lợi sẽ hiển thị tại đây sau khi mua trong bản demo.</p>}
+                <h2 id="demo-my-benefits-title" className="font-display text-xl font-bold text-ink">
+                  Quyền Lợi &amp; Số Dư Của Tôi
+                </h2>
+                {!demoCommerce.entitlements.premiumOwned ? (
+                  <p className="mt-1 text-xs text-muted">
+                    Bạn chưa kích hoạt gói hội viên. Quyền lợi và số dư sẽ hiển thị tại đây sau khi kích hoạt.
+                  </p>
+                ) : (
+                  <p className="mt-1 text-xs text-muted">
+                    Các lượt chiêm nghiệm và vật phẩm khả dụng có thể sử dụng ngay trong các phân hệ tương ứng.
+                  </p>
+                )}
               </div>
-              {demoCommerce.entitlements.premiumOwned && <span className="text-sm font-semibold text-accent">Đã sở hữu Premium</span>}
+
+              {demoCommerce.entitlements.premiumOwned && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <span>Đã sở hữu gói hội viên</span>
+                </span>
+              )}
             </div>
 
-            {demoCommerce.entitlements.premiumOwned && <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-xl bg-surface-soft p-3"><dt className="text-xs text-muted">Lượt xăm còn lại</dt><dd className="mt-1 text-xl font-semibold text-ink">{demoCommerce.entitlements.xamDetailedReadings}</dd></div>
-              <div className="rounded-xl bg-surface-soft p-3"><dt className="text-xs text-muted">Lượt keo còn lại</dt><dd className="mt-1 text-xl font-semibold text-ink">{demoCommerce.entitlements.keoDetailedReadings}</dd></div>
-              <div className="rounded-xl bg-surface-soft p-3"><dt className="text-xs text-muted">Gà ảo còn lại</dt><dd className="mt-1 text-xl font-semibold text-ink">{demoCommerce.inventory.virtualChickens}</dd></div>
-              <div className="rounded-xl bg-surface-soft p-3"><dt className="text-xs text-muted">Hoa đăng còn lại</dt><dd className="mt-1 text-xl font-semibold text-ink">{demoCommerce.inventory.royalLanterns}</dd></div>
-            </dl>}
+            {demoCommerce.entitlements.premiumOwned && (
+              <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="rounded-2xl border border-line/60 bg-surface-soft/50 p-4 transition-all hover:border-accent/40 shadow-2xs">
+                  <div className="flex items-center gap-2 text-accent">
+                    <ScrollText className="h-4 w-4" />
+                    <dt className="text-xs font-semibold text-muted">Lượt xăm chuyên sâu</dt>
+                  </div>
+                  <dd className="mt-2 text-2xl font-bold font-display text-ink">{demoCommerce.entitlements.xamDetailedReadings}</dd>
+                </div>
 
-            <details className="mt-4 border-t border-line pt-3">
-              <summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">Lịch sử mua và sử dụng</summary>
-              <div className="mt-3 grid gap-5 lg:grid-cols-2">
+                <div className="rounded-2xl border border-line/60 bg-surface-soft/50 p-4 transition-all hover:border-accent/40 shadow-2xs">
+                  <div className="flex items-center gap-2 text-accent">
+                    <Compass className="h-4 w-4" />
+                    <dt className="text-xs font-semibold text-muted">Lượt keo Âm Dương</dt>
+                  </div>
+                  <dd className="mt-2 text-2xl font-bold font-display text-ink">{demoCommerce.entitlements.keoDetailedReadings}</dd>
+                </div>
+
+                <div className="rounded-2xl border border-line/60 bg-surface-soft/50 p-4 transition-all hover:border-accent/40 shadow-2xs">
+                  <div className="flex items-center gap-2 text-amber-600">
+                    <Flame className="h-4 w-4" />
+                    <dt className="text-xs font-semibold text-muted">Lễ vật Gia Tiên</dt>
+                  </div>
+                  <dd className="mt-2 text-2xl font-bold font-display text-ink">{demoCommerce.inventory.virtualChickens}</dd>
+                </div>
+
+                <div className="rounded-2xl border border-line/60 bg-surface-soft/50 p-4 transition-all hover:border-accent/40 shadow-2xs">
+                  <div className="flex items-center gap-2 text-rose-600">
+                    <Flower2 className="h-4 w-4" />
+                    <dt className="text-xs font-semibold text-muted">Hoa đăng Hoàng Kim</dt>
+                  </div>
+                  <dd className="mt-2 text-2xl font-bold font-display text-ink">{demoCommerce.inventory.royalLanterns}</dd>
+                </div>
+              </dl>
+            )}
+
+            {/* USAGE & TRANSACTION HISTORY */}
+            <details className="mt-6 rounded-2xl border border-line/60 bg-surface-soft/30 p-4 transition-all">
+              <summary className="cursor-pointer text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent select-none">
+                Lịch sử giao dịch &amp; sử dụng vật phẩm
+              </summary>
+              <div className="mt-4 grid gap-5 border-t border-line/60 pt-4 lg:grid-cols-2">
                 <section aria-labelledby="demo-premium-transactions-title">
-                  <h3 id="demo-premium-transactions-title" className="text-sm font-semibold text-ink">Giao dịch</h3>
-                  {demoCommerce.transactions.length > 0 ? <ul className="mt-2 max-h-64 space-y-2 overflow-auto text-xs text-muted">
-                    {demoCommerce.transactions.map((transaction) => <li key={transaction.id} className="rounded-xl border border-line p-3">
-                      <span className="font-semibold text-ink">{DEMO_COMMERCE_CATALOG[transaction.sku].name}</span> × {transaction.quantity} · {transaction.totalVnd.toLocaleString("vi-VN")}đ<br />
-                      {new Date(transaction.createdAt).toLocaleString("vi-VN")} · {transactionStatus(transaction.status)} · ID: {transaction.id}
-                    </li>)}
-                  </ul> : <p className="mt-2 text-sm text-muted">Chưa có giao dịch.</p>}
+                  <h3 id="demo-premium-transactions-title" className="text-xs font-bold uppercase tracking-wider text-muted">
+                    Lịch sử thỉnh gói &amp; giao dịch
+                  </h3>
+                  {demoCommerce.transactions.length > 0 ? (
+                    <ul className="mt-3 max-h-64 space-y-2 overflow-auto text-xs text-muted pr-1">
+                      {demoCommerce.transactions.map((transaction) => (
+                        <li key={transaction.id} className="rounded-xl border border-line/80 bg-surface p-3 shadow-2xs">
+                          <div className="flex items-center justify-between font-semibold text-ink">
+                            <span>{DEMO_COMMERCE_CATALOG[transaction.sku].name}</span>
+                            <span className="text-accent">{transaction.totalVnd.toLocaleString("vi-VN")}đ</span>
+                          </div>
+                          <div className="mt-1 flex items-center justify-between text-[11px] text-muted">
+                            <span>{new Date(transaction.createdAt).toLocaleString("vi-VN")}</span>
+                            <span className="rounded px-1.5 py-0.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-medium">
+                              {transactionStatus(transaction.status)}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-2 text-xs text-muted">Chưa có giao dịch phát sinh.</p>
+                  )}
                 </section>
+
                 <section aria-labelledby="demo-premium-uses-title">
-                  <h3 id="demo-premium-uses-title" className="text-sm font-semibold text-ink">Lượt và vật phẩm đã sử dụng</h3>
-                  {demoCommerce.readingUses.length + demoCommerce.inventoryUses.length > 0 ? <ul className="mt-2 max-h-64 space-y-2 overflow-auto text-xs text-muted">
-                    {demoCommerce.readingUses.map((use) => <li key={use.id} className="rounded-xl border border-line p-3">Luận giải {use.kind === "xam" ? "xăm" : "keo"} · nội dung {use.readingId}<br />{new Date(use.createdAt).toLocaleString("vi-VN")} · ID: {use.id}</li>)}
-                    {demoCommerce.inventoryUses.map((use) => <li key={use.id} className="rounded-xl border border-line p-3">Dùng {use.quantity} {use.item === "virtualChickens" ? "gà ảo" : "hoa đăng"}<br />{new Date(use.createdAt).toLocaleString("vi-VN")} · ID: {use.id}</li>)}
-                  </ul> : <p className="mt-2 text-sm text-muted">Chưa có lượt hoặc vật phẩm được sử dụng.</p>}
+                  <h3 id="demo-premium-uses-title" className="text-xs font-bold uppercase tracking-wider text-muted">
+                    Lịch sử sử dụng lượt &amp; dâng lễ
+                  </h3>
+                  {demoCommerce.readingUses.length + demoCommerce.inventoryUses.length > 0 ? (
+                    <ul className="mt-3 max-h-64 space-y-2 overflow-auto text-xs text-muted pr-1">
+                      {demoCommerce.readingUses.map((use) => (
+                        <li key={use.id} className="rounded-xl border border-line/80 bg-surface p-3 shadow-2xs">
+                          <span className="font-semibold text-ink">
+                            Luận giải {use.kind === "xam" ? "quẻ xăm" : "quẻ keo"} chuyên sâu
+                          </span>
+                          <div className="mt-1 text-[11px] text-muted">
+                            {new Date(use.createdAt).toLocaleString("vi-VN")}
+                          </div>
+                        </li>
+                      ))}
+                      {demoCommerce.inventoryUses.map((use) => (
+                        <li key={use.id} className="rounded-xl border border-line/80 bg-surface p-3 shadow-2xs">
+                          <span className="font-semibold text-ink">
+                            Dâng {use.quantity} {use.item === "virtualChickens" ? "mâm Lễ vật Gà ngậm hoa" : "Hoa đăng Hoàng Kim"}
+                          </span>
+                          <div className="mt-1 text-[11px] text-muted">
+                            {new Date(use.createdAt).toLocaleString("vi-VN")}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-2 text-xs text-muted">Chưa có lượt hoặc vật phẩm nào được sử dụng.</p>
+                  )}
                 </section>
               </div>
             </details>
 
-            <div className="mt-4 border-t border-line pt-3">
-              <Button type="button" variant="outline" onClick={() => setResetDemoOpen(true)}>Đặt lại dữ liệu demo</Button>
+            {/* RESET BUTTON */}
+            <div className="mt-5 border-t border-line/60 pt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
+              <span>Dữ liệu lưu trữ cục bộ trong trình duyệt máy bạn.</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs"
+                onClick={() => setResetDemoOpen(true)}
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>Làm mới số dư mẫu</span>
+              </Button>
             </div>
           </section>
 
-          {resetDemoOpen && <AppDialog labelledBy="reset-demo-title" onClose={() => setResetDemoOpen(false)}>
-            <h2 id="reset-demo-title" className="font-display text-xl font-bold text-ink">Đặt lại dữ liệu demo?</h2>
-            <p className="mt-3 text-sm leading-relaxed text-muted">Thao tác này xóa dữ liệu trải nghiệm được lưu trong namespace demo trên thiết bị, gồm số dư, giao dịch và tiến độ demo. Tài khoản và dữ liệu production không bị tác động.</p>
-            <div className="mt-5 flex flex-wrap justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setResetDemoOpen(false)}>Hủy</Button>
-              <Button type="button" onClick={resetDemoData}>Đặt lại dữ liệu demo</Button>
-            </div>
-          </AppDialog>}
+          {resetDemoOpen && (
+            <AppDialog labelledBy="reset-demo-title" onClose={() => setResetDemoOpen(false)}>
+              <h2 id="reset-demo-title" className="font-display text-xl font-bold text-ink">
+                Làm mới số dư trải nghiệm mẫu?
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted">
+                Thao tác này sẽ thiết lập lại số dư quyền lợi và lịch sử giao dịch mẫu trên trình duyệt về trạng thái ban đầu.
+              </p>
+              <div className="mt-5 flex flex-wrap justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setResetDemoOpen(false)}>
+                  Hủy
+                </Button>
+                <Button type="button" onClick={resetDemoData}>
+                  Xác nhận làm mới
+                </Button>
+              </div>
+            </AppDialog>
+          )}
         </main>
       </div>
     );

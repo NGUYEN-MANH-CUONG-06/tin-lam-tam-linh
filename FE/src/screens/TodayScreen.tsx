@@ -10,12 +10,12 @@ import {
   Calendar,
   CalendarDays,
   Clock3,
+  ShieldCheck,
 } from "lucide-react";
 
 import type { MoodKey, SignalData } from "../data/demoSignals";
 import { Button } from "@/src/components/ui/button";
 import { TodayReminderCard } from "../components/TodayReminderCard";
-import { AboutSourcesSection } from "../components/AboutSourcesSection";
 import {
   CULTURAL_TOPICS,
   sanitizeCulturalTopics,
@@ -47,6 +47,7 @@ interface TodayScreenProps {
   onGoToRituals: () => void;
   onGoToGratitude: () => void;
   onGoToCultureMap: () => void;
+  onGoToAbout?: () => void;
 }
 
 export const TodayScreen: React.FC<TodayScreenProps> = ({
@@ -66,6 +67,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
   onGoToRituals,
   onGoToGratitude,
   onGoToCultureMap,
+  onGoToAbout,
 }) => {
   const [bellRinging, setBellRinging] = useState(false);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
@@ -112,8 +114,8 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
   const weekday = today.toLocaleDateString("vi-VN", { weekday: "long" });
   const auspiciousHours = getAuspiciousHoursForDay(canChiDay.chi);
 
-  const formattedSolarDate = `${String(today.getDate()).padStart(2, "0")}-${String(today.getMonth() + 1).padStart(2, "0")}-${today.getFullYear()}`;
-  const formattedLunarDate = `${String(lunarToday.lunarDay).padStart(2, "0")}-${String(lunarToday.lunarMonth).padStart(2, "0")}-${lunarToday.lunarYear}`;
+  const formattedSolarDate = `${today.getDate()} tháng ${today.getMonth() + 1}, ${today.getFullYear()}`;
+  const formattedLunarDate = `Ngày ${lunarToday.lunarDay} tháng ${lunarToday.lunarMonth}`;
 
   // Web Audio chuông thiền
   const playSynthesizedBell = (ctx: AudioContext, now: number) => {
@@ -178,10 +180,15 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     }
   };
 
+  const lastBellTimeRef = useRef<number>(0);
+
   const handleRingBell = () => {
+    const now = Date.now();
+    if (now - lastBellTimeRef.current < 450) return;
+    lastBellTimeRef.current = now;
     setBellRinging(true);
     playZenBellSound();
-    setTimeout(() => setBellRinging(false), 900);
+    setTimeout(() => setBellRinging(false), 1000);
   };
 
   useEffect(() => {
@@ -239,37 +246,37 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     }
   > = {
     cadao: {
-      title: "Một lời chiêm nghiệm",
+      title: "Thông điệp an lành",
       description:
-        "Chọn cảm xúc và bối cảnh để xem nội dung gợi ý.",
+        "Lắng nghe cảm xúc để nhận một gợi ý nhẹ nhàng cho ngày mới.",
       buttonLabel: "Chọn tâm trạng",
       onClick: onSelectMoodClick,
     },
     xinxam: {
-      title: "Xin xăm theo chủ đề",
+      title: "Gieo quẻ đầu ngày",
       description:
-        "Chọn một chủ đề để mở quẻ chiêm nghiệm trong không gian chung.",
-      buttonLabel: "Mở xin xăm",
+        "Chọn một khía cạnh cuộc sống để mở quẻ chỉ dẫn trong không gian chung.",
+      buttonLabel: "Mở quẻ xăm",
       onClick: onGoToXinXam,
     },
     bamien: {
       title: "Khám phá văn hóa ba miền",
       description:
-        "Xem bài viết về phong tục, lễ hội và tín ngưỡng theo vùng miền.",
+        "Tìm hiểu nét đẹp phong tục, lễ hội và tín ngưỡng theo từng vùng miền.",
       buttonLabel: "Chọn vùng văn hóa",
       onClick: onGoToCultureMap,
     },
     nghile: {
-      title: "Phong tục và nghi lễ",
+      title: "Phong tục và nếp nhà",
       description:
-        "Xem các bước chuẩn bị và lưu ý; cách thực hành có thể khác theo địa phương.",
+        "Xem các bước chuẩn bị chu đáo; thực hành linh hoạt theo nếp sống gia đình.",
       buttonLabel: "Mở cẩm nang",
       onClick: onGoToRituals,
     },
     trian: {
-      title: "Gửi một lời tri ân",
+      title: "Gửi lời tri ân nguồn cội",
       description:
-        "Viết lời biết ơn hoặc dành một khoảng nhỏ lắng đọng nhớ về nguồn cội.",
+        "Dành một khoảng lặng ghi lại lòng biết ơn và gửi gắm yêu thương.",
       buttonLabel: "Mở góc tri ân",
       onClick: onGoToGratitude,
     },
@@ -302,18 +309,21 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
               <span className="text-accent font-medium">Tin Lắm Tâm Linh</span>
             </div>
 
-            {/* Nút Thỉnh chuông thiền sớm */}
-            <button
-              type="button"
-              onClick={handleRingBell}
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-amber-700/25 bg-amber-500/8 hover:bg-amber-500/15 text-xs sm:text-sm font-medium text-amber-900 dark:text-amber-200 transition-all cursor-pointer shadow-xs ${
-                bellRinging ? "scale-105 border-amber-600 bg-amber-500/20" : ""
-              }`}
-              title="Thỉnh chuông tĩnh tâm"
-            >
-              <Bell className={`w-3.5 h-3.5 ${bellRinging ? "animate-bounce text-amber-600" : ""}`} />
+            {/* Nút Thỉnh chuông thiền sớm có hiệu ứng sóng âm */}
+            <div className="relative inline-flex items-center">
+              {bellRinging && <span className="today-bell-ripple" aria-hidden="true" />}
+              <button
+                type="button"
+                onClick={handleRingBell}
+                className={`relative z-1 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-amber-700/25 bg-amber-500/8 hover:bg-amber-500/15 text-xs sm:text-sm font-medium text-amber-900 dark:text-amber-200 transition-all cursor-pointer shadow-xs active:scale-95 ${
+                  bellRinging ? "border-amber-600 bg-amber-500/25 ring-2 ring-amber-400/30" : ""
+                }`}
+                title="Thỉnh chuông tĩnh tâm"
+              >
+                <Bell className={`w-3.5 h-3.5 ${bellRinging ? "animate-bounce text-amber-600 dark:text-amber-300" : ""}`} />
                 <span>Phát tiếng chuông</span>
-            </button>
+              </button>
+            </div>
           </div>
 
           <h1
@@ -350,37 +360,55 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
               <div className="today-calendar-primary">
                 <div className="today-calendar-date-row">
                   <span className="today-calendar-date-label">Dương lịch</span>
-                  <strong className="today-calendar-date today-calendar-date--solar">{formattedSolarDate}</strong>
+                  <strong className="today-calendar-date today-calendar-date--solar">
+                    {formattedSolarDate}
+                  </strong>
                 </div>
                 <div className="today-calendar-date-row">
                   <span className="today-calendar-date-label">Âm lịch</span>
                   <strong className="today-calendar-date today-calendar-date--lunar">
-                    {formattedLunarDate}{lunarToday.isLeapMonth ? " · tháng nhuận" : ""}
+                    {formattedLunarDate}
+                    {lunarToday.isLeapMonth ? " (nhuận)" : ""}
                   </strong>
                 </div>
                 <div className="today-calendar-meta">
                   <div>
-                    <span>Ngày trong tuần</span>
-                    <strong className="capitalize">{weekday}</strong>
+                    <span>Thứ trong tuần</span>
+                    <strong className="capitalize font-display text-ink">{weekday}</strong>
                   </div>
-                  <div>
+                  <div className="today-calendar-meta-canchi">
                     <span>Can Chi</span>
-                    <strong>{canChiDay.name} · {canChiMonth} · {lunarToday.canChiYear}</strong>
+                    <div className="today-calendar-canchi-tags">
+                      <span><strong>Ngày</strong> {canChiDay.name}</span>
+                      <span className="sep">·</span>
+                      <span><strong>Tháng</strong> {canChiMonth}</span>
+                      <span className="sep">·</span>
+                      <span><strong>Năm</strong> {lunarToday.canChiYear}</span>
+                    </div>
                   </div>
                 </div>
               </div>
               <div className="today-calendar-aside">
                 <div className="today-calendar-deity">
-                  <p className="today-calendar-section-label">Ngày theo lịch dân gian</p>
-                  <h3>{dayDeity ?? "Chưa có dữ liệu"}</h3>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="today-calendar-section-label">Lịch dân gian hôm nay</p>
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-amber-600/20 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+                      Gợi ý nếp nghĩ
+                    </span>
+                  </div>
+                  <h3>Trực nhật · {dayDeity ?? "Bình an"}</h3>
                   <p>
                     {dayDeity === "Huyền Vũ"
-                      ? "Theo quan niệm dân gian, ngày Huyền Vũ thường được khuyên cân nhắc việc xuất hành vì gắn với cãi cọ, việc không thuận."
-                      : "Vị thần trực ngày theo cách tính lịch truyền thống; nội dung chỉ mang tính tham khảo văn hóa."}
+                      ? "Theo nếp nghĩ xưa, ngày này nên hướng nội, điềm tĩnh lắng nghe và cẩn trọng lời ăn tiếng nói để giữ trọn sự hòa nhã."
+                      : "Quan niệm thần trực ngày cổ truyền nhắc nhở con người điều hòa nhịp sống và hướng về sự an ổn nội tâm."}
                   </p>
                 </div>
                 <div className="today-calendar-hours">
-                  <h3><Clock3 aria-hidden="true" /> Giờ Hoàng Đạo</h3>
+                  <h3>
+                    <Clock3 aria-hidden="true" className="w-3.5 h-3.5 text-accent" />
+                    <span>Giờ Hoàng Đạo</span>
+                    <span className="text-[11px] font-normal text-muted ml-auto">Khung giờ lành trong ngày</span>
+                  </h3>
                   <div className="today-calendar-hour-list">
                     {auspiciousHours.map((hour) => (
                       <span key={hour}>{hour.replace(/(\d{2})[–-](\d{2})/, (_match, start: string, end: string) => `${Number(start)}-${Number(end)}`)}</span>
@@ -410,7 +438,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent font-semibold text-xs sm:text-sm tracking-wide">
                 <Flower2 className="w-3.5 h-3.5" aria-hidden="true" />
                 <h2 id="today-signal-title" className="font-medium">
-                  Lời chiêm nghiệm hôm nay
+                  Thông điệp dành riêng cho bạn
                 </h2>
               </div>
 
@@ -506,7 +534,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
               </h2>
 
               <p className="text-base text-muted leading-relaxed max-w-lg mb-6">
-                Chạm vào cảm xúc để nhận một lời gợi mở chiêm nghiệm và một hành động nhỏ dịu dàng nuôi dưỡng tâm hồn bạn.
+                Chạm vào cảm xúc để nhận một thông điệp lắng đọng và một hành động nhỏ dịu dàng nuôi dưỡng tâm hồn bạn.
               </p>
 
               <div>
@@ -531,14 +559,15 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
             </div>
 
             <div className="md:col-span-5 p-4 sm:p-6 flex items-center justify-center">
-              <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm border border-line/60 bg-surface-soft relative">
+              <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm border border-amber-900/15 dark:border-amber-400/20 bg-surface-soft relative group">
                 <img
                   src="/images/tea_bowl.jpg"
                   alt="Chén trà trong không gian yên tĩnh thanh tịnh"
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-103"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-104 filter contrast-[0.96] brightness-[1.02]"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" aria-hidden="true" />
                 {/* Làn khói trà bốc lên nhẹ nhàng */}
                 <div className="tea-steam-layer" aria-hidden="true">
                   <div className="tea-steam-emitter">
@@ -687,7 +716,42 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
             })}
           </div>
         </section>
-        <AboutSourcesSection />
+        {/* Trust Banner / Lời cam kết minh bạch */}
+        <section
+          aria-labelledby="today-trust-badge"
+          className="mt-14 rounded-2xl border border-line/80 bg-gradient-to-r from-amber-500/5 via-surface to-red-500/5 p-5 shadow-sm transition-all hover:border-accent/40"
+        >
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-4xl mx-auto">
+            <div className="flex items-center gap-3.5 text-left">
+              <div className="w-10 h-10 rounded-full bg-accent/10 border border-accent/25 flex items-center justify-center text-accent shrink-0">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span id="today-trust-badge" className="text-[11px] font-bold tracking-widest uppercase text-accent">
+                    Bảo chứng tri thức &amp; Minh bạch
+                  </span>
+                  <span className="text-[10px] text-muted bg-surface-soft px-1.5 py-0.5 rounded border border-line font-medium">
+                    Chuẩn Di sản &amp; Lịch pháp
+                  </span>
+                </div>
+                <p className="font-display text-sm font-semibold text-ink mt-0.5">
+                  Tư liệu đối chiếu từ Cục Di sản Văn hóa &amp; Thuật toán thiên văn học
+                </p>
+              </div>
+            </div>
+            {onGoToAbout && (
+              <button
+                type="button"
+                onClick={onGoToAbout}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium text-accent border border-accent/30 bg-surface hover:bg-accent/10 hover:border-accent transition-colors shrink-0 shadow-xs"
+              >
+                <span>Xem nguồn tư liệu</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </section>
       </main>
     </div>
   );
@@ -696,7 +760,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
 const CornerOrnament: React.FC<{ className?: string }> = ({ className }) => (
   <svg
     className={className}
-    viewBox="0 0 24 24"
+    viewBox="0 0 28 28"
     fill="none"
     stroke="currentColor"
     strokeWidth="1.2"
@@ -704,7 +768,8 @@ const CornerOrnament: React.FC<{ className?: string }> = ({ className }) => (
     strokeLinejoin="round"
     aria-hidden="true"
   >
-    <path d="M4 20V8a4 4 0 0 1 4-4h12" />
-    <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+    <path d="M4 24V9a5 5 0 0 1 5-5h15" />
+    <path d="M9 19v-7a3 3 0 0 1 3-3h7" />
+    <rect x="7" y="7" width="3" height="3" fill="currentColor" rx="0.5" />
   </svg>
 );

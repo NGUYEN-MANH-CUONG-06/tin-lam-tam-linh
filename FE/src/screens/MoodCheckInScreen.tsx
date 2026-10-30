@@ -179,10 +179,15 @@ export const MoodCheckInScreen: React.FC<MoodCheckInScreenProps> = ({
     }
   };
 
+  const lastBellTimeRef = useRef<number>(0);
+
   const handleRingBell = () => {
+    const now = Date.now();
+    if (now - lastBellTimeRef.current < 450) return;
+    lastBellTimeRef.current = now;
     setBellRinging(true);
     playZenBellSound();
-    setTimeout(() => setBellRinging(false), 900);
+    setTimeout(() => setBellRinging(false), 1000);
   };
 
   useEffect(() => {
@@ -200,7 +205,7 @@ export const MoodCheckInScreen: React.FC<MoodCheckInScreenProps> = ({
 
   return (
     <div className="screen-shell">
-      <main className="page-container max-w-3xl pb-40 sm:pb-16 py-6 sm:py-8">
+      <main className="page-container max-w-5xl pb-40 sm:pb-16 py-6 sm:py-8">
         {/* ========================================================= */}
         {/* 1. HEADER LẮNG ĐỌNG & TRIỆN SON "TÂM"                     */}
         {/* ========================================================= */}
@@ -211,18 +216,21 @@ export const MoodCheckInScreen: React.FC<MoodCheckInScreenProps> = ({
               <span>Khoảng nghỉ nuôi dưỡng tâm hồn</span>
             </div>
 
-            {/* Nút Thỉnh chuông tĩnh tâm */}
-            <button
-              type="button"
-              onClick={handleRingBell}
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-amber-700/25 bg-amber-500/8 hover:bg-amber-500/15 text-xs sm:text-sm font-medium text-amber-900 dark:text-amber-200 transition-all cursor-pointer shadow-xs ${
-                bellRinging ? "scale-105 border-amber-600 bg-amber-500/20" : ""
-              }`}
-              title="Thỉnh chuông tĩnh tâm"
-            >
-              <Bell className={`w-3.5 h-3.5 ${bellRinging ? "animate-bounce text-amber-600" : ""}`} />
-              <span>Thỉnh chuông tĩnh tâm</span>
-            </button>
+            {/* Nút Thỉnh chuông tĩnh tâm có sóng âm */}
+            <div className="relative inline-flex items-center">
+              {bellRinging && <span className="today-bell-ripple" aria-hidden="true" />}
+              <button
+                type="button"
+                onClick={handleRingBell}
+                className={`relative z-1 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-amber-700/25 bg-amber-500/8 hover:bg-amber-500/15 text-xs sm:text-sm font-medium text-amber-900 dark:text-amber-200 transition-all cursor-pointer shadow-xs active:scale-95 ${
+                  bellRinging ? "border-amber-600 bg-amber-500/25 ring-2 ring-amber-400/30" : ""
+                }`}
+                title="Thỉnh chuông tĩnh tâm"
+              >
+                <Bell className={`w-3.5 h-3.5 ${bellRinging ? "animate-bounce text-amber-600 dark:text-amber-300" : ""}`} />
+                <span>Thỉnh chuông tĩnh tâm</span>
+              </button>
+            </div>
           </div>
 
           <h1
@@ -267,7 +275,7 @@ export const MoodCheckInScreen: React.FC<MoodCheckInScreenProps> = ({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-3.5">
             {MOODS_LIST.map((mood) => {
               const isSelected = selectedMood === mood.key;
 
@@ -357,15 +365,18 @@ export const MoodCheckInScreen: React.FC<MoodCheckInScreenProps> = ({
                     }
                   }}
                 >
-                  <div className="mood-context-radio-dot">
-                    <div className="mood-context-radio-inner" />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {CONTEXT_ICONS[context.key] || <Compass className="w-4 h-4 text-accent" />}
-                    <span className="text-sm font-medium text-ink">
-                      {context.label}
-                    </span>
+                  <div className="flex items-center justify-between w-full gap-2">
+                    <div className="flex items-center gap-2.5">
+                      {CONTEXT_ICONS[context.key] || <Compass className="w-4 h-4 text-accent" />}
+                      <span className="text-sm font-semibold text-ink">
+                        {context.label}
+                      </span>
+                    </div>
+                    {isActive && (
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent text-on-accent text-[11px] font-bold shadow-xs">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </span>
+                    )}
                   </div>
                 </div>
               );
@@ -373,26 +384,24 @@ export const MoodCheckInScreen: React.FC<MoodCheckInScreenProps> = ({
           </div>
         </fieldset>
 
-        <details className="mb-6 rounded-2xl border border-line bg-surface p-4 group transition-all">
-          <summary className="cursor-pointer text-sm font-semibold text-ink flex items-center justify-between list-none">
-            <div className="flex items-center gap-2.5 text-ink">
-              <span className="w-6 h-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                <ShieldCheck className="w-3.5 h-3.5" />
-              </span>
-              <span>Minh bạch bảo mật & Cam kết đạo đức AI</span>
+        {/* Thông tin bảo mật riêng tư nhẹ nhàng */}
+        <details className="mb-6 rounded-xl border border-line/70 bg-surface/50 p-3.5 group transition-all">
+          <summary className="cursor-pointer text-xs font-medium text-muted flex items-center justify-between list-none hover:text-ink">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>Ghi chép tâm tư luôn được bảo mật riêng tư trên thiết bị của bạn</span>
             </div>
-            <ChevronDown className="w-4 h-4 text-muted transition-transform duration-200 group-open:rotate-180" />
+            <ChevronDown className="w-3.5 h-3.5 text-muted transition-transform duration-200 group-open:rotate-180 shrink-0" />
           </summary>
-          <div className="mt-3.5 pt-3.5 border-t border-line/60 space-y-2 text-xs sm:text-sm leading-relaxed text-muted">
-            <p>{isDemoMode()
-              ? "Chế độ demo: check-in và ghi chú chỉ được lưu trên trình duyệt này, không gửi lên máy chủ hoặc Google Gemini."
-              : isLoggedIn
-                ? "Check-in gửi cảm xúc và bối cảnh đã chọn tới máy chủ Tin Lắm Tâm Linh."
-                : "Khi đăng nhập để ghi nhận check-in, cảm xúc và bối cảnh đã chọn sẽ được gửi tới máy chủ Tin Lắm Tâm Linh."} {!isDemoMode() && <>Khi bạn chọn một bối cảnh cụ thể và Gemini được cấu hình, máy chủ chỉ gửi hai lựa chọn này tới Google Gemini để viết lời gợi mở. Ghi chú và lịch sử check-in không được gửi sang Gemini.</>}</p>
-            <p>Nếu chọn “Chưa muốn chọn”, hoặc Gemini không khả dụng, hệ thống dùng nội dung biên tập sẵn. Lời gợi mở không phải chẩn đoán hay dự đoán.</p>
-            <p>{isDemoMode()
-              ? "Dữ liệu demo được giữ cục bộ trên trình duyệt và có thể xóa bằng cách thoát hoặc xóa dữ liệu trang web."
-              : "Check-in được lưu theo tài khoản để xem lại; bạn có thể xóa bản lưu tại ứng dụng trong Cài đặt → Xóa dữ liệu cá nhân. Việc này cũng xóa lịch sử chiêm nghiệm AI theo năm, nhưng ứng dụng không có chức năng xóa yêu cầu đã được gửi ở phía Gemini."}</p>
+          <div className="mt-2.5 pt-2.5 border-t border-line/50 space-y-1.5 text-xs leading-relaxed text-muted">
+            <p>
+              • {isDemoMode()
+                ? "Dữ liệu tâm tư chỉ lưu cục bộ trên trình duyệt cá nhân của bạn, hoàn toàn không gửi lên máy chủ bên ngoài."
+                : "Không gian an toàn, riêng tư. Mọi chia sẻ cảm xúc chỉ phục vụ mục đích chiêm nghiệm cá nhân của bạn."}
+            </p>
+            <p>
+              • Lời gợi mở mang tính nuôi dưỡng tinh thần và nâng đỡ cảm xúc an lành, không thay thế tư vấn y khoa chuyên môn.
+            </p>
           </div>
         </details>
 
@@ -407,12 +416,12 @@ export const MoodCheckInScreen: React.FC<MoodCheckInScreenProps> = ({
 
             <div className="flex-1">
               <span className="block text-sm font-semibold text-ink">
-                Viết thêm nếu bạn muốn
+                Trút bớt tâm tư nếu bạn muốn
               </span>
               <span className="block text-xs text-muted mt-0.5">
                 {journalText.trim()
-                  ? "Đã có vài dòng trong lượt này"
-                  : "Tùy chọn. Có thể để trống."}
+                  ? "Đã lưu lại vài dòng tâm sự của bạn"
+                  : "Không bắt buộc. Đôi khi chỉ một vài dòng chữ cũng giúp lòng nhẹ hơn."}
               </span>
             </div>
 
@@ -425,9 +434,9 @@ export const MoodCheckInScreen: React.FC<MoodCheckInScreenProps> = ({
           <div className="px-5 pb-5 pt-1 border-t border-line/60">
             <label
               htmlFor="mood-journal"
-              className="block text-xs font-semibold text-accent uppercase tracking-wider mb-2 mt-2"
+              className="block font-display text-sm font-medium text-ink mb-2 mt-2"
             >
-              Gửi gắm nỗi niềm lúc này
+              Đôi dòng trải lòng lúc này…
             </label>
 
             <Textarea
@@ -438,20 +447,16 @@ export const MoodCheckInScreen: React.FC<MoodCheckInScreenProps> = ({
               maxLength={2000}
               placeholder="Một chuyện vừa diễn ra, một điều làm bạn bận lòng, hoặc đơn giản là một dòng thở phào..."
               aria-describedby="mood-journal-note"
-              className="resize-y bg-surface border-line focus:border-accent text-sm leading-relaxed"
+              className="resize-y bg-surface-soft/60 border-line focus:border-accent text-sm leading-relaxed rounded-xl shadow-inner"
             />
 
-            <p id="mood-journal-note" className="mt-2 text-xs text-muted leading-relaxed">
-              {isLoggedIn
-                ? isDemoMode()
-                  ? "Chế độ demo: ghi chú chỉ lưu trên trình duyệt này, không gửi tới máy chủ. Tránh ghi thông tin nhạy cảm."
-                  : "Khi gửi check-in, đoạn này được gửi tới máy chủ cùng cảm xúc và bối cảnh. Tránh ghi tên hoặc thông tin nhận dạng."
-                : "Chưa đăng nhập: đoạn này không gửi cùng check-in. Nếu đăng nhập để lưu kết quả, nội dung sẽ được gửi cùng bản lưu. Tránh ghi tên hoặc thông tin nhận dạng."}
-            </p>
-
             <div className="flex items-center justify-between text-xs text-muted mt-2">
-              
-              <span>{journalText.length}/2000 ký tự</span>
+              <p id="mood-journal-note" className="text-muted/80 leading-relaxed text-[11px]">
+                {isLoggedIn
+                  ? "Cuốn sổ tay riêng tư của bạn. Bạn có thể xem lại những dòng này trong trang cá nhân."
+                  : "Ghi chép được giữ riêng tư trên thiết bị này như một cuốn nhật ký cá nhân."}
+              </p>
+              <span className="shrink-0 text-[11px] tabular-nums">{journalText.length}/2000 ký tự</span>
             </div>
           </div>
         </details>
@@ -481,24 +486,24 @@ export const MoodCheckInScreen: React.FC<MoodCheckInScreenProps> = ({
               <span>Quay lại</span>
             </Button>
 
-            <div className="hidden md:flex items-center gap-1.5 text-xs text-muted">
-              <span>Đang gửi gắm:</span>
+            <div className="hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-soft border border-line text-xs shadow-xs">
+              <span className="text-muted">Đang gửi gắm:</span>
               <strong className="text-accent">{selectedMood}</strong>
-              <span>·</span>
-              <span>{MOOD_CONTEXTS.find((c) => c.key === contextKey)?.label || "Tự do"}</span>
+              <span className="text-line select-none">·</span>
+              <span className="text-muted font-medium">{MOOD_CONTEXTS.find((c) => c.key === contextKey)?.label || "Tự do"}</span>
             </div>
 
             <button
               type="button"
               disabled={isSubmitting}
               onClick={() => onSubmit(contextKey)}
-              aria-label="Nhận lời chiêm nghiệm"
+              aria-label="Đón nhận thông điệp"
               className="mood-submit-btn flex-1 sm:flex-none sm:min-w-64"
             >
               <span className="mood-submit-sheen" />
-              <ButtonOrnament className="w-6 h-4 text-amber-200/80 shrink-0 hidden sm:block" />
-              <span>{isSubmitting ? "ĐANG GỬI CHECK-IN…" : "NHẬN LỜI CHIÊM NGHIỆM"}</span>
-              <ArrowRight className="h-4 w-4 shrink-0 text-amber-200" aria-hidden="true" />
+              <Flower2 className="w-4 h-4 text-amber-200/90 shrink-0 hidden sm:block" aria-hidden="true" />
+              <span>{isSubmitting ? "Đang gửi gắm…" : "Đón nhận thông điệp"}</span>
+              <ArrowRight className="h-4 w-4 shrink-0 text-amber-200 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -507,21 +512,3 @@ export const MoodCheckInScreen: React.FC<MoodCheckInScreenProps> = ({
     </div>
   );
 };
-
-const ButtonOrnament: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    className={className}
-    viewBox="0 0 30 20"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M2 3v14" />
-    <path d="M2 10h4" />
-    <path d="M9 10c0-2.6 2-4.4 4.4-4.4 2.2 0 3.8 1.6 3.8 3.6 0 1.6-1.2 2.8-2.7 2.8-1.2 0-2.1-.9-2.1-2 0-.9.7-1.6 1.6-1.6" />
-    <path d="M17.2 9.2c1.2-2.6 3.6-3.8 6-3.2 1.8.5 3 2 3 3.6" />
-  </svg>
-);

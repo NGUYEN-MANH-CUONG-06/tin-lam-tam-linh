@@ -142,7 +142,7 @@ h1.wish-page-title,
   height: 48px;
   padding: 0 32px;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: 9999px;
   border: 1px solid rgba(135, 28, 20, 0.95);
   background:
     radial-gradient(120% 140% at 50% 0%, rgba(255, 140, 110, 0.25), transparent 55%),

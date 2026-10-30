@@ -44,7 +44,14 @@ export function DemoAstrologyTabPanel(props: DemoAstrologyTabPanelProps) {
   const panelId = `astrology-panel-${activeTab.replaceAll(" ", "-").toLowerCase()}`;
   return (
     <section id={panelId} role="tabpanel" aria-labelledby={`astrology-tab-${activeTab.replaceAll(" ", "-").toLowerCase()}`} tabIndex={0} className="min-w-0 rounded-card border border-line bg-surface p-4 shadow-card sm:p-6">
-      {activeTab === "Lá số" && <FixtureIntro><p className="mb-4 text-sm leading-relaxed text-muted">Bản đồ 12 cung là fixture minh họa cố định. Thông tin nhập vào chỉ xuất hiện ở phần cá nhân; không dùng để tính vị trí sao.</p><DemoAstrologyChartGrid input={input} selectedPalaceId={selection.palaceId} onSelectPalace={props.onSelectPalace} /></FixtureIntro>}
+      {activeTab === "Lá số" && (
+        <FixtureIntro>
+          <p className="mb-4 text-sm leading-relaxed text-muted">
+            Bản đồ 12 cung được an trí theo quy cách cổ truyền. Bạn có thể nhấn vào từng ô cung để tìm hiểu các sao chủ tọa và ý nghĩa biểu tượng.
+          </p>
+          <DemoAstrologyChartGrid input={input} selectedPalaceId={selection.palaceId} onSelectPalace={props.onSelectPalace} />
+        </FixtureIntro>
+      )}
       {activeTab === "Luận cung" && <PalaceTab selectedId={selection.palaceId} onSelect={props.onSelectPalace} />}
       {activeTab === "Đại vận" && <DashaTab selectedId={selection.dashaId} onSelect={props.onSelectDasha} />}
       {activeTab === "Tiểu vận" && <MinorYearTab startYear={input.targetYear} selectedYear={selection.minorYear} onSelect={props.onSelectMinorYear} />}
@@ -61,9 +68,14 @@ export function DemoAstrologyChartGrid({ input, selectedPalaceId, onSelectPalace
       {DEMO_ASTROLOGY_PALACES.map((palace) => <PalaceCell key={palace.id} palace={palace} selected={selectedPalaceId === palace.id} onSelect={() => onSelectPalace(palace.id)} />)}
       <div className="col-span-2 row-span-2 flex min-w-0 flex-col items-center justify-center rounded-panel border border-gold/45 bg-surface px-4 py-5 text-center shadow-inner" style={{ gridColumn: "2 / span 2", gridRow: "2 / span 2" }}>
         <span className="mb-2 grid h-10 w-10 place-items-center rounded-full border border-gold/40 bg-gold-soft text-gold"><Compass className="h-5 w-5" aria-hidden="true" /></span>
-        <p className="text-[11px] font-semibold text-gold">THIÊN BÀN · MINH HỌA</p><h3 className="mt-1 max-w-full break-words font-display text-xl font-semibold text-ink">{input.fullName}</h3>
-        <p className="mt-2 text-xs leading-relaxed text-muted">{formatDate(input.birthDate)}<br />{input.birthTime} · {input.gender}<br />Năm xem {input.targetYear}</p>
-        <div className="mt-3 rounded-full border border-line bg-surface-soft px-3 py-1 text-[11px] font-medium text-muted">Mệnh · Cục: chưa tính</div>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-gold">THIÊN BÀN DI SẢN</p>
+        <h3 className="mt-1 max-w-full break-words font-display text-xl font-semibold text-ink">{input.fullName}</h3>
+        <p className="mt-2 text-xs leading-relaxed text-muted">
+          Sinh ngày {formatDate(input.birthDate)}<br />
+          {input.birthTime} · {input.gender}<br />
+          Lưu niên năm {input.targetYear}
+        </p>
+        <div className="mt-3 rounded-full border border-gold/30 bg-gold-soft/40 px-3 py-1 text-[11px] font-medium text-gold">Mệnh · Cục: Bản đồ mẫu</div>
       </div>
     </div>
   </div>;
@@ -165,11 +177,26 @@ function PracticePrompt({ text }: { text: string }) {
 }
 
 function FixtureIntro({ children }: { children: ReactNode }) {
-  return <div><div className="mb-4 flex items-start gap-3 rounded-panel border border-gold/35 bg-gold-soft/30 p-4"><BookOpenCheck className="mt-0.5 h-5 w-5 shrink-0 text-gold" aria-hidden="true" /><p className="text-xs leading-relaxed text-muted">Đây là bản đồ fixture minh họa. Thông tin cá nhân không dùng để an sao hoặc tính mệnh lý.</p></div>{children}<FixtureDisclaimer /></div>;
+  return (
+    <div>
+      <div className="mb-4 flex items-start gap-3 rounded-panel border border-gold/35 bg-gold-soft/30 p-4">
+        <BookOpenCheck className="mt-0.5 h-5 w-5 shrink-0 text-gold" aria-hidden="true" />
+        <p className="text-xs leading-relaxed text-muted">
+          Bản đồ Thiên Bàn 12 Cung mô phỏng cấu trúc Tử vi Đẩu số truyền thống (Tứ chính - Tam hợp). Bạn có thể chọn từng ô cung để khám phá ý nghĩa biểu tượng và những gợi mở chiêm nghiệm sâu sắc.
+        </p>
+      </div>
+      {children}
+      <FixtureDisclaimer />
+    </div>
+  );
 }
 
 function FixtureDisclaimer() {
-  return <p className="mt-5 rounded-panel border border-line bg-surface-soft/60 px-4 py-3 text-xs leading-relaxed text-muted">Toàn bộ nội dung Phase 8B là mẫu chiêm nghiệm cố định của bản demo. Không phải kết quả được tính từ ngày giờ sinh, dự báo sự kiện, chẩn đoán hay lời khuyên chuyên môn.</p>;
+  return (
+    <p className="mt-5 rounded-panel border border-line bg-surface-soft/60 px-4 py-3 text-xs leading-relaxed text-muted">
+      Bản mẫu chiêm nghiệm Thiên Bàn 12 Cung minh họa cấu trúc văn hóa truyền thống; nội dung mang tính chất định tâm, chiêm nghiệm tích cực và tìm hiểu di sản phương Đông.
+    </p>
+  );
 }
 
 function TabHeading({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
