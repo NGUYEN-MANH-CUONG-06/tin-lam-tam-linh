@@ -6,7 +6,6 @@ import {
 } from "react";
 import { Button } from "./ui/button";
 import { Flower2 } from "lucide-react";
-import { ContentProvenance } from "./ContentProvenance";
 import { getPublishableTraditionalSticks } from
   "../data/traditionalXamEligibility";
 import {
@@ -539,15 +538,6 @@ export function TraditionalXamExperience({
                 ))}
               </div>
 
-              <p className="mt-3 text-xs text-muted">
-                {result.translation.attribution}
-              </p>
-
-              <div className="mt-3">
-                <ContentProvenance
-                  metadata={result.translation.metadata}
-                />
-              </div>
             </section>
           )}
 
@@ -562,9 +552,6 @@ export function TraditionalXamExperience({
                 {result.culturalContext.description}
               </p>
 
-              <p className="mt-2 text-xs text-muted">
-                Vị trí đối chiếu: {result.culturalContext.sourceLocator}
-              </p>
             </section>
           )}
 
@@ -582,8 +569,6 @@ export function TraditionalXamExperience({
               Phần gợi mở do sản phẩm biên soạn, được trình bày riêng với nguyên văn.
             </p>
           </section>
-
-          <ContentProvenance metadata={result.metadata} />
 
           {/* Nút lưu vào Góc của tôi */}
           <div className="border-t border-line/60 pt-4 flex flex-col sm:flex-row items-center gap-3">

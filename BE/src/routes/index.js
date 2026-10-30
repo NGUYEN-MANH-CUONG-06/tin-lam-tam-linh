@@ -10,7 +10,6 @@ const reflectionController = require("../controllers/reflection.controller");
 const authenticate = require("../middleware/auth.middleware");
 const validate = require("../middleware/validation.middleware");
 const { xinXamRequestSchema, xinKeoTossSchema } = require("../validators/reflection.validator");
-const memorialRoutes = require("./memorial.routes");
 const wishRoutes = require("./wish.routes");
 const membershipRoutes = require("./membership.routes");
 const analyticsRoutes = require("./analytics.routes");
@@ -26,7 +25,6 @@ router.use("/signals", signalRoutes);
 router.use("/reflections", reflectionRoutes);
 router.use("/memory", memoryRoutes);
 router.use("/content", contentRoutes);
-router.use("/memorials", memorialRoutes);
 router.use("/wishes", wishRoutes);
 router.use(
   "/membership/library",

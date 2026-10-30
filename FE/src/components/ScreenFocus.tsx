@@ -14,6 +14,9 @@ export function ScreenFocus({ children }: ScreenFocusProps) {
     const heading = container.querySelector<HTMLElement>("h1");
     if (!heading) return;
 
+    const alreadyMarkedForRouteFocus = heading.hasAttribute("data-screen-focus-heading");
+    heading.setAttribute("data-screen-focus-heading", "");
+
     // Giữ nguyên tabindex nếu màn đã tự cấu hình.
     const previousTabIndex = heading.getAttribute("tabindex");
 
@@ -26,6 +29,9 @@ export function ScreenFocus({ children }: ScreenFocusProps) {
     return () => {
       if (previousTabIndex === null) {
         heading.removeAttribute("tabindex");
+      }
+      if (!alreadyMarkedForRouteFocus) {
+        heading.removeAttribute("data-screen-focus-heading");
       }
     };
   }, []);

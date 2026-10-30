@@ -190,7 +190,7 @@ const EventDetailContent: React.FC<EventDetailScreenProps> = ({
 
     const title = encodeURIComponent(`[Lịch Văn Hóa] ${event.title}`);
     const details = encodeURIComponent(
-      `${event.shortDesc}\n\nÂm lịch: ${event.lunarDate}\nÝ nghĩa: ${event.coreMeaning || "Tri ân cội nguồn"}\nNguồn: Tin Lắm Tâm Linh`
+      `${event.shortDesc}\n\nÂm lịch: ${event.lunarDate}\nÝ nghĩa: ${event.coreMeaning || "Tri ân cội nguồn"}`
     );
     const location = encodeURIComponent(event.scope || event.region || "Việt Nam");
 
@@ -439,10 +439,6 @@ const EventDetailContent: React.FC<EventDetailScreenProps> = ({
             </Badge>
           )}
 
-          <div className="ml-auto hidden sm:flex items-center gap-1.5 text-xs text-muted">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Nguồn tham khảo</span>
-          </div>
         </div>
 
         {/* Main Title & Solar/Lunar Date Bar */}
@@ -736,27 +732,6 @@ const EventDetailContent: React.FC<EventDetailScreenProps> = ({
               </div>
             </ScrollReveal>
 
-            {/* Section 6: Cơ sở khảo cứu & Thẩm định văn hóa */}
-            <ScrollReveal variant="up" as="section" aria-labelledby="event-sources-title" className="rounded-3xl border border-line bg-surface p-6 shadow-xs">
-              <div className="flex items-center gap-2.5 mb-3">
-                <BookOpen className="w-5 h-5 text-accent" />
-                <h2
-                  id="event-sources-title"
-                  className="font-display font-bold text-lg text-ink"
-                >
-                  Nguồn tham khảo
-                </h2>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-surface-soft/60 border border-line/60 text-xs sm:text-sm text-ink leading-relaxed mb-3">
-                {event.verifiedSource || "Chưa có thông tin nguồn cho nội dung này."}
-              </div>
-
-              <div className="flex items-center gap-2 text-xs text-muted">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Thông tin sự kiện để tham khảo; phong tục có thể khác theo địa phương.</span>
-              </div>
-            </ScrollReveal>
           </div>
 
           {/* Right Column (4 cols): Sticky Sidebar Widgets */}

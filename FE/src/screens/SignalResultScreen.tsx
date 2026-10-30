@@ -28,7 +28,6 @@ import type { CultureArticle } from "../data/cultureData";
 import { loadCultureArticles } from "../data/contentService";
 import { toCultureArticle } from "../data/cultureAdapter";
 import { Button } from "@/src/components/ui/button";
-import { ContentProvenance } from "../components/ContentProvenance";
 import { loadSignals } from "../data/moodSignalService";
 import { trackProductEvent } from "../data/productAnalytics";
 import "../styles/SignalResultScreen.css";
@@ -100,9 +99,7 @@ export const SignalResultScreen: React.FC<SignalResultScreenProps> = ({
     }
   };
 
-  const quotationLabel = signal.metadata.quotationVerified
-    ? "Câu trích đã đối chiếu nguồn"
-    : "Chiêm nghiệm đương đại";
+  const quotationLabel = "Lời chiêm nghiệm";
 
   const contextKey = signal.contextKey ?? "general";
 
@@ -593,7 +590,7 @@ export const SignalResultScreen: React.FC<SignalResultScreenProps> = ({
             <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 p-4 text-sm font-semibold text-ink focus-visible:outline-none [&::-webkit-details-marker]:hidden">
               <span className="flex items-center gap-2">
                 <Compass className="w-4 h-4 text-gold" />
-                <span>Nguồn gốc khảo cứu & Xuất xứ di sản</span>
+                <span>Bối cảnh nội dung</span>
               </span>
               <ChevronDown
                 className="w-4 h-4 text-muted shrink-0 transition-transform group-open:rotate-180"
@@ -602,9 +599,7 @@ export const SignalResultScreen: React.FC<SignalResultScreenProps> = ({
             </summary>
 
             <div className="px-5 pb-5 pt-2 border-t border-line/50">
-              <ContentProvenance metadata={signal.metadata} />
-
-              <div className="mt-4 pt-4 border-t border-line/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs sm:text-sm text-muted">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm text-muted">
                 <span>
                   <strong className="text-ink">Vùng miền:</strong>{" "}
                   {signal.research.region}

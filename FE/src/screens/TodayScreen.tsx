@@ -8,16 +8,26 @@ import {
   Bell,
   Sparkles,
   Calendar,
+  CalendarDays,
+  Clock3,
 } from "lucide-react";
 
 import type { MoodKey, SignalData } from "../data/demoSignals";
 import { Button } from "@/src/components/ui/button";
 import { TodayReminderCard } from "../components/TodayReminderCard";
+import { AboutSourcesSection } from "../components/AboutSourcesSection";
 import {
   CULTURAL_TOPICS,
   sanitizeCulturalTopics,
 } from "../data/culturalTopics";
 import { UnverifiedImage } from "../components/UnverifiedImage";
+import {
+  getAuspiciousHoursForDay,
+  getCanChiDay,
+  getCanChiMonth,
+  getReliableLunarDate,
+  getTraditionalDayDeity,
+} from "../data/calendarData";
 import "../styles/TodayScreen.css";
 
 interface TodayScreenProps {
@@ -91,12 +101,19 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     String(today.getMonth() + 1).padStart(2, "0"),
     String(today.getDate()).padStart(2, "0"),
   ].join("-");
+  const lunarToday = getReliableLunarDate(
+    today.getDate(),
+    today.getMonth() + 1,
+    today.getFullYear(),
+  );
+  const canChiDay = getCanChiDay(today);
+  const canChiMonth = getCanChiMonth(lunarToday.lunarMonth, lunarToday.lunarYear);
+  const dayDeity = getTraditionalDayDeity(today, canChiDay.chi);
+  const weekday = today.toLocaleDateString("vi-VN", { weekday: "long" });
+  const auspiciousHours = getAuspiciousHoursForDay(canChiDay.chi);
 
-  const formattedDate = today.toLocaleDateString("vi-VN", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  const formattedSolarDate = `${String(today.getDate()).padStart(2, "0")}-${String(today.getMonth() + 1).padStart(2, "0")}-${today.getFullYear()}`;
+  const formattedLunarDate = `${String(lunarToday.lunarDay).padStart(2, "0")}-${String(lunarToday.lunarMonth).padStart(2, "0")}-${lunarToday.lunarYear}`;
 
   // Web Audio chuông thiền
   const playSynthesizedBell = (ctx: AudioContext, now: number) => {
@@ -231,7 +248,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     xinxam: {
       title: "Xin xăm theo chủ đề",
       description:
-        "Chọn vùng và chủ đề nếu bạn muốn xem nội dung của bộ thẻ.",
+        "Chọn một chủ đề để mở quẻ chiêm nghiệm trong không gian chung.",
       buttonLabel: "Mở xin xăm",
       onClick: onGoToXinXam,
     },
@@ -262,7 +279,8 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     selectedTopics
   ) as CulturalTopicId[];
 
-  const preferredSuggestions = validTopicIds.slice(0, 3).map((id) => ({
+  // Cẩm nang nghi lễ đã có thẻ riêng ở phần khám phá phía dưới.
+  const preferredSuggestions = validTopicIds.filter((id) => id !== "nghile" && id !== "cadao").slice(0, 3).map((id) => ({
     id,
     ...topicSuggestions[id],
   }));
@@ -278,7 +296,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
             <div className="inline-flex items-center gap-2 text-xs sm:text-sm text-muted">
               <Calendar className="w-4 h-4 text-accent" />
               <time dateTime={localDateISO} className="font-medium text-ink capitalize">
-                {formattedDate}
+                {weekday}, {formattedSolarDate}
               </time>
               <span className="text-line">•</span>
               <span className="text-accent font-medium">Tin Lắm Tâm Linh</span>
@@ -311,6 +329,70 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
           <p className="text-base text-muted leading-relaxed max-w-2xl">
             {timeSubtext}
           </p>
+
+          <section
+            aria-label="Chi tiết lịch âm dương hôm nay"
+            className="today-calendar-detail mt-5"
+          >
+            <div className="today-calendar-header">
+              <div className="today-calendar-title-wrap">
+                <span className="today-calendar-title-icon" aria-hidden="true">
+                  <CalendarDays />
+                </span>
+                <div>
+                  <p className="today-calendar-eyebrow">Âm dương lịch · hôm nay</p>
+                  <h2 className="today-calendar-title">Ngày trong lịch Việt</h2>
+                </div>
+              </div>
+              <span className="today-calendar-zone">Việt Nam <span aria-hidden="true">·</span> UTC+7</span>
+            </div>
+            <div className="today-calendar-content">
+              <div className="today-calendar-primary">
+                <div className="today-calendar-date-row">
+                  <span className="today-calendar-date-label">Dương lịch</span>
+                  <strong className="today-calendar-date today-calendar-date--solar">{formattedSolarDate}</strong>
+                </div>
+                <div className="today-calendar-date-row">
+                  <span className="today-calendar-date-label">Âm lịch</span>
+                  <strong className="today-calendar-date today-calendar-date--lunar">
+                    {formattedLunarDate}{lunarToday.isLeapMonth ? " · tháng nhuận" : ""}
+                  </strong>
+                </div>
+                <div className="today-calendar-meta">
+                  <div>
+                    <span>Ngày trong tuần</span>
+                    <strong className="capitalize">{weekday}</strong>
+                  </div>
+                  <div>
+                    <span>Can Chi</span>
+                    <strong>{canChiDay.name} · {canChiMonth} · {lunarToday.canChiYear}</strong>
+                  </div>
+                </div>
+              </div>
+              <div className="today-calendar-aside">
+                <div className="today-calendar-deity">
+                  <p className="today-calendar-section-label">Ngày theo lịch dân gian</p>
+                  <h3>{dayDeity ?? "Chưa có dữ liệu"}</h3>
+                  <p>
+                    {dayDeity === "Huyền Vũ"
+                      ? "Theo quan niệm dân gian, ngày Huyền Vũ thường được khuyên cân nhắc việc xuất hành vì gắn với cãi cọ, việc không thuận."
+                      : "Vị thần trực ngày theo cách tính lịch truyền thống; nội dung chỉ mang tính tham khảo văn hóa."}
+                  </p>
+                </div>
+                <div className="today-calendar-hours">
+                  <h3><Clock3 aria-hidden="true" /> Giờ Hoàng Đạo</h3>
+                  <div className="today-calendar-hour-list">
+                    {auspiciousHours.map((hour) => (
+                      <span key={hour}>{hour.replace(/(\d{2})[–-](\d{2})/, (_match, start: string, end: string) => `${Number(start)}-${Number(end)}`)}</span>
+                    ))}
+                  </div>
+                </div>
+                <p className="today-calendar-disclaimer">
+                  Quan niệm ngày giờ tốt xấu là tập tục dân gian, không dự báo hay bảo đảm kết quả.
+                </p>
+              </div>
+            </div>
+          </section>
         </header>
 
         {/* ========================================================= */}
@@ -605,6 +687,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
             })}
           </div>
         </section>
+        <AboutSourcesSection />
       </main>
     </div>
   );

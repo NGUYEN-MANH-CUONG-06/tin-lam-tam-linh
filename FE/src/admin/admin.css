@@ -9826,6 +9826,33 @@ html:not(.dark) .admin-signal-preview-summary-card {
   color: #34d399;
 }
 
+/* Larger controls and labels for clearer admin navigation and comfortable tapping. */
+.admin-shell .admin-nav-group {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.admin-shell .admin-nav-item {
+  min-height: 48px;
+  font-size: 15px;
+}
+
+.admin-shell :is(.admin-primary-button, .admin-secondary-button, .admin-create-button, .admin-review-quick-btn) {
+  min-height: 48px;
+  font-size: 15px;
+}
+
+.admin-shell .admin-filter-tab {
+  min-height: 44px;
+  padding-block: 8px;
+  font-size: 14px;
+}
+
+.admin-shell :is(input, select, textarea) {
+  min-height: 44px;
+  font-size: 16px;
+}
+
 .audit-timeline-item.is-genesis .audit-timeline-badge {
   background: rgba(157, 111, 44, 0.15);
   color: #9d6f2c;

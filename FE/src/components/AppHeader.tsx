@@ -19,8 +19,6 @@ export type NavScreen =
   | "experience"
   | "sanctuary"
   | "ancestor-altar"
-  | "memorial"
-  | "memorial-form"
   | "culture-map"
   | "region-culture"
   | "chau-van"
@@ -57,9 +55,10 @@ interface AppHeaderProps {
 
 const navItems: { label: string; target: NavScreen; screens: NavScreen[] }[] = [
   { label: "Hôm nay", target: "today", screens: ["today", "mood", "loading", "result", "saved"] },
-  { label: "Trải nghiệm", target: "experience", screens: ["experience", "xinxam", "wish", "zen", "gratitude", "xinkeo", "horoscope", "astrology", "sanctuary", "ancestor-altar", "memorial", "memorial-form"] },
+  { label: "Trải nghiệm", target: "experience", screens: ["experience", "xinxam", "wish", "zen", "gratitude", "xinkeo", "horoscope", "astrology", "sanctuary", "ancestor-altar"] },
   { label: "Khám phá", target: "culture", screens: ["culture", "culture-detail", "culture-map", "region-culture", "chau-van", "sea-prayer", "southern-culture", "rituals", "ritual-detail", "calendar", "calendar-detail", "good-days"] },
   { label: "Góc của tôi", target: "account", screens: ["account", "settings", "mood-journey", "notifications"] },
+  { label: "Gói Tâm An", target: "membership", screens: ["membership"] },
 ];
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -113,7 +112,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <button
             key={item.target}
             type="button"
-            className="nav-link"
+            className={`nav-link${item.target === "membership" ? " nav-link--offer" : ""}`}
             aria-current={
               currentScreen === item.target
                 ? "page"
@@ -248,7 +247,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <button
             ref={menuButtonRef}
             type="button"
-            className="icon-control lg:hidden"
+            className="icon-control xl:hidden"
             onClick={() => setMobileMenuOpen((open) => !open)}
             aria-label={mobileMenuOpen ? "Đóng menu" : "Mở menu"}
             aria-expanded={mobileMenuOpen}
@@ -259,7 +258,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         </div>
       </div>
 
-      <div id="mobile-primary-navigation" className={mobileMenuOpen ? "lg:hidden" : "hidden lg:hidden"}>
+      <div id="mobile-primary-navigation" className={mobileMenuOpen ? "xl:hidden" : "hidden xl:hidden"}>
         {renderNavigation(true)}
       </div>
     </header>

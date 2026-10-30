@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { apiRequest } from "../lib/api";
+import { isDemoMode } from "../data/demoMode";
 import type {
   DecorationId,
 } from "../components/createDigitalDecoration";
@@ -7,7 +8,8 @@ import type {
 type ItemCode =
   | "JADE_LOTUS"
   | "GOLDEN_LOTUS"
-  | "INCENSE_BURNER";
+  | "INCENSE_BURNER"
+  | "BOILED_CHICKEN";
 
 interface InventoryItem {
   code: string;
@@ -20,6 +22,7 @@ const sceneIds: Record<ItemCode, DecorationId> = {
   JADE_LOTUS: "jade-lotus",
   GOLDEN_LOTUS: "golden-lotus",
   INCENSE_BURNER: "incense-burner",
+  BOILED_CHICKEN: "boiled-chicken",
 };
 
 function isDecorationCode(value: string): value is ItemCode {
@@ -46,9 +49,9 @@ export function useJadeDecoration(email?: string) {
     setError("");
     setBusy(false);
     lockRef.current = false;
-    setLoading(Boolean(email));
+    setLoading(Boolean(email) || isDemoMode());
 
-    if (email) {
+    if (email || isDemoMode()) {
       void apiRequest<{ items: InventoryItem[] }>("/inventory")
         .then((result) => {
           if (version !== versionRef.current) return;
@@ -87,7 +90,7 @@ export function useJadeDecoration(email?: string) {
   }, [email, reload]);
 
   const change = async (itemCode: string) => {
-    if (!email || loading || lockRef.current) return;
+    if ((!email && !isDemoMode()) || loading || lockRef.current) return;
     if (itemCode && !isDecorationCode(itemCode)) return;
 
     const version = versionRef.current;

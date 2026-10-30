@@ -44,6 +44,7 @@ router.post(
         "JADE_LOTUS",
         "GOLDEN_LOTUS",
         "INCENSE_BURNER",
+        "BOILED_CHICKEN",
       ]).nullable(),
     }).strict()
   ),

@@ -241,6 +241,7 @@ const DECORATION_CODES = [
   "JADE_LOTUS",
   "GOLDEN_LOTUS",
   "INCENSE_BURNER",
+  "BOILED_CHICKEN",
 ];
 
 async function setDecoration(userId, itemCode) {

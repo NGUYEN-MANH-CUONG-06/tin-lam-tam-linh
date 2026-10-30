@@ -19,7 +19,7 @@ const xinXamDrawSchema = z.object({
 );
 
 const xinXamRequestSchema = z.object({
-  region: z.enum(["Bắc Bộ", "Trung Bộ", "Nam Bộ"]),
+  region: z.enum(["Bắc Bộ", "Trung Bộ", "Nam Bộ", "Toàn quốc"]),
   topic: z.enum(["Bình an", "Gia đình", "Học tập", "Công việc"]),
   question: z.string().trim().max(2000).optional(),
 });

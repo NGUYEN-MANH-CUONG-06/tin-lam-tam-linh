@@ -4,7 +4,6 @@ import {
   canPlayRecording,
   type ChauVanRecording,
 } from "../data/chauVanAudio";
-import { ContentProvenance } from "./ContentProvenance";
 import { Button } from "./ui/button";
 
 function RecordingPlayer({
@@ -85,15 +84,6 @@ function RecordingPlayer({
         </div>
       </dl>
 
-      <details className="mt-4">
-        <summary className="cursor-pointer font-semibold text-accent">
-          Nguồn và biên tập
-        </summary>
-
-        <div className="mt-3">
-          <ContentProvenance metadata={recording.metadata} />
-        </div>
-      </details>
     </article>
   );
 }
@@ -131,7 +121,7 @@ export function ChauVanAudioLibrary({
 
       <p className="mt-2 text-sm leading-relaxed text-muted">
         Bạn chủ động chọn phát âm thanh. Mỗi bản thu được
-        trình bày cùng người trình diễn, nguồn và quyền sử dụng.
+        trình bày cùng người trình diễn và thông tin quyền sử dụng.
       </p>
 
       {recordings.length === 0 ? (

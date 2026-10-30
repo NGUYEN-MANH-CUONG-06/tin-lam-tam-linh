@@ -79,7 +79,7 @@ export const ExperienceScreen: React.FC<ExperienceScreenProps> = ({
           id: "wish",
           title: "Lời nguyện hoa đăng",
           description:
-            "Viết điều bạn mong mỏi và chọn lưu vào nhật ký; thao tác buông bỏ trong Wish là hiệu ứng biểu tượng, chưa nối với hoa đăng WebGL.",
+            "Viết điều bạn mong mỏi và chọn lưu vào nhật ký; thao tác buông bỏ được thể hiện bằng một hiệu ứng biểu tượng.",
           label: "Viết lời nguyện",
           icon: PenLine,
           image: "/images/do_paper_still_life.jpg",
@@ -155,7 +155,7 @@ export const ExperienceScreen: React.FC<ExperienceScreenProps> = ({
           id: "astrology",
           title: "Tư liệu biểu tượng ngày sinh",
           description:
-            "Tính năng này chưa mở cho tới khi phương pháp và nguồn tư liệu được thẩm định.",
+            "Tính năng này sẽ mở sau khi phương pháp và nội dung được hoàn thiện.",
           label: "Xem trạng thái tính năng",
           icon: Sparkles,
           image: "/images/hue_trung_bo.jpg",

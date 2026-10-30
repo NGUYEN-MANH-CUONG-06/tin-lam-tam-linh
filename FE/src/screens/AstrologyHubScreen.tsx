@@ -52,7 +52,7 @@ export const AstrologyHubScreen: React.FC<AstrologyHubScreenProps> = ({
             </h1>
 
             <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 leading-relaxed max-w-2xl">
-              Mục này chỉ mở khi các phương pháp và nguồn tư liệu được thẩm định. Ứng dụng không dùng ngày sinh hoặc diện mạo để kết luận tính cách hay dự đoán tương lai.
+              Mục này chỉ mở sau khi phương pháp được thẩm định. Ứng dụng không dùng ngày sinh hoặc diện mạo để kết luận tính cách hay dự đoán tương lai.
             </p>
 
           </div>
@@ -65,7 +65,7 @@ export const AstrologyHubScreen: React.FC<AstrologyHubScreenProps> = ({
           </div>
           <h2 className="mb-2 font-display text-xl font-bold text-ink">Không tính lá số hoặc đọc tướng</h2>
           <p className="max-w-3xl text-sm leading-relaxed text-muted">
-            Các màn hình lá số 12 cung và nhân tướng chưa có phương pháp, nguồn tư liệu và kiểm định phù hợp để phát hành. Ứng dụng sẽ không tạo kết quả minh họa như thể đó là luận giải thật.
+            Các màn hình lá số 12 cung và nhân tướng chưa có phương pháp và quy trình kiểm định phù hợp để phát hành. Ứng dụng sẽ không tạo kết quả minh họa như thể đó là luận giải thật.
           </p>
         </Card>
         {/* Ethical Standards Footer */}
@@ -76,7 +76,7 @@ export const AstrologyHubScreen: React.FC<AstrologyHubScreenProps> = ({
           </div>
 
           <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed mb-3">
-            Nội dung liên quan chỉ được mở khi có nguồn tư liệu, quy trình biên tập và giới hạn sử dụng rõ ràng. Chúng tôi cam kết:
+            Nội dung liên quan chỉ được mở khi có quy trình biên tập và giới hạn sử dụng rõ ràng. Chúng tôi cam kết:
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">

@@ -10,7 +10,6 @@ import {
   Flower2,
   ShieldCheck,
   BookOpen,
-  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
@@ -183,7 +182,7 @@ export const GoodDayScreen: React.FC<GoodDayScreenProps> = ({
         <section role="status" className="mb-8 rounded-2xl border border-line bg-surface p-5 sm:p-6">
           <h2 className="font-display text-lg font-bold text-ink mb-2">Tra cứu ngày cát lành đang được hoàn thiện</h2>
           <p className="text-sm leading-relaxed text-muted">
-            Ứng dụng chưa có bộ dữ liệu phong tục đủ nguồn và được thẩm định để gợi ý ngày tốt, giờ tốt theo từng việc. Vì vậy, trang này không xếp ngày thành tốt hoặc xấu. Bạn có thể xem lịch âm/dương và tự lưu ngày dự định vào lịch cá nhân.
+            Trang này không xếp ngày thành tốt hoặc xấu. Bạn có thể xem lịch âm/dương và tự lưu ngày dự định vào lịch cá nhân.
           </p>
           <Button type="button" variant="outline" className="mt-4" onClick={onGoToCalendar}>
             Mở lịch âm dương
@@ -204,15 +203,6 @@ export const GoodDayScreen: React.FC<GoodDayScreenProps> = ({
                   Dữ liệu tra theo ngày dương lịch; không phải đánh giá ngày tốt/xấu cho việc cụ thể.
                 </p>
               </div>
-              <a
-                href="https://xemamlich.uhm.vn/vncal.html"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-800 underline underline-offset-4 dark:text-amber-300"
-              >
-                Tham khảo phương pháp lịch Việt
-                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-              </a>
             </div>
             <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-xl border border-line bg-surface p-3">

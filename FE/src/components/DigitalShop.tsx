@@ -10,7 +10,8 @@ import {
 type ItemCode =
   | "ROYAL_LANTERN"
   | "GOLDEN_LOTUS"
-  | "INCENSE_BURNER";
+  | "INCENSE_BURNER"
+  | "BOILED_CHICKEN";
 
 interface Item {
   code: ItemCode;
@@ -50,6 +51,7 @@ const itemCodes: ItemCode[] = [
   "ROYAL_LANTERN",
   "GOLDEN_LOTUS",
   "INCENSE_BURNER",
+  "BOILED_CHICKEN",
 ];
 
 function readAttempt(key: string): Attempt | null {
@@ -89,6 +91,7 @@ function readAttempt(key: string): Attempt | null {
 }
 
 export function DigitalShop({ email }: { email?: string }) {
+  const demoMode = isDemoMode();
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
   const [ownedCodes, setOwnedCodes] = useState<string[]>([]);
@@ -125,18 +128,19 @@ export function DigitalShop({ email }: { email?: string }) {
       try {
         if (isDemoMode()) {
           const nextCatalog: Catalog = {
-            checkoutAvailable: false,
+            checkoutAvailable: true,
             currency: "VND",
             items: [
-              { code: "ROYAL_LANTERN", name: "Đèn Tâm An", kind: "PERMANENT", description: "Vật phẩm thắp sáng góc tưởng niệm trong không gian demo.", price: 49000, quantity: 1 },
+              { code: "ROYAL_LANTERN", name: "Đèn Tâm An", kind: "PERMANENT", description: "Vật phẩm trang trí không gian 3D.", price: 49000, quantity: 1 },
               { code: "GOLDEN_LOTUS", name: "Sen vàng", kind: "PERMANENT", description: "Biểu tượng thanh tịnh để trang trí bàn thờ ảo.", price: 39000, quantity: 1 },
               { code: "INCENSE_BURNER", name: "Nén hương thành tâm", kind: "CONSUMABLE", description: "Vật phẩm dâng hương dùng thử trong bản demo.", price: 9000, quantity: 5 },
+              { code: "BOILED_CHICKEN", name: "Gà luộc mâm lễ", kind: "PERMANENT", description: "Mô hình gà luộc; sau khi mua, bạn chủ động chọn bày trên bàn thờ.", price: 10000, quantity: 1 },
             ],
           };
           const owned = readDemoValue<string[]>("owned-items", ["ROYAL_LANTERN"]);
           setOwnedCodes(owned);
           setCatalog(nextCatalog);
-          setMessage("Danh mục và vật phẩm mẫu chỉ lưu trên trình duyệt; thanh toán thật đang tắt.");
+          setMessage("Chế độ demo: thao tác mua chỉ lưu vật phẩm trên trình duyệt, không phát sinh thanh toán thật.");
           return;
         }
         const nextCatalog = await apiRequest<Catalog>("/shop");
@@ -276,8 +280,7 @@ export function DigitalShop({ email }: { email?: string }) {
     if (
       lockRef.current ||
       loading ||
-      !email ||
-      !storageKey ||
+      (!demoMode && (!email || !storageKey)) ||
       !catalog?.checkoutAvailable ||
       !selected ||
       selectedOwned ||
@@ -293,6 +296,22 @@ export function DigitalShop({ email }: { email?: string }) {
     const version = versionRef.current;
 
     try {
+      if (demoMode) {
+        const owned = readDemoValue<string[]>("owned-items", ["ROYAL_LANTERN"]);
+        if (!owned.includes(selected.code)) {
+          const nextOwned = [...owned, selected.code];
+          writeDemoValue("owned-items", nextOwned);
+          setOwnedCodes(nextOwned);
+          window.dispatchEvent(new Event("tltl-demo-inventory-change"));
+        }
+        setMessage(`Đã mô phỏng mua ${selected.name}. Vật phẩm đã vào kho demo; không có thanh toán thật.`);
+        return;
+      }
+
+      if (!storageKey) {
+        throw new Error("Hãy đăng nhập để mua và lưu vật phẩm vào kho tài khoản.");
+      }
+
       let attempt = attemptRef.current;
 
       if (!attempt || mayReplaceExpired) {
@@ -601,7 +620,7 @@ export function DigitalShop({ email }: { email?: string }) {
         </div>
       )}
 
-      {catalog && !catalog.checkoutAvailable && (
+      {catalog && !catalog.checkoutAvailable && !demoMode && (
         <p className="mt-3 text-sm text-muted">
           Cửa hàng chưa mở thanh toán.
         </p>
@@ -661,13 +680,13 @@ export function DigitalShop({ email }: { email?: string }) {
         </div>
       )}
 
-      {!email && (
+      {!email && !demoMode && (
         <p className="mt-3 text-sm">
           Đăng nhập để mua và kiểm tra kho của tài khoản.
         </p>
       )}
 
-      {email && catalog?.checkoutAvailable && (
+      {(email || demoMode) && catalog?.checkoutAvailable && (
         <button
           type="button"
           className={`${buttonClass} mt-4`}
@@ -684,6 +703,8 @@ export function DigitalShop({ email }: { email?: string }) {
             ? "Đang mở thanh toán…"
             : selectedOwned
               ? "Đã sở hữu vật phẩm"
+            : demoMode
+              ? "Mô phỏng mua (không thanh toán)"
               : resumable
                 ? "Mở lại thanh toán đơn hiện tại"
                 : orderBlocksPurchase

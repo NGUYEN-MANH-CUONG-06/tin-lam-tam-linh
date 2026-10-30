@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { UnverifiedImage } from "../components/UnverifiedImage";
 import {
   ArrowLeft,
   ArrowRight,
@@ -26,9 +25,7 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
 import { AppDialog } from "../components/AppDialog";
-import { ContentProvenance } from "../components/ContentProvenance";
 import {
-  RegionType,
   TopicType,
   XinXamResult,
   XIN_XAM_TOPICS,
@@ -72,7 +69,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
   savedXamList,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [selectedRegion, setSelectedRegion] = useState<RegionType>("Bắc Bộ");
+  const selectedRegion = "Toàn quốc" as const;
   const [selectedTopic, setSelectedTopic] = useState<TopicType>("Bình an");
 
   const [availability, setAvailability] =
@@ -96,7 +93,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
     setAvailabilityError("");
 
     void loadXinXamAvailability(
-      selectedRegion,
+      "Toàn quốc",
       selectedTopic,
       { signal: controller.signal },
     )
@@ -108,7 +105,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
         if (!active) return;
 
         setAvailabilityError(
-          "Chưa kiểm tra được thư viện thẻ. Bạn hãy kiểm tra kết nối rồi thử lại.",
+          "Chưa kết nối được. Bạn hãy kiểm tra mạng rồi thử lại.",
         );
       })
       .finally(() => {
@@ -122,13 +119,12 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
       controller.abort();
     };
   }, [
-    selectedRegion,
     selectedTopic,
     availabilityAttempt,
   ]);
 
   const availabilityMatchesSelection =
-    availability?.region === selectedRegion &&
+    availability?.region === "Toàn quốc" &&
     availability?.topic === selectedTopic;
 
   const canContinueDraw =
@@ -207,7 +203,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
     setIsActionDone(false);
     setSaveError("");
     setDrawNotice("");
-  }, [selectedRegion, selectedTopic]);
+  }, [selectedTopic]);
 
   // Rời bước rút: không nhận thêm phản hồi của lượt đang chạy.
   // Giữ currentResult để bước 3 vẫn đọc được kết quả đã nhận.
@@ -285,7 +281,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
           ? "Máy chủ phản hồi chậm. Chưa có kết quả được xác nhận để hiển thị. Bạn có thể thử lại."
           : error instanceof ApiError &&
               error.status === 404
-            ? "Hiện chưa có thẻ đủ điều kiện phát hành cho lựa chọn này."
+            ? "Chủ đề này hiện chưa mở được. Bạn có thể thử lại sau."
             : "Chưa lấy được thẻ. Bạn hãy kiểm tra kết nối rồi thử lại.",
       );
 
@@ -333,7 +329,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
 
     if (!publishable) {
       setDrawNotice(
-        "Thẻ nhận được chưa đủ điều kiện phát hành nên chưa được hiển thị.",
+        "Lượt xin xăm chưa thể hoàn tất. Bạn hãy thử lại sau.",
       );
 
       setIsRequestingDraw(false);
@@ -351,8 +347,8 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
       verified: remote.verified,
       stickNumber: remote.stickNumber,
 
-      region: selectedRegion,
-      regionSub: selectedRegion,
+      region: remote.region as XinXamResult["region"],
+      regionSub: remote.region,
       topic: selectedTopic,
       topicTag: remote.category || selectedTopic,
 
@@ -385,7 +381,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                 title: "Thành ngữ hoặc tục ngữ đi cùng thẻ",
                 desc:
                   `“${remote.proverb.content}” — ` +
-                  `${remote.proverb.meaning} (Nguồn: VIVID)`,
+                  remote.proverb.meaning,
               },
             ]
           : []),
@@ -557,47 +553,29 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
             role="status"
             className="mb-5 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-muted"
           >
-            Đang lấy thẻ từ thư viện…
+            Đang chuẩn bị trải nghiệm…
           </p>
         )}
-        {step === 1 && (
-          <section
-            aria-label="Trạng thái thư viện thẻ"
-            className="mb-5 rounded-xl border border-line bg-surface p-4"
-          >
-            <p
-              role={availabilityError ? "alert" : "status"}
-              className="text-sm leading-relaxed text-muted"
+        {step === 1 && availabilityError && (
+          <p role="alert" className="mb-5 text-sm leading-relaxed text-danger">
+            {availabilityError}
+            <button
+              type="button"
+              className="ml-2 font-semibold underline underline-offset-2"
+              onClick={() => setAvailabilityAttempt((value) => value + 1)}
             >
-              {availabilityLoading || (
-                !availabilityError &&
-                !availabilityMatchesSelection
-              )
-                ? "Đang kiểm tra thư viện cho lựa chọn của bạn…"
-                : availabilityError
-                  ? availabilityError
-                  : canContinueDraw
-                    ? `Có ${availability?.count} thẻ đủ điều kiện phát hành cho ${selectedRegion} · ${selectedTopic}.`
-                    : `Chưa có thẻ được phát hành cho ${selectedRegion} · ${selectedTopic}. Bạn có thể chọn vùng hoặc chủ đề khác.`}
-            </p>
-
-            {!availabilityLoading && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setAvailabilityAttempt((value) => value + 1)}
-                >
-                  Kiểm tra lại thư viện
-                </Button>
-                {!isDemoMode() && (availabilityError || availability?.available !== true || availability.count === 0) && (
-                  <Button type="button" onClick={enterDemoMode}>
-                    Chuyển sang dữ liệu demo
-                  </Button>
-                )}
-              </div>
+              Thử lại
+            </button>
+            {!isDemoMode() && (
+              <button
+                type="button"
+                className="ml-3 font-semibold underline underline-offset-2"
+                onClick={enterDemoMode}
+              >
+                Mở bản demo
+              </button>
             )}
-          </section>
+          </p>
         )}
         {saveError && (
           <p
@@ -656,82 +634,14 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                 Chọn một điều bạn muốn chiêm nghiệm
               </h1>
               <p className="text-sm sm:text-base text-muted leading-relaxed max-w-2xl">
-                Chọn vùng miền và một chủ đề để tìm thẻ chiêm nghiệm đã qua
-                biên tập. Nội dung không phải dự báo tương lai.
+                Chọn một điều bạn muốn chiêm nghiệm. Các quẻ được gom trong một không gian chung, không phân chia theo vùng miền.
               </p>
             </div>
 
-            {/* Section 1: Chọn không gian văn hóa gợi mở */}
+            {/* Chọn chủ đề bạn đang lắng đọng */}
             <fieldset className="min-w-0 mb-6">
               <legend className="mb-3 font-display text-xl font-semibold text-ink">
-                1. Chọn vùng miền
-              </legend>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {(
-                  [
-                    {
-                      value: "Bắc Bộ",
-                      image: "/images/temple_bac_bo.jpg",
-                      description: "Không gian đình, đền miền Bắc",
-                    },
-                    {
-                      value: "Trung Bộ",
-                      image: "/images/hue_trung_bo.jpg",
-                      description: "Sắc thái Huế và miền Trung",
-                    },
-                    {
-                      value: "Nam Bộ",
-                      image: "/images/mekong_nam_bo.jpg",
-                      description: "Không gian sông nước phương Nam",
-                    },
-                  ] satisfies {
-                    value: RegionType;
-                    image: string;
-                    description: string;
-                  }[]
-                ).map((region) => (
-                  <label
-                    key={region.value}
-                    className={`flex cursor-pointer items-center gap-3 rounded-card border p-3 focus-within:ring-2 focus-within:ring-accent ${
-                      selectedRegion === region.value
-                        ? "border-accent bg-accent-soft"
-                        : "border-line bg-surface"
-                    }`}
-                  >
-                    <UnverifiedImage
-                      src={region.image}
-                      alt=""
-                      className="h-16 w-20 shrink-0 rounded-panel object-cover"
-                    />
-
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-base font-semibold text-ink">
-                        {region.value}
-                      </span>
-
-                      <span className="mt-1 block text-sm text-muted leading-relaxed">
-                        {region.description}
-                      </span>
-                    </span>
-
-                    <input
-                      type="radio"
-                      name="xam-region"
-                      value={region.value}
-                      checked={selectedRegion === region.value}
-                      onChange={() => setSelectedRegion(region.value)}
-                      className="h-5 w-5 shrink-0 accent-action"
-                    />
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            {/* Section 2: Chọn chủ đề bạn đang lắng đọng */}
-            <fieldset className="min-w-0 mb-6">
-              <legend className="mb-3 font-display text-xl font-semibold text-ink">
-                2. Chọn điều bạn muốn chiêm nghiệm
+                Chọn điều bạn muốn chiêm nghiệm
               </legend>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -772,7 +682,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                 <div className="text-lg font-bold text-ink mb-1 font-display">
                   Bạn đã chọn:{" "}
                   <span className="text-accent">
-                    {selectedRegion} • {selectedTopic}
+                    {selectedTopic}
                   </span>
                 </div>
                 <div className="text-xs text-muted italic">
@@ -815,14 +725,32 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
               </div>
             </Card>
 
+            {!availabilityLoading &&
+              !availabilityError &&
+              availabilityMatchesSelection &&
+              !canContinueDraw && (
+                <p role="status" className="mb-5 text-sm text-muted">
+                  Chủ đề này hiện chưa mở được. Hãy chọn một chủ đề khác để tiếp tục.
+                  {!isDemoMode() && (
+                    <button
+                      type="button"
+                      className="ml-2 font-semibold text-accent underline underline-offset-2"
+                      onClick={enterDemoMode}
+                    >
+                      Mở bản demo
+                    </button>
+                  )}
+                </p>
+              )}
+
             {/* Editorial Principle Disclaimer */}
             <div className="p-5 rounded-panel bg-surface border border-line flex items-start gap-3.5 text-xs text-muted leading-relaxed mb-12">
               <Info className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
               <div>
                 <div className="font-bold text-accent uppercase tracking-wider mb-1">
-                  GHI CHÚ VĂN HÓA & NGUYÊN TẮC TRẢI NGHIỆM
+                  LỜI NHẮC KHI CHIÊM NGHIỆM
                 </div>
-                <p>Thẻ chỉ hiển thị khi nội dung có nguồn và đã được duyệt. Lời quẻ là tư liệu tham khảo, không dự báo tương lai hoặc thay thế quyết định cá nhân.</p>
+                <p>Lời quẻ là gợi ý văn hóa để suy ngẫm, không dự báo tương lai hoặc thay thế quyết định cá nhân.</p>
               </div>
             </div>
           </div>
@@ -851,8 +779,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
               <div className="flex items-center gap-1.5 uppercase font-semibold text-xs text-muted">
                 <span className="w-2 h-2 rounded-full bg-action inline-block"></span>
                 <span>
-                  BƯỚC 2 / 3 • LẮNG ĐỘNG RÚT THẺ – {selectedRegion.toUpperCase()} &{" "}
-                  {selectedTopic.toUpperCase()}
+                  BƯỚC 2 / 3 • LẮNG ĐỘNG RÚT THẺ – {selectedTopic.toUpperCase()}
                 </span>
               </div>
             </div>
@@ -862,7 +789,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
               <div className="flex items-center gap-2">
                 <Flower2 className="w-3.5 h-3.5 text-accent" />
                 <span>
-                  Đang xin xăm cho tâm: <strong className="text-ink">{selectedTopic}</strong> • Vùng đất: <strong className="text-ink">{selectedRegion}</strong>
+                  Đang xin xăm cho tâm: <strong className="text-ink">{selectedTopic}</strong>
                 </span>
               </div>
 
@@ -1246,8 +1173,6 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                   Xin xăm
                 </button>
                 <span>›</span>
-                <span>{selectedRegion}</span>
-                <span>›</span>
                 <span className="text-ink font-semibold">{selectedTopic}</span>
               </div>
               <div className="flex items-center gap-1.5 uppercase font-medium text-xs text-muted">
@@ -1287,17 +1212,11 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                         <span className="w-1.5 h-1.5 rounded-full bg-accent-soft" />
                         <span className="w-1.5 h-1.5 rounded-full bg-action" />
                       </span>
-                      <span>
-                        {selectedRegion === "Bắc Bộ"
-                          ? "BẮC TRẦM"
-                          : selectedRegion === "Trung Bộ"
-                          ? "HUẾ TỊCH"
-                          : "NAM HÀO"}
-                      </span>
+                      <span>CHIÊM NGHIỆM</span>
                     </div>
 
                     <div className="text-xs font-bold uppercase tracking-widest text-accent mb-1">
-                      THẺ SỐ {currentResult.stickNumber} • {selectedRegion.toUpperCase()}
+                      THẺ SỐ {currentResult.stickNumber}
                     </div>
 
                     <h2 className="section-title text-xl sm:text-2xl leading-snug mb-8 text-ink">
@@ -1340,52 +1259,9 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                   </div>
                 </div>
 
-                {/* Subtle download / share action below slip */}
-                <div className="flex items-center justify-between px-2 text-xs text-muted">
-                  <span className="italic">Di sản xăm tre văn hóa dân gian</span>
-                  <button
-                    type="button"
-                    onClick={handleSaveResult}
-                    disabled={isCardSaved}
-                    className="min-h-11 text-accent hover:text-action font-semibold flex items-center gap-2 cursor-pointer transition-colors disabled:cursor-default disabled:opacity-70"
-                    title="Lưu thẻ vào Góc của tôi"
-                  >
-                    <Bookmark className="w-4 h-4" aria-hidden="true" />
-                    <span>
-                      {isCardSaved
-                        ? "Đã lưu thẻ"
-                        : isLoggedIn
-                          ? "Lưu vào Góc của tôi"
-                          : "Đăng nhập để lưu"}
-                    </span>
-                  </button>
-                  {isLoggedIn && currentDrawId && onGoToXinKeo && (
-                    <button
-                      type="button"
-                      onClick={() => onGoToXinKeo(currentDrawId)}
-                      className="min-h-11 text-accent hover:text-action font-semibold"
-                    >
-                      Nối quẻ với xin keo
-                    </button>
-                  )}
-                </div>
-                {currentResult.source && (
-                  <div className="px-2 text-xs text-muted space-y-1">
-                    <p>
-                      {currentResult.verified
-                        ? "Thông tin đã đối chiếu nguồn tham khảo."
-                        : "Hệ tham khảo CTC (Hong Kong); diễn giải tiếng Việt chưa được thẩm định."}
-                    </p>
-                    <a
-                      href={currentResult.source}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline underline-offset-2 hover:text-action"
-                    >
-                      Mở bản ghi nguồn
-                    </a>
-                  </div>
-                )}
+                <p className="px-2 text-xs text-muted italic">
+                  Di sản xăm tre văn hóa dân gian
+                </p>
               </div>
 
               {/* Right Column (7 columns): Seamless Literary Essay (No 4 box cards) */}
@@ -1499,21 +1375,6 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
 
                 <div className="w-full h-px bg-line/60" />
 
-                <details className="group rounded-card border border-line bg-surface p-4">
-                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-control text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent [&::-webkit-details-marker]:hidden">
-                    <span>Nguồn và trạng thái bộ thẻ</span>
-
-                    <ChevronDown
-                      aria-hidden="true"
-                      className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180 motion-reduce:transition-none"
-                    />
-                  </summary>
-
-                  <div className="mt-4">
-                    <ContentProvenance metadata={currentResult.metadata} />
-                  </div>
-                </details>
-
                 {/* Góc nhìn văn hóa chỉ hiện khi được biên tập trong dữ liệu phát hành. */}
                 {currentResult.culturalAspect && (
                 <details className="group rounded-card border border-line bg-surface p-4">
@@ -1535,46 +1396,62 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                 </details>
                 )}
 
-                {/* Final Primary Action Buttons (Clear, decisive focal point) */}
-                <div className="pt-6 border-t border-line flex flex-col sm:flex-row items-center gap-3">
-                  <Button
-                    variant="default"
-                    size="lg"
-                    onClick={handleSaveResult}
-                    disabled={isCardSaved}
-                    className="w-full sm:w-auto px-7 py-3 font-semibold gap-2 shadow-sm cursor-pointer"
-                  >
-                    <Bookmark className="w-4 h-4" />
-                    <span>
-                      {isCardSaved
-                        ? "Đã lưu thẻ"
-                        : isLoggedIn
-                          ? "Lưu vào Góc của tôi"
-                          : "Đăng nhập để lưu"}
-                    </span>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => {
-                      setStep(1);
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="w-full sm:w-auto px-6 py-3 gap-2 border-line text-ink cursor-pointer"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    <span>Chọn lại vùng hoặc chủ đề</span>
-                  </Button>
-
-                  {onGoToExplore && (
-                    <button
-                      onClick={onGoToExplore}
-                      className="text-xs font-medium text-muted hover:text-accent flex items-center gap-1 sm:ml-auto cursor-pointer transition-colors py-2"
+                <div className="space-y-3 border-t border-line pt-5">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <Button
+                      variant="default"
+                      size="lg"
+                      onClick={handleSaveResult}
+                      disabled={isCardSaved}
+                      className="w-full min-w-0 whitespace-nowrap px-4 font-semibold shadow-sm"
                     >
-                      <span>Khám phá văn hóa Ba Miền</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </button>
+                      <Bookmark className="h-4 w-4" aria-hidden="true" />
+                      <span>
+                        {isCardSaved
+                          ? "Đã lưu thẻ"
+                          : isLoggedIn
+                            ? "Lưu vào Góc của tôi"
+                            : "Đăng nhập để lưu"}
+                      </span>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => {
+                        setStep(1);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="w-full min-w-0 whitespace-nowrap px-4 text-ink"
+                    >
+                      <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                      <span>Chọn lại chủ đề</span>
+                    </Button>
+                  </div>
+
+                  {(isLoggedIn && currentDrawId && onGoToXinKeo || onGoToExplore) && (
+                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                      {isLoggedIn && currentDrawId && onGoToXinKeo && (
+                        <button
+                          type="button"
+                          onClick={() => onGoToXinKeo(currentDrawId)}
+                          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent hover:text-action"
+                        >
+                          <Waves className="h-4 w-4" aria-hidden="true" />
+                          Nối quẻ với xin keo
+                        </button>
+                      )}
+                      {onGoToExplore && (
+                        <button
+                          type="button"
+                          onClick={onGoToExplore}
+                          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-muted hover:text-accent"
+                        >
+                          Khám phá văn hóa
+                          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

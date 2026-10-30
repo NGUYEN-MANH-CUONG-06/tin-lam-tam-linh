@@ -27,7 +27,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex max-w-full items-center justify-center gap-2 whitespace-normal text-center rounded-control text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer touch-manipulation [&>svg]:shrink-0";
+      "inline-flex max-w-full items-center justify-center gap-2 whitespace-normal text-center rounded-control text-base font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer touch-manipulation [&>svg]:shrink-0";
 
     const variantStyles: Record<string, string> = {
       default: "border border-action bg-action text-on-action hover:bg-action-hover hover:border-action-hover",
@@ -41,11 +41,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizeStyles: Record<string, string> = {
-      default: "min-h-11 px-5 py-2.5",
-      sm: "min-h-11 rounded-control px-3.5 text-sm",
-      lg: "min-h-12 rounded-control px-6 text-base",
-      pill: "min-h-11 rounded-control px-4 text-sm",
-      icon: "h-11 w-11 rounded-full p-0",
+      default: "min-h-12 rounded-control px-6 py-3",
+      sm: "min-h-11 rounded-control px-4 text-sm",
+      lg: "min-h-[3.25rem] rounded-control px-7 text-lg",
+      pill: "min-h-12 rounded-control px-5",
+      icon: "h-12 w-12 rounded-full p-0",
     };
 
     return (

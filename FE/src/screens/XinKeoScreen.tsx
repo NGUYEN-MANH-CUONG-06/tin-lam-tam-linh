@@ -991,14 +991,6 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                       </strong>
                       <blockquote>“{castResult.proverb.content}”</blockquote>
                       <p className="mt-1 text-muted">{castResult.proverb.meaning}</p>
-                      <a
-                        href={castResult.proverb.source.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-block mt-2 text-xs text-accent underline"
-                      >
-                        Nguồn VIVID
-                      </a>
                     </div>
                   )}
                 </div>

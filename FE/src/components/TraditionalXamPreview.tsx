@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { ContentProvenance } from "./ContentProvenance";
 import {
   TRADITIONAL_XAM_COLLECTIONS,
   TRADITIONAL_XAM_STICKS,
@@ -124,7 +123,7 @@ export function TraditionalXamPreview() {
           </div>
 
           <p className="mt-4 text-xs text-muted">
-            Đối chiếu câu chữ theo nguồn được dẫn bên dưới.
+            Lời chiêm nghiệm được trình bày riêng với nguyên văn.
           </p>
         </section>
 
@@ -141,9 +140,6 @@ export function TraditionalXamPreview() {
                 ))}
               </div>
 
-              <p className="mt-4 text-xs text-muted leading-relaxed">
-                {stick.translation.attribution}
-              </p>
             </>
           ) : (
             <p className="text-sm text-muted">
@@ -167,12 +163,7 @@ export function TraditionalXamPreview() {
             {stick.culturalContext.description}
           </p>
 
-          <p className="mt-3 text-xs leading-relaxed text-muted">
-            Vị trí đối chiếu: {stick.culturalContext.sourceLocator}
-          </p>
-
           <p className="mt-2 text-xs text-muted">
-            Nguồn được dẫn ở phần “Nguồn nguyên văn” bên dưới.
             Nội dung đang trong quá trình hoàn thiện biên tập.
           </p>
         </section>
@@ -211,25 +202,6 @@ export function TraditionalXamPreview() {
         </p>
       </section>
 
-      <section className="space-y-3 border-t border-line pt-4">
-        <h4 className="text-sm font-semibold text-ink">
-          Nguồn nguyên văn
-        </h4>
-
-        <ContentProvenance metadata={stick.metadata} />
-      </section>
-
-      {stick.translation && (
-        <section className="space-y-3 border-t border-line pt-4">
-          <h4 className="text-sm font-semibold text-ink">
-            Trạng thái bản dịch
-          </h4>
-
-          <ContentProvenance
-            metadata={stick.translation.metadata}
-          />
-        </section>
-      )}
     </div>
   );
 }

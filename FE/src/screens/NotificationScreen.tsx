@@ -1,9 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import {
   ArrowLeft,
-  Heart,
-  Plus,
-  Trash2,
   CheckCircle2,
   Clock,
   Flower2,
@@ -16,22 +13,12 @@ import {
   getStorageKey,
   loadSettings,
   type ReminderSettings,
-  type AnniversaryCalendar,
-  type LeapPolicy,
-  type MissingDayPolicy,
 } from "../data/reminderData";
 import {
-  MEMORIAL_PROFILES_CHANGED_EVENT,
   REMINDERS_CHANGED_EVENT,
   useReminderOverview,
 } from "../hooks/useReminderOverview";
 import { useReminderSettings } from "../hooks/useReminderSettings";
-import {
-  createMemorialProfile,
-  deleteMemorialAnniversary,
-  loadMemorialProfiles,
-  type MemorialProfile,
-} from "../data/memoryService";
 
 interface NotificationScreenProps {
   currentUserEmail?: string;
@@ -46,42 +33,10 @@ export function NotificationScreen({
 }: NotificationScreenProps) {
   const settings = useReminderSettings(currentUserEmail);
 
-  const [name, setName] = useState("");
-  const [dateInput, setDateInput] = useState("");
-  const [calendar, setCalendar] = useState<AnniversaryCalendar>("lunar");
-
-  const [lunarDay, setLunarDay] = useState(1);
-  const [lunarMonth, setLunarMonth] = useState(1);
-
-  const [leapPolicy, setLeapPolicy] = useState<LeapPolicy>("regular");
-  const [missingDayPolicy, setMissingDayPolicy] = useState<MissingDayPolicy>("last-day");
-
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [savedProfiles, setSavedProfiles] = useState<MemorialProfile[]>([]);
-  const [savingAnniversary, setSavingAnniversary] = useState(false);
-  const [migratingAnniversaries, setMigratingAnniversaries] = useState(false);
-  const migrationLock = useRef(false);
-  const [deletingAnniversaryId, setDeletingAnniversaryId] = useState<string | null>(null);
 
-  const {
-    upcoming,
-    loading: remindersLoading,
-    loadError: remindersLoadError,
-    retry: retryReminders,
-  } = useReminderOverview(currentUserEmail);
-
-  useEffect(() => {
-    let active = true;
-    if (!currentUserEmail) {
-      setSavedProfiles([]);
-      return () => { active = false; };
-    }
-    loadMemorialProfiles()
-      .then((profiles) => { if (active) setSavedProfiles(profiles); })
-      .catch(() => { if (active) setError("Chưa tải được ngày giỗ đã lưu trên tài khoản."); });
-    return () => { active = false; };
-  }, [currentUserEmail]);
+  const { upcoming } = useReminderOverview(currentUserEmail);
 
   const commit = (
     update: (latest: ReminderSettings) => ReminderSettings
@@ -110,157 +65,6 @@ export function NotificationScreen({
     window.dispatchEvent(new Event(REMINDERS_CHANGED_EVENT));
     setNotice("Đã lưu thay đổi nếp nhà thành công.");
     return true;
-  };
-
-  const addAnniversary = async () => {
-    setError("");
-    setNotice("");
-
-    const cleanName = name.trim();
-
-    if (!cleanName || cleanName.length > 80) {
-      setError("Nhập tên người tưởng nhớ, tối đa 80 ký tự.");
-      return;
-    }
-
-    let itemDay: number;
-    let itemMonth: number;
-    let itemYear: number | undefined;
-
-    if (calendar === "solar") {
-      const parts = dateInput.split("-").map(Number);
-      if (parts.length !== 3) {
-        setError("Vui lòng chọn ngày dương lịch hợp lệ.");
-        return;
-      }
-      itemYear = parts[0];
-      itemMonth = parts[1];
-      itemDay = parts[2];
-    } else {
-      itemDay = lunarDay;
-      itemMonth = lunarMonth;
-    }
-
-    const newItem = {
-      id: crypto.randomUUID(),
-      name: cleanName,
-      calendar,
-      day: itemDay,
-      month: itemMonth,
-      year: itemYear,
-      leapPolicy,
-      missingDayPolicy,
-    };
-
-    if (currentUserEmail) {
-      setSavingAnniversary(true);
-      try {
-        const profile = await createMemorialProfile({
-          fullName: cleanName,
-          relationship: "Người thân",
-          deathDate: calendar === "solar" ? dateInput : null,
-          anniversary: {
-            calendar: calendar === "solar" ? "SOLAR" : "LUNAR",
-            day: itemDay,
-            month: itemMonth,
-            year: itemYear,
-            repeatYearly: true,
-          },
-        });
-        setSavedProfiles((profiles) => [profile, ...profiles]);
-        window.dispatchEvent(new Event(MEMORIAL_PROFILES_CHANGED_EVENT));
-        setNotice("Đã lưu ngày giỗ vào tài khoản. Worker có thể gửi nhắc đẩy khi push được cấu hình và bật.");
-        setName("");
-        setDateInput("");
-      } catch {
-        setError("Chưa lưu được ngày giỗ vào tài khoản. Hãy kiểm tra kết nối rồi thử lại.");
-      } finally {
-        setSavingAnniversary(false);
-      }
-      return;
-    }
-
-    const saved = commit((latest) => ({ ...latest, anniversaries: [newItem, ...latest.anniversaries] }));
-
-    if (saved) {
-      setName("");
-      setDateInput("");
-    }
-  };
-
-  const removeSavedAnniversary = async (profileId: string, anniversaryId: string) => {
-    setError("");
-    setNotice("");
-    setDeletingAnniversaryId(anniversaryId);
-    try {
-      await deleteMemorialAnniversary(profileId, anniversaryId);
-      setSavedProfiles((profiles) => profiles.map((profile) => profile.id === profileId
-        ? { ...profile, anniversaries: profile.anniversaries.filter((anniversary) => anniversary.id !== anniversaryId) }
-        : profile));
-      window.dispatchEvent(new Event(MEMORIAL_PROFILES_CHANGED_EVENT));
-      setNotice("Đã xóa ngày giỗ khỏi tài khoản.");
-    } catch {
-      setError("Chưa xóa được ngày giỗ. Hãy thử lại.");
-    } finally {
-      setDeletingAnniversaryId(null);
-    }
-  };
-
-  const migrateLocalAnniversaries = async () => {
-    if (!currentUserEmail || migrationLock.current || !settings.anniversaries.length) return;
-    migrationLock.current = true;
-    setMigratingAnniversaries(true);
-    setError("");
-    setNotice("");
-    const movedIds = new Set<string>();
-    let profiles = savedProfiles;
-    let failed = 0;
-    try {
-      profiles = await loadMemorialProfiles();
-      for (const item of settings.anniversaries) {
-        const calendar = item.calendar === "lunar" ? "LUNAR" : "SOLAR";
-        const alreadySaved = profiles.some((profile) =>
-          profile.fullName.trim().toLocaleLowerCase() === item.name.trim().toLocaleLowerCase() &&
-          profile.anniversaries.some((anniversary) => anniversary.calendar === calendar && anniversary.day === item.day && anniversary.month === item.month)
-        );
-        if (alreadySaved) {
-          movedIds.add(item.id);
-          continue;
-        }
-        try {
-          const profile = await createMemorialProfile({
-            fullName: item.name,
-            relationship: "Người thân",
-            deathDate: calendar === "SOLAR" && item.year
-              ? `${item.year}-${String(item.month).padStart(2, "0")}-${String(item.day).padStart(2, "0")}`
-              : null,
-            anniversary: { calendar, day: item.day, month: item.month, year: item.year, repeatYearly: true },
-          });
-          profiles = [profile, ...profiles];
-          movedIds.add(item.id);
-        } catch {
-          failed += 1;
-        }
-      }
-
-      if (movedIds.size) {
-        const latest = loadSettings(currentUserEmail);
-        localStorage.setItem(getStorageKey(currentUserEmail), JSON.stringify({
-          ...latest,
-          anniversaries: latest.anniversaries.filter((item) => !movedIds.has(item.id)),
-        }));
-        setSavedProfiles(profiles);
-        window.dispatchEvent(new Event(REMINDERS_CHANGED_EVENT));
-        window.dispatchEvent(new Event(MEMORIAL_PROFILES_CHANGED_EVENT));
-      }
-      if (failed) setError(`${failed} ngày giỗ chưa chuyển được; chúng vẫn còn lưu trên thiết bị.`);
-      if (movedIds.size) setNotice(`Đã chuyển ${movedIds.size} ngày giỗ vào tài khoản để worker có thể xử lý nhắc lịch.`);
-    } catch {
-      setError("Chưa cập nhật được dữ liệu nhắc lịch trên thiết bị. Hãy thử lại.");
-    } finally {
-      migrationLock.current = false;
-      setMigratingAnniversaries(false);
-    }
   };
 
   return (
@@ -292,19 +96,19 @@ export function NotificationScreen({
           <div className="relative z-10 space-y-3">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-bold uppercase tracking-widest text-amber-800 dark:text-amber-300">
-                CHUÔNG NHẮC NẾP NHÀ & DẤU MỐC TƯỞNG NHỚ
+                CHUÔNG NHẮC NẾP NHÀ
               </span>
               <span className="text-xs text-stone-400">·</span>
               <span className="text-xs text-stone-500">Giữ Gìn Đạo Hiếu</span>
             </div>
 
             <h1 className="page-title font-display text-2xl sm:text-3xl font-bold text-ink">
-              Nhắc Lịch Nếp Nhà & Ngày Giỗ Tiên Tổ
+              Nhắc Lịch Văn Hóa & Nếp Nhà
             </h1>
 
             <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 leading-relaxed max-w-2xl">
-              “Chim có tổ, người có tông”. Đặt lời nhắc những dịp sóc vọng, ngày giỗ chạp và tiết lễ quan trọng
-              để gia đình chủ động chuẩn bị mâm cúng thanh tịnh, nén hương thơm tưởng nhớ cội nguồn.
+              “Chim có tổ, người có tông”. Đặt lời nhắc những dịp sóc vọng và tiết lễ quan trọng
+              để gia đình chủ động chuẩn bị, gìn giữ nếp sinh hoạt văn hóa.
             </p>
           </div>
         </section>
@@ -387,210 +191,6 @@ export function NotificationScreen({
             </div>
           </section>
 
-          {/* Card 2: Thêm ngày giỗ tưởng nhớ gia tiên */}
-          <section className="p-6 rounded-3xl border border-line bg-surface shadow-xs">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-line">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-800 dark:text-amber-300">
-                  <Heart className="w-4 h-4" />
-                </div>
-                <div>
-                  <h2 className="font-display font-bold text-base sm:text-lg text-ink">
-                    Ngày Giỗ & Dấu Mốc Tưởng Nhớ
-                  </h2>
-                  <p className="text-xs text-stone-500">
-                    Ghi nhớ ngày mất của ông bà, cha mẹ theo nếp nhà
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <form
-              className="space-y-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                addAnniversary();
-              }}
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
-                <div>
-                  <label htmlFor="reminder-name" className="block font-bold uppercase text-stone-600 dark:text-stone-400 mb-1.5">
-                    1. Người tưởng nhớ:
-                  </label>
-                  <input
-                    id="reminder-name"
-                    value={name}
-                    maxLength={80}
-                    required
-                    placeholder="Ví dụ: Cụ cố nội, Ông ngoại..."
-                    onChange={(event) => setName(event.target.value)}
-                    className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold uppercase text-stone-600 dark:text-stone-400 mb-1.5">
-                    2. Loại lịch gia đình áp dụng:
-                  </label>
-                  <select
-                    value={calendar}
-                    onChange={(event) =>
-                      setCalendar(
-                        event.target.value === "solar" ? "solar" : "lunar"
-                      )
-                    }
-                    className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                  >
-                    <option value="lunar">Lịch Âm (Phong tục dân gian truyền thống)</option>
-                    <option value="solar">Lịch Dương</option>
-                  </select>
-                </div>
-              </div>
-
-              {calendar === "solar" ? (
-                <div>
-                  <label htmlFor="reminder-date" className="block text-xs font-bold uppercase text-stone-600 dark:text-stone-400 mb-1.5">
-                    Ngày mất (Dương lịch):
-                  </label>
-                  <input
-                    id="reminder-date"
-                    type="date"
-                    min="1900-01-01"
-                    value={dateInput}
-                    required
-                    onChange={(event) => setDateInput(event.target.value)}
-                    className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                  />
-                </div>
-              ) : (
-                <div className="p-4 rounded-2xl bg-surface-soft border border-line space-y-3 text-xs">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-semibold text-stone-600 dark:text-stone-400 mb-1">
-                        Ngày âm lịch:
-                      </label>
-                      <select
-                        value={lunarDay}
-                        onChange={(event) => setLunarDay(Number(event.target.value))}
-                        className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-ink"
-                      >
-                        {Array.from({ length: 30 }, (_, index) => (
-                          <option key={index + 1} value={index + 1}>
-                            Ngày {index + 1}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block font-semibold text-stone-600 dark:text-stone-400 mb-1">
-                        Tháng âm lịch:
-                      </label>
-                      <select
-                        value={lunarMonth}
-                        onChange={(event) => setLunarMonth(Number(event.target.value))}
-                        className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-ink"
-                      >
-                        {Array.from({ length: 12 }, (_, index) => (
-                          <option key={index + 1} value={index + 1}>
-                            Tháng {index + 1}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-stone-500 text-[11px] pt-1">
-                    <span>* Tự động điều chỉnh khi năm có tháng nhuận theo quy tắc gia phong</span>
-                  </div>
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                disabled={savingAnniversary}
-                className="rounded-xl bg-gradient-to-r from-red-800 to-amber-700 hover:from-red-700 hover:to-amber-800 text-white font-semibold text-xs px-5 min-h-10 cursor-pointer shadow-xs gap-1.5"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>{savingAnniversary ? "Đang lưu…" : "Thêm ngày giỗ vào lịch"}</span>
-              </Button>
-            </form>
-
-            {/* Danh sách ngày giỗ đã lưu */}
-            {settings.anniversaries.length > 0 && (
-              <div className="mt-5 pt-4 border-t border-line">
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-xs font-bold uppercase text-stone-500 tracking-wider">
-                    Danh sách ngày giỗ nếp nhà ({settings.anniversaries.length})
-                  </span>
-                  {currentUserEmail && <Button type="button" size="sm" variant="outline" disabled={migratingAnniversaries || savingAnniversary} onClick={() => void migrateLocalAnniversaries()}>
-                    {migratingAnniversaries ? "Đang chuyển…" : "Chuyển ngày giỗ vào tài khoản"}
-                  </Button>}
-                </div>
-
-                <ul className="divide-y divide-line text-xs">
-                  {settings.anniversaries.map((item) => (
-                    <li key={item.id} className="py-3 flex items-center justify-between gap-3">
-                      <div>
-                        <strong className="text-ink font-bold text-sm block">{item.name}</strong>
-                        <span className="text-stone-500">
-                          Ngày {item.day} tháng {item.month} ({item.calendar === "lunar" ? "Âm lịch" : "Dương lịch"})
-                        </span>
-                      </div>
-
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="text-stone-400 hover:text-red-600 cursor-pointer p-2 rounded-xl"
-                        onClick={() =>
-                          commit((latest) => ({
-                            ...latest,
-                            anniversaries: latest.anniversaries.filter(
-                              (entry) => entry.id !== item.id
-                            ),
-                          }))
-                        }
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {currentUserEmail && savedProfiles.some((profile) => profile.anniversaries.length > 0) && (
-              <div className="mt-5 pt-4 border-t border-line">
-                <span className="text-xs font-bold uppercase text-stone-500 tracking-wider block mb-3">
-                  Ngày giỗ đã lưu trong tài khoản
-                </span>
-                <ul className="divide-y divide-line text-xs">
-                  {savedProfiles.flatMap((profile) => profile.anniversaries.map((anniversary) => (
-                    <li key={anniversary.id} className="py-3 flex items-center justify-between gap-3">
-                      <div>
-                        <strong className="text-ink font-bold text-sm block">{profile.fullName}</strong>
-                        <span className="text-stone-500">
-                          Ngày {anniversary.day} tháng {anniversary.month} ({anniversary.calendar === "LUNAR" ? "Âm lịch" : "Dương lịch"})
-                        </span>
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        disabled={deletingAnniversaryId === anniversary.id}
-                        aria-label={`Xóa ngày giỗ ${profile.fullName}`}
-                        className="text-stone-400 hover:text-red-600 cursor-pointer p-2 rounded-xl"
-                        onClick={() => void removeSavedAnniversary(profile.id, anniversary.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </li>
-                  )))}
-                </ul>
-              </div>
-            )}
-          </section>
 
           {/* Card 3: Sự kiện trong 60 ngày tới */}
           <section className="p-6 rounded-3xl border border-line bg-surface shadow-xs">
@@ -612,28 +212,9 @@ export function NotificationScreen({
               </Button>
             </div>
 
-            {remindersLoading ? (
-              <p role="status" className="text-sm text-muted">
-                Đang tải lịch tưởng niệm…
-              </p>
-            ) : remindersLoadError ? (
-              <div role="alert" className="space-y-3">
-                <p className="text-sm text-muted">
-                  Chưa tải được lịch tưởng niệm từ tài khoản.
-                  Không thể xác nhận danh sách lời nhắc đã đầy đủ.
-                </p>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={retryReminders}
-                >
-                  Thử tải lại
-                </Button>
-              </div>
-            ) : upcoming.length === 0 ? (
+            {upcoming.length === 0 ? (
               <p className="text-xs text-stone-500 py-3">
-                Chưa có lời nhắc nào trong 60 ngày tới. Bạn có thể bật nhắc ngày Sóc Vọng hoặc thêm ngày giỗ tiên tổ ở trên.
+                Chưa có lời nhắc nào trong 60 ngày tới. Bạn có thể bật nhắc ngày Sóc Vọng hoặc xem lịch văn hóa.
               </p>
             ) : (
               <ul className="divide-y divide-line text-xs">

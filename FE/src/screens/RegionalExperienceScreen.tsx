@@ -51,7 +51,6 @@ interface RegionalExperienceScreenProps {
   currentUserEmail?: string;
   onBack: () => void;
   onGoToWish: () => void;
-  onGoToMemorial: () => void;
 }
 
 // Danh sách các bản văn Chầu Văn kinh điển mẫu mực
@@ -150,7 +149,6 @@ export const RegionalExperienceScreen: React.FC<RegionalExperienceScreenProps> =
   currentUserEmail,
   onBack,
   onGoToWish,
-  onGoToMemorial,
 }) => {
   const [activeKind, setActiveKind] = useState<RegionalExperienceKind>(initialKind);
 
@@ -1040,16 +1038,6 @@ export const RegionalExperienceScreen: React.FC<RegionalExperienceScreenProps> =
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <Button
-                    type="button"
-                    onClick={onGoToMemorial}
-                    className="gap-2 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 text-white font-semibold shadow-md min-h-11 px-5"
-                  >
-                    <Heart className="w-4 h-4" />
-                    <span>Tưởng nhớ tổ tiên</span>
-                  </Button>
-                </div>
               </div>
 
               <div className="rounded-xl overflow-hidden border border-line">

@@ -3,7 +3,6 @@ import type {
   SavedWishItem,
   SavedXinXamItem,
 } from "../screens/AccountScreen";
-import type { MemorialProfile } from "./memoryService";
 import type { CalendarEventItem } from "./calendarData";
 import { getSignalForMoodContext, type MoodKey } from "./demoSignals";
 import { readDemoValue, writeDemoValue } from "./demoStorage";
@@ -66,29 +65,6 @@ export function ensureDemoSeeded(): void {
         starred: true,
       };
       writeDemoValue("saved-wishes", [sample]);
-    }
-
-    if (!localStorage.getItem("tltl-demo-memorial-profiles")) {
-      const sample: MemorialProfile = {
-        id: "demo-memorial-grandmother",
-        fullName: "Bà ngoại",
-        relationship: "Người thân yêu",
-        birthDate: "1942-07-12",
-        deathDate: "2018-03-21",
-        biography: "Người luôn chăm lo cho gia đình và dạy con cháu sống hiền hòa.",
-        note: "Một góc nhỏ để tưởng nhớ và gửi lời tri ân.",
-        anniversaries: [
-          {
-            id: "demo-memorial-anniversary",
-            calendar: "SOLAR",
-            day: 21,
-            month: 3,
-            repeatYearly: true,
-            note: "Ngày giỗ",
-          },
-        ],
-      };
-      writeDemoValue("memorial-profiles", [sample]);
     }
 
     if (!localStorage.getItem("tltl-demo-calendar-notes")) {

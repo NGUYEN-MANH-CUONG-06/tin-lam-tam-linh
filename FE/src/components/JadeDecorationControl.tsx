@@ -1,6 +1,7 @@
 import type {
   useJadeDecoration,
 } from "../hooks/useJadeDecoration";
+import { isDemoMode } from "../data/demoMode";
 
 export function JadeDecorationControl({
   state,
@@ -8,11 +9,11 @@ export function JadeDecorationControl({
   state: ReturnType<typeof useJadeDecoration>;
 }) {
   return (
-    <div className="my-4 rounded-xl border border-line p-4">
-      <label className="block text-sm font-semibold">
-        Vật phẩm trang trí
+    <div className="my-4 rounded-2xl border border-line bg-surface/90 p-4 shadow-sm sm:p-5">
+      <label className="block text-sm font-semibold tracking-wide text-ink">
+        Vật phẩm bày trên bàn thờ
         <select
-          className="mt-2 block min-h-11 w-full rounded-lg border border-line bg-surface p-3 text-ink"
+          className="mt-2 block min-h-12 w-full appearance-none rounded-xl border border-line bg-surface px-4 py-3 text-ink shadow-sm transition-colors hover:border-accent focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
           value={state.selected ?? ""}
           disabled={
             state.loading ||
@@ -23,7 +24,7 @@ export function JadeDecorationControl({
             void state.change(event.target.value)
           }
         >
-          <option value="">Không bày vật phẩm bổ sung</option>
+          <option value="">Cất vật phẩm khỏi bàn thờ</option>
 
           {state.items.map((item) => (
             <option key={item.code} value={item.code}>
@@ -40,7 +41,9 @@ export function JadeDecorationControl({
             ? "Đang lưu lựa chọn…"
             : !state.items.length
               ? "Bạn chưa sở hữu vật phẩm trang trí cho cảnh này."
-              : "Lựa chọn được lưu theo tài khoản. Bật/tắt không trừ số lượng."}
+              : isDemoMode()
+                ? "Bản demo chỉ lưu lựa chọn trên trình duyệt; gà sẽ hiện trên bàn thờ khi bạn chọn bày."
+                : "Chỉ vật phẩm bạn đã sở hữu mới xuất hiện ở đây. Chọn để bày trên bàn thờ; chọn cất để đưa vật phẩm về kho."}
       </p>
 
       <p className="mt-2 text-xs text-muted">

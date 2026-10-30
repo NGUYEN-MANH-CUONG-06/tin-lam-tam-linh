@@ -22,7 +22,6 @@ import {
   RitualRegionKey,
   RitualGuideItem,
 } from "../data/ritualData";
-import { DiscoveryNav } from "../components/DiscoveryNav";
 import { loadRituals } from "../data/contentService";
 
 const normalizeRitualSearch = (value: string) =>
@@ -56,9 +55,6 @@ function RitualCardImage({ image, title, approvedByContent }: { image: string; t
 interface RitualGuideScreenProps {
   onSelectRitual: (id: string) => void;
   onGoToCulture?: () => void;
-  onGoToCalendar?: () => void;
-  onGoToPlan?: () => void;
-  onGoToMap?: () => void;
 }
 
 export const RitualGuideScreen: React.FC<
@@ -66,9 +62,6 @@ export const RitualGuideScreen: React.FC<
 > = ({
   onSelectRitual,
   onGoToCulture,
-  onGoToCalendar,
-  onGoToPlan,
-  onGoToMap,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOccasion, setSelectedOccasion] = useState<RitualOccasionKey>("all");
@@ -216,15 +209,6 @@ export const RitualGuideScreen: React.FC<
             nếp nhà và điều kiện của bạn.
           </p>
         </div>
-
-        <DiscoveryNav
-          current="rituals"
-          onGoToCulture={onGoToCulture}
-          onGoToCalendar={onGoToCalendar}
-          onGoToPlan={onGoToPlan}
-          onGoToMap={onGoToMap}
-        />
-
 
         {/* Search & Filter Toolbar */}
         <div className="py-6 border-y border-line mb-10 space-y-5">

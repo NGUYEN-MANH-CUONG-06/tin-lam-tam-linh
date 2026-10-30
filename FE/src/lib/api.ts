@@ -1,5 +1,7 @@
 import { ApiError, createSessionApiClient } from "./sessionApiClient";
 import { fetchApiWithTimeout } from "./fetchApiWithTimeout";
+import { isDemoMode } from "../data/demoMode";
+import { demoApiRequest } from "../data/demoApi";
 
 const localDevelopmentApiUrl = import.meta.env.DEV ? "http://localhost:4000/api/v1" : "";
 const configuredApiUrl = (import.meta.env.VITE_API_URL || localDevelopmentApiUrl).replace(/\/$/, "");
@@ -37,8 +39,20 @@ export function getSessionGeneration() {
   return client.getSessionGeneration();
 }
 
-export function apiRequest<T>(path: string, init: RequestInit = {}) {
-  if (apiConfigurationError) return Promise.reject(new ApiError(0, apiConfigurationError));
+export function apiRequest<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  if (isDemoMode()) {
+    return demoApiRequest<T>(path, init);
+  }
+
+  if (apiConfigurationError) {
+    return Promise.reject(
+      new ApiError(0, apiConfigurationError),
+    );
+  }
+
   return client.apiRequest<T>(path, init);
 }
 

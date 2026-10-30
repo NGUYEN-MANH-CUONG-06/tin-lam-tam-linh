@@ -5,18 +5,14 @@ const logger = require("./utils/logger");
 
 let server;
 // Trigger nodemon reload: 2026-10-13
-let stopReminders = () => {};
-
 async function start() {
   await prisma.$queryRaw`SELECT 1`;
-  stopReminders = require("./services/push.service").startReminderWorker();
   server = app.listen(env.PORT, () => {
     logger.info(`API listening on port ${env.PORT}`);
   });
 }
 
 async function shutdown(signal) {
-  stopReminders();
   logger.info(`Received ${signal}; shutting down`);
   if (server) await new Promise((resolve) => server.close(resolve));
   await prisma.$disconnect();

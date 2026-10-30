@@ -33,8 +33,7 @@ export function useReminderSettings(
   const snapshot = useSyncExternalStore(
     subscribe,
     () => readSnapshot(email),
-    () =>
-      '{"firstDay":false,"fullMoon":false,"anniversaries":[]}'
+    () => '{"firstDay":false,"fullMoon":false}'
   );
 
   return useMemo(

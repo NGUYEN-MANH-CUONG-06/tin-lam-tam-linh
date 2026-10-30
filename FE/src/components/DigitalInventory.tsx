@@ -30,9 +30,10 @@ export function DigitalInventory({
     if (isDemoMode()) {
       const owned = readDemoValue<string[]>("owned-items", ["ROYAL_LANTERN"]);
       const demoItems: Item[] = [
-        { code: "ROYAL_LANTERN", name: "Đèn Tâm An", kind: "PERMANENT", description: "Vật phẩm trang trí không gian tưởng niệm.", quantity: owned.includes("ROYAL_LANTERN") ? 1 : 0 },
+        { code: "ROYAL_LANTERN", name: "Đèn Tâm An", kind: "PERMANENT", description: "Vật phẩm trang trí không gian 3D.", quantity: owned.includes("ROYAL_LANTERN") ? 1 : 0 },
         { code: "GOLDEN_LOTUS", name: "Sen vàng", kind: "PERMANENT", description: "Biểu tượng thanh tịnh trong không gian thờ.", quantity: owned.includes("GOLDEN_LOTUS") ? 1 : 0 },
         { code: "INCENSE_BURNER", name: "Nén hương thành tâm", kind: "CONSUMABLE", description: "Vật phẩm dâng hương dùng thử.", quantity: owned.includes("INCENSE_BURNER") ? 5 : 0 },
+        { code: "BOILED_CHICKEN", name: "Gà luộc mâm lễ", kind: "PERMANENT", description: "Mô hình gà luộc có thể chủ động bày hoặc cất khỏi bàn thờ.", quantity: owned.includes("BOILED_CHICKEN") ? 1 : 0 },
       ];
       setItems(demoItems.filter((item) => item.quantity > 0));
       setLoading(false);
@@ -63,6 +64,13 @@ export function DigitalInventory({
       active = false;
     };
   }, [email, reload]);
+
+  useEffect(() => {
+    if (!isDemoMode()) return;
+    const refreshDemoInventory = () => setReload((value) => value + 1);
+    window.addEventListener("tltl-demo-inventory-change", refreshDemoInventory);
+    return () => window.removeEventListener("tltl-demo-inventory-change", refreshDemoInventory);
+  }, []);
 
   if (!email && !isDemoMode()) return null;
 
@@ -108,7 +116,7 @@ export function DigitalInventory({
 
       <p className="mt-4 text-xs text-muted">
         Dùng lượt đèn trong trải nghiệm thả hoa đăng.
-        Bình sen ngọc có thể bật hoặc tắt tại không gian thờ
+        Vật phẩm trang trí có thể bật hoặc cất tại không gian thờ
         và bàn thờ gia tiên. Sau khi mua hoặc nhận quà, bấm
         tải lại kho để cập nhật.
       </p>

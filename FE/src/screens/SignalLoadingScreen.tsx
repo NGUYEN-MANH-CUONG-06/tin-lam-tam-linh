@@ -108,7 +108,7 @@ export const SignalLoadingScreen = ({
           )}
 
           <p className="mt-6 text-xs leading-relaxed text-muted">
-            Gợi mở chỉ xuất hiện khi máy chủ trả về nội dung đã được phép phát hành. Nội dung tâm sự không được dùng để tạo ra câu trích dẫn dân gian.
+            Gợi mở chỉ xuất hiện khi nội dung đã được phép phát hành. Tâm sự của bạn không được dùng để tạo câu trích dẫn.
           </p>
 
           <Button

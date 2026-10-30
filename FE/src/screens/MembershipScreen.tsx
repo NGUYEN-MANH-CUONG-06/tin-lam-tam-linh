@@ -33,6 +33,7 @@ import { PartnershipPanel } from "../components/PartnershipPanel";
 import { PartnerGifts } from "../components/PartnerGifts";
 import { isDemoMode } from "../data/demoMode";
 import type { MembershipTerm } from "../data/membershipIntent";
+import { writeMembershipIntent } from "../data/membershipIntent";
 
 interface MembershipScreenProps {
   onBackToHome: () => void;
@@ -151,6 +152,16 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
           </div>
         </section>
 
+        <MembershipCheckout
+          key={currentUserEmail || "guest"}
+          email={currentUserEmail}
+          onLogin={(term) => {
+            writeMembershipIntent(term);
+            onGoToLogin(term);
+          }}
+          onStatusChange={setMembershipStatus}
+        />
+
         {/* 2 Primary Plans Comparison: Free vs Tam An */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 items-stretch">
           {/* Card 1: Free features currently available */}
@@ -188,7 +199,7 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
                 <div className="flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span>
-                    <strong>Gieo keo:</strong> Trải nghiệm gieo ngẫu nhiên để chiêm nghiệm; thư viện xin xăm chưa phát hành vì chưa có bộ thẻ đủ nguồn và quyền sử dụng.
+                    <strong>Gieo keo:</strong> Trải nghiệm ngẫu nhiên để chiêm nghiệm cùng lời quẻ xin xăm theo chủ đề.
                   </span>
                 </div>
 
@@ -334,7 +345,7 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
               <div className="font-bold text-amber-700 dark:text-amber-400 mb-1 flex items-center gap-1.5">
                 <span>📖 Tự nguyện & Minh bạch nguồn cội</span>
               </div>
-              Tính năng cơ bản miễn phí. Giá gói và trạng thái thanh toán hiện tại: {membershipPriceLabel}. Nguồn tham khảo và phạm vi áp dụng được công khai để người dùng tự đối chiếu.
+              Tính năng cơ bản miễn phí. Giá gói và trạng thái thanh toán hiện tại: {membershipPriceLabel}. Bạn có thể xem rõ quyền lợi trước khi chọn gói.
             </div>
 
             <div className="p-4 rounded-2xl bg-surface-soft border border-line">
@@ -346,13 +357,6 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
             </div>
           </div>
         </section>
-
-        <MembershipCheckout
-          key={currentUserEmail || "guest"}
-          email={currentUserEmail}
-          onLogin={() => onGoToLogin("monthly")}
-          onStatusChange={setMembershipStatus}
-        />
 
         <MemberLibrary
           key={currentUserEmail || "guest"}

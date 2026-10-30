@@ -85,6 +85,54 @@ export function getAuspiciousHoursForDay(dayBranch: string): string[] {
   return AUSPICIOUS_HOURS_BY_DAY_BRANCH[branchIndex % 6];
 }
 
+const DAY_DEITIES = [
+  "Thanh Long",
+  "Minh Đường",
+  "Thiên Hình",
+  "Chu Tước",
+  "Kim Quỹ",
+  "Bảo Quang",
+  "Bạch Hổ",
+  "Ngọc Đường",
+  "Thiên Lao",
+  "Huyền Vũ",
+  "Tư Mệnh",
+  "Câu Trần",
+] as const;
+
+const SOLAR_TERM_MONTH_BRANCHES = [3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 0, 0, 1, 1, 2, 2, 3];
+const FIRST_DAY_DEITY_BRANCH_BY_MONTH_BRANCH: Record<number, number> = {
+  0: 8, // Tý, Ngọ: Thanh Long bắt đầu ở Thân
+  1: 10, // Sửu, Mùi: bắt đầu ở Tuất
+  2: 0, // Dần, Thân: bắt đầu ở Tý
+  3: 2, // Mão, Dậu: bắt đầu ở Dần
+  4: 4, // Thìn, Tuất: bắt đầu ở Thìn
+  5: 6, // Tỵ, Hợi: bắt đầu ở Ngọ
+  6: 8,
+  7: 10,
+  8: 0,
+  9: 2,
+  10: 4,
+  11: 6,
+};
+
+/**
+ * Vị thần trực ngày theo cách an 12 sao Hoàng/Hắc đạo dựa trên tháng tiết khí.
+ * Đây là quy ước lịch dân gian để tham khảo, không phải đánh giá khoa học.
+ */
+export function getTraditionalDayDeity(date: Date, dayBranch: string): string | null {
+  const dayBranchIndex = CHI_NAMES.indexOf(dayBranch);
+  const solarTermIndex = SOLAR_TERM_NAMES.indexOf(
+    getSolarTermForDate(date.getDate(), date.getMonth() + 1, date.getFullYear()),
+  );
+  if (dayBranchIndex < 0 || solarTermIndex < 0) return null;
+
+  const monthBranch = SOLAR_TERM_MONTH_BRANCHES[solarTermIndex];
+  const firstDayBranch = FIRST_DAY_DEITY_BRANCH_BY_MONTH_BRANCH[monthBranch];
+  const deityIndex = (dayBranchIndex - firstDayBranch + 12) % 12;
+  return DAY_DEITIES[deityIndex] ?? null;
+}
+
 export function getCanChiYear(lunarYear: number): string {
   const can = ["Canh", "Tân", "Nhâm", "Quý", "Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ"];
   const chi = ["Thân", "Dậu", "Tuất", "Hợi", "Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi"];

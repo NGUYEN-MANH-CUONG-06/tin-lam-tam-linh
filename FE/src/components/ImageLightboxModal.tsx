@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { X, ZoomIn, ZoomOut, Maximize2, ExternalLink, MapPin, Award, BookOpen } from "lucide-react";
+import { X, ZoomIn, ZoomOut, Maximize2, MapPin, BookOpen } from "lucide-react";
 import { findApprovedImage } from "../lib/approvedImage";
 
 export interface LightboxImageInfo {
@@ -174,33 +174,6 @@ export const ImageLightboxModal: React.FC<ImageLightboxModalProps> = ({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs text-stone-400">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            {enrichedInfo.artist && (
-              <span>
-                <strong className="text-stone-300 font-medium">Tác giả:</strong> {enrichedInfo.artist}
-              </span>
-            )}
-            {enrichedInfo.license && (
-              <span className="inline-flex items-center gap-1 bg-stone-800/80 px-2 py-0.5 rounded text-[11px] text-amber-300">
-                <Award className="w-3 h-3" />
-                {enrichedInfo.license}
-              </span>
-            )}
-          </div>
-
-          {enrichedInfo.sourceUrl && (
-            <a
-              href={enrichedInfo.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 hover:underline transition-colors ml-auto text-[11px]"
-            >
-              <span>Nguồn xác thực</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
-        </div>
       </div>
     </div>
   );

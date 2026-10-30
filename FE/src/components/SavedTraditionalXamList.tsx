@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import {
   deleteTraditionalXam,
-  isSafeSourceUrl,
   useSavedTraditionalXam,
 } from "../data/savedTraditionalXam";
 
@@ -98,9 +97,6 @@ export function SavedTraditionalXamList({
                         )
                       )}
                     </div>
-                    <p className="mt-3 text-sm text-muted">
-                      {item.translationAttribution}
-                    </p>
                   </section>
 
                   {item.culturalContext && (
@@ -111,10 +107,6 @@ export function SavedTraditionalXamList({
 
                       <p className="whitespace-pre-line leading-relaxed text-ink">
                         {item.culturalContext.description}
-                      </p>
-
-                      <p className="mt-3 text-xs leading-relaxed text-muted">
-                        Vị trí đối chiếu: {item.culturalContext.sourceLocator}
                       </p>
 
                       <p className="mt-2 text-xs text-muted">
@@ -132,54 +124,6 @@ export function SavedTraditionalXamList({
                     </p>
                   </section>
 
-                  {(
-                    (item.sourceReferences?.length ?? 0) > 0 ||
-                    item.sourceTitles.length > 0
-                  ) && (
-                    <section>
-                      <h4 className="mb-2 font-semibold text-ink">
-                        Tài liệu nguồn đã lưu
-                      </h4>
-
-                      <ul className="list-disc space-y-3 pl-5 text-sm text-muted">
-                        {item.sourceReferences?.length ? (
-                          item.sourceReferences.map((source, index) => (
-                            <li key={index}>
-                              {isSafeSourceUrl(source.url) ? (
-                                <a
-                                  href={source.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="font-semibold text-accent underline underline-offset-4"
-                                >
-                                  {source.title}
-                                  <span className="sr-only"> — mở tab mới</span>
-                                </a>
-                              ) : (
-                                <span>{source.title}</span>
-                              )}
-
-                              {source.locator && (
-                                <p className="mt-1 leading-relaxed">
-                                  Vị trí đối chiếu: {source.locator}
-                                </p>
-                              )}
-
-                              {source.bibliographicReference && (
-                                <p className="mt-1 leading-relaxed">
-                                  {source.bibliographicReference}
-                                </p>
-                              )}
-                            </li>
-                          ))
-                        ) : (
-                          item.sourceTitles.map((title, index) => (
-                            <li key={index}>{title}</li>
-                          ))
-                        )}
-                      </ul>
-                    </section>
-                  )}
                 </div>
               </details>
 

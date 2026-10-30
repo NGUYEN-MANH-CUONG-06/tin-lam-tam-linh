@@ -296,6 +296,271 @@ h1.wish-page-title,
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
+/* Release view: let the river scene lead, with the wish and privacy note below. */
+.wish-release-page {
+  max-width: 80rem;
+  --page-space-y: clamp(1.25rem, 2.5vw, 2rem);
+  --page-space-x: clamp(1rem, 3vw, 2rem);
+}
+
+.wish-release-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  color: var(--ui-muted);
+  font-size: 0.875rem;
+}
+
+.wish-release-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.wish-release-breadcrumb button {
+  border-radius: 0.375rem;
+}
+
+.wish-release-breadcrumb button:focus-visible,
+.wish-release-actions button:focus-visible,
+.wish-release-actions a:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 3px;
+}
+
+.wish-release-private {
+  display: inline-flex;
+  min-height: 2.5rem;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--ui-line);
+  border-radius: 999px;
+  background: var(--ui-surface);
+  padding: 0 0.875rem;
+  color: var(--ui-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.wish-release-private svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--ui-accent);
+}
+
+.wish-release-hero {
+  display: flex;
+  max-width: 48rem;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0 auto 1.5rem;
+  text-align: left;
+}
+
+.wish-release-mark {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--ui-gold) 50%, var(--ui-line));
+  border-radius: 1rem;
+  background: var(--ui-surface);
+  color: var(--ui-accent);
+}
+
+.wish-release-mark svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  stroke-width: 1.8;
+}
+
+.wish-release-kicker {
+  margin: 0 0 0.2rem;
+  color: var(--ui-accent);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.wish-release-title {
+  margin: 0;
+  color: var(--ui-ink);
+  font-family: var(--font-display, Georgia, serif);
+  font-size: clamp(1.5rem, 2.6vw, 2.125rem);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.wish-release-subtitle {
+  margin: 0.4rem 0 0;
+  color: var(--ui-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.wish-release-stage {
+  margin-bottom: 1.25rem;
+}
+
+.wish-release-scene-frame {
+  overflow: hidden;
+  border: 0;
+  border-radius: 1.25rem;
+  background: #040a14;
+  box-shadow: 0 14px 36px rgba(35, 24, 14, 0.12);
+}
+
+.wish-release-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(16rem, 0.85fr);
+  gap: 1rem;
+  margin: 0 auto 1.5rem;
+}
+
+.wish-release-wish,
+.wish-release-privacy {
+  min-width: 0;
+  border: 1px solid var(--ui-line);
+  border-radius: 1rem;
+  background: var(--ui-surface);
+  padding: 1.125rem 1.25rem;
+}
+
+.wish-release-detail-label {
+  margin: 0 0 0.5rem;
+  color: var(--ui-accent);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.wish-release-wish blockquote {
+  margin: 0;
+  color: var(--ui-ink);
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.wish-release-privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: color-mix(in srgb, var(--ui-surface) 86%, var(--ui-accent-soft));
+}
+
+.wish-release-privacy-icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: var(--ui-surface);
+  color: var(--ui-accent);
+}
+
+.wish-release-privacy-icon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.wish-release-privacy h2 {
+  margin: 0.1rem 0 0.35rem;
+  color: var(--ui-ink);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.wish-release-privacy p {
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.wish-release-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0 0 0.5rem;
+}
+
+.wish-release-aftercare {
+  max-width: 40rem;
+  margin: 0 auto;
+  color: var(--ui-muted);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.wish-release-footer {
+  margin-top: 2.5rem !important;
+  padding-top: 1.5rem !important;
+}
+
+@media (max-width: 40rem) {
+  .wish-release-topbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .wish-release-private {
+    min-height: 2.25rem;
+  }
+
+  .wish-release-hero {
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .wish-release-mark {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.875rem;
+  }
+
+  .wish-release-title {
+    font-size: 1.5rem;
+  }
+
+  .wish-release-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .wish-release-details {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .wish-release-scene-frame {
+    border-radius: 0.875rem;
+  }
+
+  .wish-release-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .wish-release-actions > * {
+    width: 100%;
+  }
+}
+
+
 
 
 /* 8. CÂY ƯỚC NGUYỆN CỔ THỤ & DẢI LỤA ĐỎ (WISHING TREE CARD) */

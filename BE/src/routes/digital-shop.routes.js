@@ -20,6 +20,7 @@ router.post(
       "ROYAL_LANTERN",
       "GOLDEN_LOTUS",
       "INCENSE_BURNER",
+      "BOILED_CHICKEN",
     ]),
   }).strict()),
   async (req, res) => {
@@ -60,6 +61,7 @@ router.post(
         "ROYAL_LANTERN",
         "GOLDEN_LOTUS",
         "INCENSE_BURNER",
+        "BOILED_CHICKEN",
       ]),
     }).strict()
   ),

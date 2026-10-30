@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Offering Chicken Model Preview (3 Parts)</title>
+  <style>
+    body { margin: 0; background: #e9e3d8; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { display: block; }
+    #status { position: absolute; top: 16px; left: 16px; font-size: 14px; color: #4a3524; background: rgba(255,255,255,0.85); padding: 8px 14px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    #controls { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
+    button { background: #5a3e2b; color: #fff; border: none; padding: 6px 14px; border-radius: 12px; cursor: pointer; font-size: 13px; }
+    button:hover { background: #7c573c; }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.186.1/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.186.1/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="status">Đang tải model gà cúng (mâm trắng, da vàng, mào đỏ)...</div>
+  <div id="controls">
+    <button onclick="setCam(0)">Góc trước (Front)</button>
+    <button onclick="setCam(0.8)">Góc 3/4 phải</button>
+    <button onclick="setCam(-0.8)">Góc 3/4 trái</button>
+    <button onclick="setCam(Math.PI)">Góc sau (Back)</button>
+    <button onclick="setCam(0, 1.8, 0.4)">Góc từ trên xuống (Top)</button>
+  </div>
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio || 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.append(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#e9e3d8');
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.05).texture;
+    scene.environmentIntensity = 0.4;
+
+    scene.add(new THREE.HemisphereLight(0xfffdfa, 0x6e5c4d, 1.4));
+
+    const keyLight = new THREE.DirectionalLight(0xfffaec, 3.2);
+    keyLight.position.set(-1.2, 3.5, 2.8);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.bias = -0.0001;
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0xf0e6d6, 1.2);
+    fillLight.position.set(2, 2.5, 1.5);
+    scene.add(fillLight);
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(6, 6),
+      new THREE.MeshStandardMaterial({ color: '#bca994', roughness: 0.85 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.002;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    const camera = new THREE.PerspectiveCamera(34, innerWidth / innerHeight, 0.01, 20);
+    camera.position.set(0, 0.85, 1.65);
+    camera.lookAt(0, 0.22, 0);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 0.22, 0);
+    controls.enableDamping = true;
+
+    window.setCam = (angle, y = 0.85, targetY = 0.22) => {
+      const radius = 1.65;
+      camera.position.set(Math.sin(angle) * radius, y, Math.cos(angle) * radius);
+      controls.target.set(0, targetY, 0);
+      controls.update();
+    };
+
+    try {
+      const gltf = await new GLTFLoader().loadAsync('/models/offering-chicken.glb');
+      const model = gltf.scene;
+
+      model.traverse(o => {
+        if (o.isMesh) {
+          o.castShadow = true;
+          o.receiveShadow = true;
+          if (o.material) {
+            o.material.roughness = THREE.MathUtils.clamp(o.material.roughness, 0.15, 0.85);
+          }
+        }
+      });
+
+      scene.add(model);
+      document.getElementById('status').innerHTML = '<b>Model Gà Cúng 3 Phần</b> • 180.000 tam giác (4,3 MB GLB)<br>✔ Mâm sứ trắng &nbsp; ✔ Da vàng óng &nbsp; ✔ Mào đỏ tươi';
+      window.__preview = { ready: true, model, scene, camera, renderer };
+    } catch (error) {
+      document.getElementById('status').textContent = 'Lỗi tải model: ' + String(error);
+      window.__preview = { error: String(error) };
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+  </script>
+</body>
+</html>

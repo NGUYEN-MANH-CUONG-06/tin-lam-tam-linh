@@ -13,7 +13,6 @@ import {
   Heart,
   Clock,
   MapPin,
-  ExternalLink,
   Trash2,
   Bookmark,
 } from "lucide-react";
@@ -718,9 +717,6 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
                       <p>Can Chi ngày: <strong className="text-ink">{currentCalendarFacts.canChiDay}</strong> · Can Chi tháng: <strong className="text-ink">{currentCalendarFacts.canChiMonth}</strong></p>
                       <p>Giờ hoàng đạo theo lịch dân gian: {currentCalendarFacts.auspiciousHours.join(", ")}</p>
                       <p className="text-xs leading-relaxed">Thông tin giờ là tham khảo phong tục, không dự báo hay bảo đảm kết quả công việc.</p>
-                      <a className="inline-flex min-h-11 items-center gap-1 text-xs font-semibold text-accent underline underline-offset-4" href="https://xemamlich.uhm.vn/vncal.html" target="_blank" rel="noreferrer">
-                        Cách tính và nguồn tham khảo <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                      </a>
                     </div>
                   )}
                 </div>
@@ -863,7 +859,7 @@ export const CulturalCalendarScreen: React.FC<CulturalCalendarScreenProps> = ({
                 <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                 <div>
                   <strong className="font-semibold text-ink">Minh bạch tư liệu:</strong>{" "}
-                  Ngày âm lịch dùng dữ liệu tính lịch của Hồ Ngọc Đức. Thông tin sự kiện có thể khác theo địa phương; xem nguồn cụ thể nếu được đính kèm.
+                  Ngày âm lịch có thể khác theo cách tính và phong tục từng địa phương.
                 </div>
               </div>
               {isDemoMode() && (

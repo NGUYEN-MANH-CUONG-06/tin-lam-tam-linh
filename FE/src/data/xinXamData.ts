@@ -24,7 +24,7 @@ export interface XinXamResult {
   source?: string;
   verified?: boolean;
   stickNumber: string;
-  region: RegionType;
+  region: RegionType | "Toàn quốc";
   regionSub: string;
   topic: TopicType;
   topicTag: string;

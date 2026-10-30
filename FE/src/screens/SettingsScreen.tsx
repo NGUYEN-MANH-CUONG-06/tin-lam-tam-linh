@@ -1,7 +1,6 @@
 import { toast } from "../components/ui/Toast";
 import React, { useState, useEffect } from "react";
 import {
-  ArrowLeft,
   User,
   Sun,
   Moon,
@@ -62,8 +61,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onLogout,
   onClearAllLocalData,
 }) => {
-  // Navigation section scroll
-  const [activeSection, setActiveSection] = useState<string>("profile");
   const [analyticsConsent, setAnalyticsConsent] = useState(hasProductAnalyticsConsent);
 
   // Profile Edit State
@@ -223,13 +220,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <span className="text-accent font-semibold">Cài đặt & Tùy chọn</span>
           </div>
 
-          <button
-            onClick={onBackToAccount}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-accent transition-colors cursor-pointer self-start sm:self-auto"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Về Góc của tôi (Màn 21)</span>
-          </button>
         </div>
 
         {/* Header Title Section */}
@@ -246,116 +236,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </p>
         </div>
 
-        {/* 2-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column (4 cols): User Profile Card & Navigation Menu */}
-          <div className="lg:col-span-3 space-y-4 lg:sticky lg:top-24">
-            {/* User Badge Card */}
-            <Card className="p-5 rounded-card bg-surface border border-line shadow-xs">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-full overflow-hidden bg-surface border border-line shrink-0">
-                  <span className="grid h-full w-full place-items-center bg-accent-soft font-display text-xl font-semibold text-accent" aria-hidden="true">
-                    {displayName.trim().charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-base text-ink">
-                    {displayName}
-                  </h3>
-                  <p className="text-sm text-muted">Tâm thức an hòa</p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Navigation Menu Links */}
-            <Card className="p-3 rounded-card bg-surface border border-line shadow-xs space-y-1 text-xs font-semibold text-ink">
-              <button
-                type="button"
-                onClick={() => setActiveSection("profile")}
-                className={`w-full text-left px-4 py-2.5 rounded-panel flex items-center justify-between transition-all cursor-pointer ${
-                  activeSection === "profile"
-                    ? "bg-accent-soft text-accent"
-                    : "hover:bg-surface-soft text-ink"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <User className="w-4 h-4" />
-                  <span>Hồ sơ cá nhân</span>
-                </div>
-                {activeSection === "profile" && <span className="w-1.5 h-1.5 rounded-full bg-action" />}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveSection("experience")}
-                className={`w-full text-left px-4 py-2.5 rounded-panel flex items-center justify-between transition-all cursor-pointer ${
-                  activeSection === "experience"
-                    ? "bg-accent-soft text-accent"
-                    : "hover:bg-surface-soft text-ink"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Sparkles className="w-4 h-4" />
-                  <span>Tùy biến trải nghiệm</span>
-                </div>
-                {activeSection === "experience" && <span className="w-1.5 h-1.5 rounded-full bg-action" />}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveSection("notifications")}
-                className={`w-full text-left px-4 py-2.5 rounded-panel flex items-center justify-between transition-all cursor-pointer ${
-                  activeSection === "notifications"
-                    ? "bg-accent-soft text-accent"
-                    : "hover:bg-surface-soft text-ink"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Bell className="w-4 h-4" />
-                  <span>Thông báo & Nhắc lịch</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveSection("data")}
-                className={`w-full text-left px-4 py-2.5 rounded-panel flex items-center justify-between transition-all cursor-pointer ${
-                  activeSection === "data"
-                    ? "bg-accent-soft text-accent"
-                    : "hover:bg-surface-soft text-ink"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>Dữ liệu trên thiết bị</span>
-                </div>
-                {activeSection === "data" && <span className="w-1.5 h-1.5 rounded-full bg-action" />}
-              </button>
-
-              {onLogout && (
-                <div className="pt-2 border-t border-line">
-                  <button
-                    type="button"
-                    onClick={onLogout}
-                    className="w-full text-left px-4 py-2.5 rounded-panel flex items-center gap-2.5 text-danger hover:bg-danger-soft transition-all cursor-pointer"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Đăng xuất khỏi thiết bị này</span>
-                  </button>
-                </div>
-              )}
-            </Card>
-
-            <div className="p-4 rounded-panel bg-surface border border-line text-xs text-muted italic leading-relaxed">
-              Bản thử nghiệm lưu dữ liệu trên trình duyệt này.
-              Một số chức năng mở rộng chưa được triển khai.
-            </div>
-          </div>
-
-          {/* Right Column (8 cols): Setting Blocks */}
-          <div className="lg:col-span-9 space-y-6">
+        <div className={'space-y-6'}>
             {/* Block 1: Hồ sơ cá nhân */}
-            <Card className="p-6 sm:p-8 rounded-card bg-surface border border-line shadow-xs">
+            <Card id="settings-profile" className="p-6 sm:p-8 rounded-card bg-surface border border-line shadow-xs">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent mb-1">
                 <User className="w-3.5 h-3.5" />
                 <span>HỒ SƠ CÁ NHÂN</span>
@@ -467,7 +350,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </Card>
 
             {/* Block 2: Tùy biến trải nghiệm */}
-            <Card className="p-6 sm:p-8 rounded-card bg-surface border border-line shadow-xs">
+            <Card id="settings-experience" className="p-6 sm:p-8 rounded-card bg-surface border border-line shadow-xs">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent mb-1">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>TÙY BIẾN TRẢI NGHIỆM</span>
@@ -630,7 +513,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </Card>
 
             {/* Block 3: Nhắc lịch & Thông báo */}
-            <Card className="p-6 sm:p-8 rounded-card bg-surface border-line">
+            <Card id="settings-notifications" className="p-6 sm:p-8 rounded-card bg-surface border-line">
               <div className="flex items-center gap-2 mb-3">
                 <Bell
                   className="w-5 h-5 text-accent"
@@ -651,7 +534,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   {
                     key: "pushNotifications" as const,
                     title: "Thông báo trên thiết bị",
-                    description: "Cho phép tài khoản nhận thông báo đẩy khi tính năng được kích hoạt.",
+                    description: "Cho phép gửi thông báo đẩy tới trình duyệt đã đăng ký.",
                   },
                 ].map((option) => (
                   <label
@@ -678,10 +561,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 {settingsSaveStatus === "success" && <p className="text-success">Đã đồng bộ cài đặt.</p>}
                 {settingsSaveStatus === "error" && <p className="text-danger">Chưa lưu được cài đặt; bạn hãy thử lại.</p>}
               </div>
+              <PushNotificationSettings />
             </Card>
 
             {/* Block 4: Dữ liệu trên thiết bị & Lưu trữ */}
-            <Card className="p-6 sm:p-8 rounded-card bg-surface border border-line shadow-xs">
+            <Card id="settings-data" className="p-6 sm:p-8 rounded-card bg-surface border border-line shadow-xs">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent mb-1">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>DỮ LIỆU CÁ NHÂN & QUYỀN RIÊNG TƯ</span>
@@ -691,7 +575,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </h3>
               <p className="text-sm text-muted mb-5 leading-relaxed">
                 Lời gửi gắm, lịch sử xin xăm và nhật ký tâm trạng được lưu theo tài khoản để bạn xem lại; nội dung này không được gửi vào analytics. Nếu đồng ý bên dưới,
-                ứng dụng chỉ ghi nhận sự kiện sử dụng và nguồn chiến dịch đã chuẩn hóa để đo lường sản phẩm.
+                ứng dụng chỉ ghi nhận sự kiện sử dụng và mã chiến dịch đã chuẩn hóa để đo lường sản phẩm.
               </p>
 
               <label className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-line bg-surface-soft p-4">
@@ -738,15 +622,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               {/* Data Actions */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-line">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onBackToAccount}
-                  className="w-full sm:w-auto text-xs rounded-xl border-line"
-                >
-                  Xem các mục đã lưu trong Góc của tôi
-                </Button>
-
-                <Button
                   size="sm"
                   variant="outline"
                   onClick={() => {
@@ -762,7 +637,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </div>
             </Card>
 
-            <PushNotificationSettings />
             {/* Block 5: Đang đăng nhập dưới phiên */}
             <div className="p-5 rounded-panel bg-surface border border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div>
@@ -786,7 +660,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 </Button>
               )}
             </div>
-          </div>
         </div>
 
         {/* Modal: Xác nhận xóa dữ liệu */}

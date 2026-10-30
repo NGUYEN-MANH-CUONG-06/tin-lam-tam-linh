@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useScreenWakeLock } from "../hooks/useScreenWakeLock";
 import type { RitualPrayer } from "../data/ritualData";
 import { Button } from "./ui/button";
-import { ContentProvenance } from "./ContentProvenance";
 import { BookOpen, Copy, Check, Sparkles, Type } from "lucide-react";
 
 interface Props {
@@ -98,7 +97,7 @@ export function RitualPrayerSection({ prayers = [] }: Props) {
               Văn khấn Nôm tham khảo
             </h2>
             <p className="text-xs text-muted">
-              Chỉ hiển thị nội dung đã qua thẩm định nguồn và quyền sử dụng
+              Chỉ hiển thị nội dung đã được duyệt và có quyền sử dụng
             </p>
           </div>
         </div>
@@ -150,12 +149,12 @@ export function RitualPrayerSection({ prayers = [] }: Props) {
       {!selected ? (
         <div className="py-8 text-center">
           <p className="text-sm leading-relaxed text-muted max-w-md mx-auto">
-            Hiện chưa có bài văn khấn nào đủ hồ sơ nguồn, quyền sử dụng và xác nhận thẩm định để xuất bản. Gia chủ vẫn có thể dùng checklist và tự khấn nguyện theo lòng thành.
+            Hiện chưa có bài văn khấn đủ điều kiện để xuất bản. Gia chủ vẫn có thể dùng checklist và tự khấn nguyện theo lòng thành.
           </p>
         </div>
       ) : available.length === 0 ? (
         <p className="mt-5 rounded-2xl border border-line bg-surface-soft p-4 text-sm leading-relaxed text-muted">
-          Chưa có bài văn khấn nào đủ hồ sơ nguồn, quyền sử dụng và xác nhận thẩm định để xuất bản. Bạn vẫn có thể dùng checklist và chế độ đọc cho phần hướng dẫn nghi lễ.
+          Chưa có bài văn khấn đủ điều kiện để xuất bản. Bạn vẫn có thể dùng checklist và chế độ đọc cho phần hướng dẫn nghi lễ.
         </p>
       ) : (
         <>
@@ -222,11 +221,6 @@ export function RitualPrayerSection({ prayers = [] }: Props) {
               <span>{selected.usageNote}</span>
             </div>
           )}
-
-          {/* Source Provenance */}
-          <div className="mt-5">
-            <ContentProvenance metadata={selected.metadata} />
-          </div>
 
           {/* Action Row */}
           <div className="mt-6 flex flex-wrap items-center gap-3">

@@ -33,6 +33,276 @@
   user-select: none;
 }
 
+.today-calendar-detail {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ui-gold) 22%, var(--ui-line));
+  border-radius: 1.25rem;
+  padding: clamp(1.1rem, 2.3vw, 1.75rem);
+  background:
+    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--ui-gold) 10%, transparent), transparent 38%),
+    linear-gradient(135deg, var(--ui-surface), color-mix(in srgb, var(--ui-surface) 91%, var(--ui-gold)));
+  box-shadow: 0 14px 36px color-mix(in srgb, #000 12%, transparent), inset 0 1px 0 color-mix(in srgb, var(--ui-ink) 5%, transparent);
+}
+
+.today-calendar-detail::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--ui-accent), var(--ui-gold) 52%, var(--ui-success));
+  content: "";
+}
+
+.today-calendar-header,
+.today-calendar-title-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.today-calendar-header {
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--ui-line);
+}
+
+.today-calendar-title-wrap {
+  gap: 0.75rem;
+}
+
+.today-calendar-title-icon {
+  display: grid;
+  width: 2.65rem;
+  height: 2.65rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 24%, var(--ui-line));
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--ui-accent) 9%, var(--ui-surface));
+  color: var(--ui-accent);
+}
+
+.today-calendar-title-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.today-calendar-eyebrow,
+.today-calendar-title,
+.today-calendar-section-label,
+.today-calendar-deity h3,
+.today-calendar-hours h3 {
+  margin: 0;
+}
+
+.today-calendar-eyebrow,
+.today-calendar-section-label {
+  color: var(--ui-muted);
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.today-calendar-title {
+  margin-top: 0.12rem;
+  color: var(--ui-ink);
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1.18rem;
+  font-weight: 650;
+}
+
+.today-calendar-zone {
+  flex: 0 0 auto;
+  border: 1px solid var(--ui-line);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  background: color-mix(in srgb, var(--ui-surface) 86%, transparent);
+  color: var(--ui-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.today-calendar-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(20rem, 0.95fr);
+  gap: 1.15rem;
+  padding-top: 1.15rem;
+}
+
+.today-calendar-primary {
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+  padding: 0.15rem 1.25rem 0.15rem 0.1rem;
+}
+
+.today-calendar-date-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.8rem;
+  min-height: 2.65rem;
+}
+
+.today-calendar-date-label {
+  min-width: 6.2rem;
+  color: var(--ui-muted);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.today-calendar-date {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--ui-line);
+  border-radius: 0.55rem;
+  padding: 0.32rem 0.65rem;
+  background: var(--ui-surface);
+  font-size: 1.06rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+  letter-spacing: 0.11em;
+  line-height: 1.4;
+}
+
+.today-calendar-date--solar {
+  border-color: color-mix(in srgb, var(--ui-danger) 24%, var(--ui-line));
+  background: color-mix(in srgb, var(--ui-danger-soft) 52%, var(--ui-surface));
+  color: var(--ui-danger);
+}
+
+.today-calendar-date--lunar {
+  border-color: color-mix(in srgb, var(--ui-success) 24%, var(--ui-line));
+  background: color-mix(in srgb, var(--ui-success-soft) 58%, var(--ui-surface));
+  color: var(--ui-success);
+}
+
+.today-calendar-meta {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.45rem;
+  border-top: 1px solid var(--ui-line);
+  padding-top: 0.9rem;
+}
+
+.today-calendar-meta > div {
+  display: grid;
+  grid-template-columns: 7.7rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.today-calendar-meta span {
+  color: var(--ui-muted);
+}
+
+.today-calendar-meta strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.today-calendar-aside {
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+  border: 1px solid var(--ui-line);
+  border-radius: 1rem;
+  padding: 1rem 1.1rem;
+  background: color-mix(in srgb, var(--ui-surface-soft) 74%, var(--ui-surface));
+}
+
+.today-calendar-deity h3 {
+  margin-top: 0.25rem;
+  color: var(--ui-accent);
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.today-calendar-deity > p:last-child {
+  margin: 0.3rem 0 0;
+  color: var(--ui-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.today-calendar-hours {
+  border-top: 1px solid var(--ui-line);
+  padding-top: 0.75rem;
+}
+
+.today-calendar-hours h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--ui-ink);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.today-calendar-hours h3 svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--ui-gold);
+}
+
+.today-calendar-hour-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.today-calendar-hour-list span {
+  border: 1px solid color-mix(in srgb, var(--ui-gold) 25%, var(--ui-line));
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  background: var(--ui-surface);
+  color: var(--ui-ink);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.today-calendar-disclaimer {
+  margin: 0;
+  color: var(--ui-subtle);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .today-calendar-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .today-calendar-header {
+    align-items: flex-start;
+  }
+
+  .today-calendar-zone {
+    padding-inline: 0.5rem;
+    font-size: 0.65rem;
+  }
+
+  .today-calendar-meta > div {
+    grid-template-columns: 6.8rem minmax(0, 1fr);
+  }
+
+  .today-calendar-date {
+    font-size: 0.95rem;
+    letter-spacing: 0.07em;
+  }
+}
+
 /* 2. BỨC TRƯỚNG THƯ PHÁP (KHI ĐÃ CHECK-IN) */
 .today-scroll-card {
   position: relative;

@@ -391,9 +391,6 @@ export function GoodDayLookupPanel({
                         <Clock className="w-3.5 h-3.5 text-amber-600" />
                           <span><strong>Giờ theo chi ngày (chưa thẩm định):</strong> {item.auspiciousHours}</span>
                       </span>
-                      <span className="italic text-[11px]">
-                        * {item.sourceLabel}
-                      </span>
                     </div>
                   </div>
                 );

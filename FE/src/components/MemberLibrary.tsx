@@ -253,24 +253,6 @@ export function MemberLibrary({
             </section>
           ))}
 
-          <div className="space-y-1 text-sm text-muted">
-            <p>
-              Nguồn:{" "}
-              {article.provenance?.sourceTitle ||
-                article.source ||
-                "Xem hồ sơ biên soạn của bài."}
-            </p>
-
-            {article.provenance?.sourceLocator && (
-              <p>
-                Vị trí nguồn: {article.provenance.sourceLocator}
-              </p>
-            )}
-
-            {article.provenance?.bibliography && (
-              <p>{article.provenance.bibliography}</p>
-            )}
-          </div>
         </article>
       )}
     </section>

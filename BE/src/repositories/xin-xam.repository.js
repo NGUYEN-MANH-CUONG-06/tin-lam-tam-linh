@@ -65,6 +65,27 @@ async function listCatalog(xamType, region, client = prisma) {
   }));
 }
 
+async function listUnifiedCatalog(topic, client = prisma) {
+  const cards = await client.xin_xam.findMany({
+    where: {
+      OR: [
+        { xam_type: { endsWith: `:${topic}` } },
+        { xam_type: topic },
+        { category: topic },
+      ],
+      active: true,
+      verified: true,
+      editorial_status: "PUBLISHED",
+    },
+    orderBy: [{ region: "asc" }, { stick_number: "asc" }],
+  });
+  const reviewed = await attachReviewMetadata(cards.map((card) => ({ xin_xam: card })), client);
+  return reviewed.map((item) => item.xin_xam).filter((card) => isPublishableXamCard({
+    ...card,
+    interpretations: [card.meaning, card.advice],
+  }));
+}
+
 function upsertCatalog(data, client = prisma) {
   return client.xin_xam.upsert({
     where: { xam_type_stick_number: { xam_type: data.xam_type, stick_number: data.stick_number } },
@@ -111,4 +132,4 @@ function remove(id, userId, client = prisma) {
   return client.xin_xam_draws.deleteMany({ where: { id, user_id: userId, saved_at: { not: null } } });
 }
 
-module.exports = { findCatalog, listCatalog, upsertCatalog, createDraw, listDraws, findDraw, markDrawSaved, updateStar, remove };
+module.exports = { findCatalog, listCatalog, listUnifiedCatalog, upsertCatalog, createDraw, listDraws, findDraw, markDrawSaved, updateStar, remove };

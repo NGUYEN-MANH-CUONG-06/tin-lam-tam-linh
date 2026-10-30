@@ -2,6 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { ApiError, apiRequest } from "../lib/api";
 import { isDemoMode } from "../data/demoMode";
 import {
+  clearMembershipIntent,
+  readMembershipIntent,
+  type MembershipTerm,
+} from "../data/membershipIntent";
+import {
   submitSePayCheckout,
   type SePayCheckoutResponse,
 } from "../lib/sepayCheckout";
@@ -64,7 +69,7 @@ export interface Status {
 
 interface MembershipCheckoutProps {
   email?: string;
-  onLogin: () => void;
+  onLogin: (term: MembershipTerm) => void;
   onStatusChange?: (status: Status | null) => void;
 }
 
@@ -74,8 +79,7 @@ export function MembershipCheckout({
   onStatusChange,
 }: MembershipCheckoutProps) {
   const [status, setStatus] = useState<Status | null>(null);
-  const [term, setTerm] =
-    useState<"monthly" | "yearly">("monthly");
+  const [term, setTerm] = useState<MembershipTerm>("monthly");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -294,6 +298,11 @@ export function MembershipCheckout({
       );
 
       setStatus(nextStatus);
+      setTerm((currentTerm) =>
+        nextStatus.plans.some((plan) => plan.term === currentTerm)
+          ? currentTerm
+          : nextStatus.plans[0]?.term ?? "monthly",
+      );
       onStatusChange?.(nextStatus);
       setPendingOrder(waitingForOrder);
       setPaymentWindowExpired(windowExpired);
@@ -313,6 +322,12 @@ export function MembershipCheckout({
       }
     }
   };
+
+  useEffect(() => {
+    const intendedTerm = readMembershipIntent();
+    if (intendedTerm) setTerm(intendedTerm);
+    clearMembershipIntent();
+  }, []);
 
   useEffect(() => {
     setStatus(null);
@@ -337,7 +352,7 @@ export function MembershipCheckout({
     }
 
     if (!email) {
-      onLogin();
+      onLogin(term);
       return;
     }
 
@@ -428,15 +443,18 @@ export function MembershipCheckout({
 
   return (
     <section
-      className="my-8 rounded-3xl border border-line bg-surface p-6"
+      className="my-6 rounded-3xl border-2 border-amber-500/35 bg-surface p-5 shadow-xs sm:p-6"
       aria-labelledby="membership-checkout-title"
     >
       <h2
         id="membership-checkout-title"
-        className="text-xl font-semibold text-ink"
+        className="text-xl font-semibold text-ink sm:text-2xl"
       >
-        Trạng thái hội viên Tâm An
+        Gói Hội viên Tâm An
       </h2>
+      <p className="mt-1 text-sm text-muted">
+        Chọn thời hạn phù hợp. Giá và trạng thái thanh toán được cập nhật từ máy chủ.
+      </p>
 
       {loading && (
         <p role="status" className="mt-3 text-sm text-muted">
@@ -475,10 +493,10 @@ export function MembershipCheckout({
             </p>
           )}
 
-          {status.checkoutAvailable && (
+          {status.plans.length > 0 && (
             <>
               <fieldset
-                disabled={busy || loading || orderBlocksCheckout}
+                disabled={busy || loading || orderBlocksCheckout || !status.checkoutAvailable}
                 className="mt-4 flex flex-wrap gap-3"
               >
                 <legend className="mb-2 text-sm font-semibold text-ink">
@@ -513,55 +531,59 @@ export function MembershipCheckout({
                 sen ngọc.
               </p>
 
-              <p className="mt-2 text-sm text-muted">
-                Giới hạn AI: tối đa{" "}
-                {status.aiLimits.successfulReadingsPer24Hours} bản
-                diễn giải trong 24 giờ; tối đa{" "}
-                {status.aiLimits.providerAttemptsPer24Hours} lượt gọi
-                dịch vụ trong 24 giờ, gồm cả lượt thất bại.
-                Diễn giải dùng để tự suy ngẫm, không tính lá số hoặc
-                dự báo chắc chắn tương lai.
-              </p>
+              {status.checkoutAvailable && (
+                <>
+                  <p className="mt-2 text-sm text-muted">
+                    Giới hạn AI: tối đa{" "}
+                    {status.aiLimits.successfulReadingsPer24Hours} bản
+                    diễn giải trong 24 giờ; tối đa{" "}
+                    {status.aiLimits.providerAttemptsPer24Hours} lượt gọi
+                    dịch vụ trong 24 giờ, gồm cả lượt thất bại.
+                    Diễn giải dùng để tự suy ngẫm, không tính lá số hoặc
+                    dự báo chắc chắn tương lai.
+                  </p>
 
-              {pendingOrder && paymentWindowExpired && (
-                <label className="mt-4 flex items-start gap-3 rounded-xl border border-line p-4">
-                  <input
-                    type="checkbox"
-                    checked={acceptNewOrder}
-                    disabled={busy || loading}
-                    onChange={(event) =>
-                      setAcceptNewOrder(event.target.checked)
-                    }
-                    className="mt-1 h-4 w-4 shrink-0 accent-accent"
-                  />
+                  {pendingOrder && paymentWindowExpired && (
+                    <label className="mt-4 flex items-start gap-3 rounded-xl border border-line p-4">
+                      <input
+                        type="checkbox"
+                        checked={acceptNewOrder}
+                        disabled={busy || loading}
+                        onChange={(event) =>
+                          setAcceptNewOrder(event.target.checked)
+                        }
+                        className="mt-1 h-4 w-4 shrink-0 accent-accent"
+                      />
 
-                  <span className="text-sm leading-relaxed text-muted">
-                    Tôi đã kiểm tra giao dịch cũ và muốn tạo đơn khác.
-                    Tôi hiểu đơn cũ vẫn có thể được xác nhận muộn;
-                    nếu cả hai đơn thanh toán thành công, cả hai sẽ
-                    được tính vào thời hạn hội viên.
-                  </span>
-                </label>
+                      <span className="text-sm leading-relaxed text-muted">
+                        Tôi đã kiểm tra giao dịch cũ và muốn tạo đơn khác.
+                        Tôi hiểu đơn cũ vẫn có thể được xác nhận muộn;
+                        nếu cả hai đơn thanh toán thành công, cả hai sẽ
+                        được tính vào thời hạn hội viên.
+                      </span>
+                    </label>
+                  )}
+
+                  <button
+                    type="button"
+                    disabled={busy || (orderBlocksCheckout && !canResumeOrder)}
+                    onClick={() => void checkout()}
+                    className="mt-4 min-h-11 rounded-xl bg-accent px-5 py-3 font-semibold text-white disabled:opacity-50"
+                  >
+                    {busy
+                      ? "Đang mở thanh toán…"
+                      : canResumeOrder
+                        ? "Mở lại thanh toán đơn hiện tại"
+                        : orderBlocksCheckout
+                          ? "Đang chờ xác nhận giao dịch"
+                          : !email
+                            ? "Đăng nhập để tiếp tục"
+                            : status.subscription
+                              ? "Gia hạn qua SePay"
+                              : "Đăng ký qua SePay"}
+                  </button>
+                </>
               )}
-
-              <button
-                type="button"
-                disabled={busy || (orderBlocksCheckout && !canResumeOrder)}
-                onClick={() => void checkout()}
-                className="mt-4 rounded-xl bg-accent px-5 py-3 text-white disabled:opacity-50"
-              >
-                {busy
-                  ? "Đang mở thanh toán…"
-                  : canResumeOrder
-                    ? "Mở lại thanh toán đơn hiện tại"
-                    : orderBlocksCheckout
-                      ? "Đang chờ xác nhận giao dịch"
-                      : !email
-                        ? "Đăng nhập để tiếp tục"
-                        : status.subscription
-                          ? "Gia hạn qua SePay"
-                          : "Đăng ký qua SePay"}
-              </button>
             </>
           )}
         </>

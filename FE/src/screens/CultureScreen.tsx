@@ -15,7 +15,6 @@ import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import { Card } from "@/src/components/ui/card";
 import { RegionKey, CultureCategoryKey } from "../data/cultureData";
-import { DiscoveryNav } from "../components/DiscoveryNav";
 import { loadCultureArticles } from "../data/contentService";
 import { canShowArticleImage, toCultureArticle } from "../data/cultureAdapter";
 import { UnverifiedImage } from "../components/UnverifiedImage";
@@ -32,19 +31,11 @@ const normalizeSearchText = (value: string) =>
 interface CultureScreenProps {
   onSelectArticle: (id: string) => void;
   onGoToHome: () => void;
-  onGoToRituals?: () => void;
-  onGoToCalendar?: () => void;
-  onGoToGoodDays?: () => void;
-  onGoToMap?: () => void;
 }
 
 export const CultureScreen: React.FC<CultureScreenProps> = ({
   onSelectArticle,
   onGoToHome,
-  onGoToRituals,
-  onGoToCalendar,
-  onGoToGoodDays,
-  onGoToMap,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
@@ -333,14 +324,6 @@ export const CultureScreen: React.FC<CultureScreenProps> = ({
             )}
           </div>
         </div>
-
-        <DiscoveryNav
-          current="culture"
-          onGoToRituals={onGoToRituals}
-          onGoToCalendar={onGoToCalendar}
-          onGoToPlan={onGoToGoodDays}
-          onGoToMap={onGoToMap}
-        />
 
         {/* Search & Filter Toolbar */}
         <Card className="p-5 sm:p-7 rounded-2xl border-line bg-surface/90 backdrop-blur-sm shadow-xs mb-10 space-y-5">
@@ -650,7 +633,7 @@ export const CultureScreen: React.FC<CultureScreenProps> = ({
                 NGUYÊN TẮC BIÊN TẬP & BẢO TỒN DI SẢN
               </div>
               <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed max-w-2xl">
-                Nội dung được nghiên cứu và truyền tải dưới lăng kính văn hóa nhân văn, tôn trọng sự phong phú của phong tục ba miền. Chúng tôi cam kết đối chiếu tư liệu thận trọng để cùng bạn gìn giữ mạch nguồn nếp xưa.
+                Nội dung được trình bày dưới lăng kính văn hóa nhân văn, tôn trọng sự phong phú của phong tục ba miền. Cùng tìm hiểu và gìn giữ những nếp xưa trong đời sống hôm nay.
               </p>
             </div>
           </div>

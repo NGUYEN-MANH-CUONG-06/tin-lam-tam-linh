@@ -8,14 +8,8 @@ import { Badge } from "./ui/badge";
 import {
   Flame,
   RotateCcw,
-  RotateCw,
-  ZoomIn,
-  ZoomOut,
   Compass,
-  Sparkles,
-  Heart,
 } from "lucide-react";
-import type { MemorialRecord } from "../screens/MemorialSpaceScreen";
 import {
   createDigitalDecoration,
   disposeDigitalDecoration,
@@ -23,17 +17,13 @@ import {
 } from "./createDigitalDecoration";
 
 interface SanctuarySceneProps {
-  memorial: MemorialRecord | null;
-  onOpenMemorial: () => void;
   decoration?: DecorationId | null;
-  onRecordIncense?: () => Promise<void>;
+  children?: React.ReactNode;
 }
 
 export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
-  memorial,
-  onOpenMemorial,
   decoration = null,
-  onRecordIncense,
+  children,
 }) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const resetRef = useRef<(() => void) | null>(null);
@@ -45,39 +35,25 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     set: (id: DecorationId | null) => void;
   } | null>(null);
   const [error, setError] = useState("");
+  const [sceneLoading, setSceneLoading] = useState(true);
+  const [textureFallbackUsed, setTextureFallbackUsed] = useState(false);
   const [incenseLit, setIncenseLit] = useState(false);
-  const [incensePending, setIncensePending] = useState(false);
-  const [incenseError, setIncenseError] = useState("");
+  const [incenseLighting, setIncenseLighting] = useState(false);
 
   const incenseRef = useRef<{
-    setLit: (lit: boolean) => void;
+    light: (onComplete: () => void) => void;
   } | null>(null);
 
-  const handleToggleIncense = async () => {
+  const handleLightIncense = () => {
     const controller = incenseRef.current;
 
-    if (!controller || error || incensePending) return;
+    if (!controller || error || incenseLit || incenseLighting) return;
 
-    const next = !incenseLit;
-    setIncenseError("");
-    if (next) {
-      if (!memorial?.id || !onRecordIncense) {
-        setIncenseError("Hãy đăng nhập và chọn hồ sơ tưởng niệm trước khi ghi nhận lượt thắp hương.");
-        return;
-      }
-      setIncensePending(true);
-      try {
-        await onRecordIncense();
-      } catch {
-        setIncenseError("Chưa lưu được lượt thắp hương. Cảnh 3D chưa thay đổi; bạn có thể thử lại.");
-        setIncensePending(false);
-        return;
-      }
-      setIncensePending(false);
-    }
-
-    controller.setLit(next);
-    setIncenseLit(next);
+    setIncenseLighting(true);
+    controller.light(() => {
+      setIncenseLighting(false);
+      setIncenseLit(true);
+    });
   };
 
   useEffect(() => {
@@ -99,10 +75,35 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     }
 
     let contextLost = false;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    let disposed = false;
+    let sceneReady = false;
+    let texturesReady = false;
+    let textureLoadFailed = false;
+    let renderScene: (() => void) | null = null;
+
+    const revealSceneWhenReady = () => {
+      if (!sceneReady || !texturesReady || contextLost || disposed) return;
+
+      renderer.domElement.style.visibility = "visible";
+      setSceneLoading(false);
+      if (textureLoadFailed) setTextureFallbackUsed(true);
+      renderScene?.();
+    };
+
+    const textureLoadingManager = new THREE.LoadingManager();
+    textureLoadingManager.onLoad = () => {
+      texturesReady = true;
+      revealSceneWhenReady();
+    };
+    textureLoadingManager.onError = () => {
+      textureLoadFailed = true;
+    };
+    const textureLoader = new THREE.TextureLoader(textureLoadingManager);
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFShadowMap;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     // Bàn, lư hương và đèn tạo bóng đều đứng yên.
     // Chỉ cần tạo lại shadow map khi chúng thay đổi.
     renderer.shadowMap.autoUpdate = false;
@@ -111,10 +112,12 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       "aria-label",
       "Cảnh 3D góc tri ân: bàn gỗ và lư hương mẫu",
     );
+    renderer.domElement.style.visibility = "hidden";
     host.appendChild(renderer.domElement);
+    host.style.backgroundColor = "#eee9df";
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#d8cbbb");
+    scene.background = new THREE.Color("#d9d4ca");
 
     const roomEnvironment = new RoomEnvironment();
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
@@ -125,7 +128,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     );
 
     scene.environment = environmentTarget.texture;
-    scene.environmentIntensity = 0.6;
+    scene.environmentIntensity = 0.48;
 
     roomEnvironment.dispose();
     pmremGenerator.dispose();
@@ -134,65 +137,74 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     camera.position.set(0.75, 2.55, 4.6);
 
     scene.add(
-      new THREE.HemisphereLight("#fff3df", "#665448", 1.0),
+      new THREE.HemisphereLight("#fffaf1", "#6d6258", 0.88),
     );
+    scene.add(new THREE.AmbientLight("#fff8ed", 0.38));
 
-    const light = new THREE.DirectionalLight("#fff0dc", 1.8);
-    light.position.set(-3, 5, 4);
+    const light = new THREE.DirectionalLight("#fff8ec", 1.0);
+    light.position.set(-2.2, 6, 6);
     light.castShadow = true;
-    light.shadow.mapSize.set(1024, 1024);
-    light.shadow.camera.left = -4;
-    light.shadow.camera.right = 4;
-    light.shadow.camera.top = 4;
-    light.shadow.camera.bottom = -4;
+    light.shadow.mapSize.set(2048, 2048);
+    light.shadow.camera.left = -6;
+    light.shadow.camera.right = 6;
+    light.shadow.camera.top = 6;
+    light.shadow.camera.bottom = -1;
     light.shadow.camera.near = 0.5;
-    light.shadow.camera.far = 15;
-    light.shadow.bias = -0.0002;
-    light.shadow.normalBias = 0.02;
+    light.shadow.camera.far = 18;
+    light.shadow.bias = -0.00015;
+    light.shadow.normalBias = 0.025;
+    light.shadow.radius = 3.2;
+    light.shadow.intensity = 0.27;
     scene.add(light);
 
-    // Vân gỗ mô phỏng, chưa phải texture chụp từ gỗ thật.
-    const woodCanvas = document.createElement("canvas");
-    woodCanvas.width = 256;
-    woodCanvas.height = 256;
+    const fillLight = new THREE.DirectionalLight("#f1eee7", 0.45);
+    fillLight.position.set(3.5, 3.5, 5.5);
+    scene.add(fillLight);
 
-    const woodContext = woodCanvas.getContext("2d");
+    const roomFillLight = new THREE.DirectionalLight("#fff9f0", 0.42);
+    roomFillLight.position.set(0, 3, 8);
+    scene.add(roomFillLight);
 
-    if (woodContext) {
-      woodContext.fillStyle = "#a17b60";
-      woodContext.fillRect(0, 0, 256, 256);
+    const altarAccent = new THREE.SpotLight(
+      "#ffddb5",
+      36,
+      6.5,
+      Math.PI / 5,
+      0.72,
+      2,
+    );
+    altarAccent.position.set(0.25, 4.1, 3.2);
+    altarAccent.target.position.set(0, 1.75, 0.25);
+    scene.add(altarAccent.target, altarAccent);
 
-      for (let line = 0; line < 110; line += 1) {
-        const baseY = (line / 110) * 256;
-
-        woodContext.beginPath();
-
-        for (let x = 0; x <= 256; x += 4) {
-          // Các tần số là số nguyên để hai đầu texture nối nhau.
-          const wave =
-            Math.sin((x / 256) * Math.PI * 4 + line * 0.37) * 2.5 +
-            Math.sin((x / 256) * Math.PI * 8 + line * 0.19) * 0.8;
-
-          const y = baseY + wave;
-
-          if (x === 0) {
-            woodContext.moveTo(x, y);
-          } else {
-            woodContext.lineTo(x, y);
-          }
-        }
-
-        woodContext.strokeStyle =
-          line % 4 === 0
-            ? "rgba(48, 25, 15, 0.24)"
-            : "rgba(55, 29, 18, 0.10)";
-
-        woodContext.lineWidth = line % 4 === 0 ? 1.2 : 0.6;
-        woodContext.stroke();
-      }
+    // Soft side bounce keeps the room warm without flattening the altar's contrast.
+    for (const side of [-1, 1]) {
+      const sideFill = new THREE.DirectionalLight("#fff4e6", 0.18);
+      sideFill.position.set(0, 2.7, 2.4);
+      sideFill.target.position.set(side * 4.8, 2.7, 2.4);
+      scene.add(sideFill.target, sideFill);
     }
 
-    const woodTexture = new THREE.CanvasTexture(woodCanvas);
+    let woodMaterialForFallback: THREE.MeshPhysicalMaterial | null = null;
+    let doorMaterialForFallback: THREE.MeshPhysicalMaterial | null = null;
+    const woodTexture = textureLoader.load(
+      "/textures/altar-walnut-v1.png",
+      undefined,
+      undefined,
+      () => {
+        if (disposed) return;
+        if (woodMaterialForFallback) {
+          woodMaterialForFallback.map = null;
+          woodMaterialForFallback.color.set("#76563f");
+          woodMaterialForFallback.needsUpdate = true;
+        }
+        if (doorMaterialForFallback) {
+          doorMaterialForFallback.map = null;
+          doorMaterialForFallback.color.set("#674b37");
+          doorMaterialForFallback.needsUpdate = true;
+        }
+      },
+    );
     woodTexture.colorSpace = THREE.SRGBColorSpace;
     woodTexture.wrapS = THREE.RepeatWrapping;
     woodTexture.wrapT = THREE.RepeatWrapping;
@@ -202,26 +214,28 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       renderer.capabilities.getMaxAnisotropy(),
     );
 
-    const wood = new THREE.MeshStandardMaterial({
+    const wood = new THREE.MeshPhysicalMaterial({
       map: woodTexture,
-      color: "#76503c",
-      roughness: 0.42,
+      color: "#ffffff",
+      roughness: 0.55,
       metalness: 0,
+      clearcoat: 0.1,
+      clearcoatRoughness: 0.56,
     });
+    woodMaterialForFallback = wood;
 
-    // Vân đứng riêng cho các tấm cánh tủ.
+    // Keep the same grain direction on the cabinet doors.
     const doorTexture = woodTexture.clone();
 
-    doorTexture.center.set(0.5, 0.5);
-    doorTexture.rotation = Math.PI / 2;
-    doorTexture.needsUpdate = true;
-
-    const doorMaterial = new THREE.MeshStandardMaterial({
+    const doorMaterial = new THREE.MeshPhysicalMaterial({
       map: doorTexture,
-      color: "#76503c",
-      roughness: 0.48,
+      color: "#ffffff",
+      roughness: 0.58,
       metalness: 0,
+      clearcoat: 0.08,
+      clearcoatRoughness: 0.58,
     });
+    doorMaterialForFallback = doorMaterial;
 
     const bronze = new THREE.MeshStandardMaterial({
       color: "#a47c45",
@@ -229,10 +243,57 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       roughness: 0.42,
     });
 
-    const porcelainMaterial = new THREE.MeshStandardMaterial({
-      color: "#eee8dc",
-      roughness: 0.3,
+    const porcelainCanvas = document.createElement("canvas");
+    porcelainCanvas.width = 256;
+    porcelainCanvas.height = 256;
+    const porcelainContext = porcelainCanvas.getContext("2d");
+    if (porcelainContext) {
+      porcelainContext.fillStyle = "#f3eee3";
+      porcelainContext.fillRect(0, 0, 256, 256);
+      porcelainContext.strokeStyle = "#244c73";
+      porcelainContext.fillStyle = "#244c73";
+      porcelainContext.lineWidth = 3;
+
+      for (const centerX of [0, 128, 256]) {
+        for (const centerY of [0, 128, 256]) {
+          porcelainContext.beginPath();
+          porcelainContext.arc(centerX, centerY, 28, 0, Math.PI * 2);
+          porcelainContext.stroke();
+          for (let petal = 0; petal < 6; petal += 1) {
+            porcelainContext.save();
+            porcelainContext.translate(centerX, centerY);
+            porcelainContext.rotate((petal / 6) * Math.PI * 2);
+            porcelainContext.beginPath();
+            porcelainContext.ellipse(0, -15, 6, 12, 0, 0, Math.PI * 2);
+            porcelainContext.fill();
+            porcelainContext.restore();
+          }
+          porcelainContext.beginPath();
+          porcelainContext.arc(centerX, centerY, 4, 0, Math.PI * 2);
+          porcelainContext.fill();
+        }
+      }
+
+      porcelainContext.lineWidth = 5;
+      porcelainContext.beginPath();
+      porcelainContext.moveTo(0, 12);
+      porcelainContext.lineTo(256, 12);
+      porcelainContext.moveTo(0, 244);
+      porcelainContext.lineTo(256, 244);
+      porcelainContext.stroke();
+    }
+    const porcelainTexture = new THREE.CanvasTexture(porcelainCanvas);
+    porcelainTexture.colorSpace = THREE.SRGBColorSpace;
+    porcelainTexture.wrapS = THREE.RepeatWrapping;
+    porcelainTexture.wrapT = THREE.RepeatWrapping;
+
+    const porcelainMaterial = new THREE.MeshPhysicalMaterial({
+      map: porcelainTexture,
+      color: "#ffffff",
+      roughness: 0.24,
       metalness: 0,
+      clearcoat: 0.42,
+      clearcoatRoughness: 0.18,
     });
 
     const blueMaterial = new THREE.MeshStandardMaterial({
@@ -247,11 +308,102 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       metalness: 0,
     });
 
-    const fruitMaterial = new THREE.MeshStandardMaterial({
-      color: "#86a83f",
-      roughness: 0.72,
+    const candleFlameMaterial = new THREE.MeshStandardMaterial({
+      color: "#ffb33f",
+      emissive: "#ff7b19",
+      emissiveIntensity: 1.8,
+      roughness: 0.35,
+    });
+
+    const rugMaterial = new THREE.MeshStandardMaterial({
+      color: "#6d292b",
+      roughness: 0.92,
       metalness: 0,
     });
+
+    const fruitSkinTextures: THREE.CanvasTexture[] = [];
+    const createFruitSkinTexture = (
+      base: string,
+      highlight: string,
+      shadow: string,
+      seed: number,
+    ) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 128;
+      const context = canvas.getContext("2d");
+
+      if (context) {
+        const colorWash = context.createLinearGradient(0, 0, 0, 128);
+        colorWash.addColorStop(0, highlight);
+        colorWash.addColorStop(0.48, base);
+        colorWash.addColorStop(1, shadow);
+        context.fillStyle = colorWash;
+        context.fillRect(0, 0, 256, 128);
+
+        let noiseSeed = seed;
+        const random = () => {
+          noiseSeed = (noiseSeed * 1664525 + 1013904223) >>> 0;
+          return noiseSeed / 4294967296;
+        };
+
+        for (let patch = 0; patch < 24; patch += 1) {
+          const x = random() * 256;
+          const y = random() * 128;
+          const radius = 10 + random() * 34;
+          const wash = context.createRadialGradient(x, y, 1, x, y, radius);
+          wash.addColorStop(
+            0,
+            patch % 2 === 0
+              ? "rgba(255, 246, 216, 0.12)"
+              : "rgba(48, 31, 18, 0.09)",
+          );
+          wash.addColorStop(1, "rgba(255, 255, 255, 0)");
+          context.fillStyle = wash;
+          context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+        }
+
+        for (let speckle = 0; speckle < 1150; speckle += 1) {
+          const radius = 0.25 + random() * 0.7;
+          context.fillStyle = speckle % 3 === 0
+            ? "rgba(255, 242, 208, 0.16)"
+            : "rgba(47, 28, 16, 0.09)";
+          context.beginPath();
+          context.arc(random() * 256, random() * 128, radius, 0, Math.PI * 2);
+          context.fill();
+        }
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = Math.min(
+        4,
+        renderer.capabilities.getMaxAnisotropy(),
+      );
+      fruitSkinTextures.push(texture);
+      return texture;
+    };
+
+    const fruitSkins = [
+      { base: "#9d4436", highlight: "#c86c52", shadow: "#71352f", seed: 1481 },
+      { base: "#c09548", highlight: "#e0bd69", shadow: "#936332", seed: 2963 },
+      { base: "#71864d", highlight: "#a2a96b", shadow: "#485f39", seed: 4577 },
+      { base: "#c9763c", highlight: "#e8a557", shadow: "#96522e", seed: 6181 },
+      { base: "#ae4d3e", highlight: "#d67b5d", shadow: "#7d3932", seed: 7793 },
+    ];
+    const fruitMaterials = fruitSkins.map((skin, index) => new THREE.MeshPhysicalMaterial({
+      map: createFruitSkinTexture(
+        skin.base,
+        skin.highlight,
+        skin.shadow,
+        skin.seed,
+      ),
+      color: "#ffffff",
+      roughness: [0.58, 0.66, 0.8, 0.76, 0.62][index],
+      metalness: 0,
+      clearcoat: [0.07, 0.045, 0.015, 0.015, 0.05][index],
+      clearcoatRoughness: [0.62, 0.68, 0.82, 0.84, 0.68][index],
+    }));
 
     const leafMaterial = new THREE.MeshStandardMaterial({
       color: "#3e6536",
@@ -259,19 +411,40 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       metalness: 0,
     });
 
-    // Dùng bản sao để chỉnh độ lặp riêng cho sàn.
-    const floorTexture = woodTexture.clone();
+    const borderMaterial = new THREE.MeshStandardMaterial({
+      color: "#ad8549",
+      roughness: 0.45,
+      metalness: 0.55,
+    });
+
+    let floorMaterialForFallback: THREE.MeshStandardMaterial | null = null;
+    const floorTexture = textureLoader.load(
+      "/textures/floor-walnut-v1.png",
+      undefined,
+      undefined,
+      () => {
+        if (disposed || !floorMaterialForFallback) return;
+        floorMaterialForFallback.map = null;
+        floorMaterialForFallback.color.set("#785b43");
+        floorMaterialForFallback.needsUpdate = true;
+      },
+    );
+    floorTexture.colorSpace = THREE.SRGBColorSpace;
     floorTexture.wrapS = THREE.RepeatWrapping;
     floorTexture.wrapT = THREE.RepeatWrapping;
-    floorTexture.repeat.set(4, 3);
-    floorTexture.needsUpdate = true;
+    floorTexture.repeat.set(2, 6);
+    floorTexture.anisotropy = Math.min(
+      8,
+      renderer.capabilities.getMaxAnisotropy(),
+    );
 
     const floorMaterial = new THREE.MeshStandardMaterial({
       map: floorTexture,
-      color: "#b58c68",
-      roughness: 0.7,
+      color: "#ffffff",
+      roughness: 0.86,
       metalness: 0,
     });
+    floorMaterialForFallback = floorMaterial;
 
     const geometries: THREE.BufferGeometry[] = [];
 
@@ -290,10 +463,11 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(x, y, z);
       scene.add(mesh);
+      return mesh;
     };
 
     // Sàn và bàn mẫu.
-    addBox(7, 0.12, 6, 0, -0.06, 0, floorMaterial);
+    addBox(10, 0.12, 10, 0, -0.06, 0.35, floorMaterial);
     const addRoundedWood = (
       width: number,
       height: number,
@@ -317,14 +491,14 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     // để các đồ thờ hiện tại không bị thay đổi độ cao.
 
     // Mặt tủ và hai lớp chỉ bên dưới.
-    addRoundedWood(3.6, 0.16, 1.8, 0, 1.22, 0, 0.025);
-    addRoundedWood(3.48, 0.065, 1.7, 0, 1.1075, 0, 0.012);
-    addRoundedWood(3.4, 0.045, 1.62, 0, 1.0525, 0, 0.01);
+    addRoundedWood(3.9, 0.16, 1.95, 0, 1.22, 0, 0.025);
+    addRoundedWood(3.72, 0.065, 1.85, 0, 1.1075, 0, 0.012);
+    addRoundedWood(3.64, 0.045, 1.77, 0, 1.0525, 0, 0.01);
 
     // Hai vách bên.
-    for (const x of [-1.61, 1.61]) {
+    for (const x of [-1.72, 1.72]) {
       addRoundedWood(
-        0.14, 0.86, 1.54,
+        0.14, 0.86, 1.68,
         x, 0.6, 0,
         0.012,
       );
@@ -332,17 +506,17 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
     // Vách sau.
     addRoundedWood(
-      3.08, 0.86, 0.1,
+      3.25, 0.86, 0.1,
       0, 0.6, -0.72,
       0.01,
     );
 
     // Đáy tủ và bệ chân.
-    addRoundedWood(3.36, 0.1, 1.6, 0, 0.17, 0, 0.014);
-    addRoundedWood(3.48, 0.12, 1.7, 0, 0.06, 0, 0.018);
+    addRoundedWood(3.56, 0.1, 1.72, 0, 0.17, 0, 0.014);
+    addRoundedWood(3.68, 0.12, 1.82, 0, 0.06, 0, 0.018);
 
     // Khung mặt trước.
-    for (const x of [-1.57, -0.53, 0.53, 1.57]) {
+    for (const x of [-1.72, -0.53, 0.53, 1.72]) {
       addRoundedWood(
         0.085, 0.8, 0.09,
         x, 0.61, 0.765,
@@ -352,7 +526,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
     for (const y of [0.235, 0.985]) {
       addRoundedWood(
-        3.2, 0.075, 0.09,
+        3.45, 0.075, 0.09,
         0, y, 0.765,
         0.008,
       );
@@ -388,21 +562,144 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       }
     }
 
-    // Tường phía sau tủ.
-    const wallMaterial = new THREE.MeshStandardMaterial({
-      color: "#b5aa97",
-      roughness: 0.95,
-      metalness: 0,
-    });
+    // Chỉ đồng nhỏ trên cánh tủ và hoa văn tròn ở chính giữa.
+    const cabinetKnobGeometry = new THREE.SphereGeometry(0.028, 12, 10);
+    const cabinetCarvingGeometry = new THREE.TorusGeometry(0.085, 0.009, 8, 32);
+    const carvingPetalGeometry = new THREE.SphereGeometry(0.025, 10, 8);
+    geometries.push(cabinetKnobGeometry, cabinetCarvingGeometry, carvingPetalGeometry);
 
-    const borderMaterial = new THREE.MeshStandardMaterial({
-      color: "#ad8549",
-      roughness: 0.45,
-      metalness: 0.55,
+    for (const centerX of [-1.05, 0, 1.05]) {
+      for (const offsetX of [-0.29, 0.29]) {
+        const knob = new THREE.Mesh(cabinetKnobGeometry, borderMaterial);
+        knob.position.set(centerX + offsetX, 0.61, 0.795);
+        scene.add(knob);
+      }
+    }
+
+    for (const centerX of [-1.05, 0, 1.05]) {
+      const scale = centerX === 0 ? 1 : 0.72;
+      const carving = new THREE.Group();
+      carving.position.set(centerX, 0.61, 0.792);
+      carving.scale.setScalar(scale);
+      carving.add(new THREE.Mesh(cabinetCarvingGeometry, borderMaterial));
+
+      for (const angle of [0, Math.PI / 2, Math.PI, (Math.PI * 3) / 2]) {
+        const petal = new THREE.Mesh(carvingPetalGeometry, borderMaterial);
+        petal.position.set(Math.cos(angle) * 0.048, Math.sin(angle) * 0.048, 0.002);
+        petal.scale.set(1, 1.35, 0.5);
+        carving.add(petal);
+      }
+
+      const carvingCenter = new THREE.Mesh(carvingPetalGeometry, borderMaterial);
+      carvingCenter.position.z = 0.005;
+      carvingCenter.scale.set(0.8, 0.8, 0.5);
+      carving.add(carvingCenter);
+      scene.add(carving);
+    }
+
+    // Chỉ đồng mảnh chạy dọc mép mặt tủ, giúp phân lớp gỗ rõ hơn.
+    addBox(3.35, 0.018, 0.014, 0, 1.12, 0.82, borderMaterial);
+    addBox(3.25, 0.012, 0.014, 0, 1.035, 0.82, borderMaterial);
+
+    // Fine, neutral limewash avoids the coarse orange grain of the first wall pass.
+    let wallMaterialForFallback: THREE.MeshPhysicalMaterial | null = null;
+    const wallTexture = textureLoader.load(
+      "/textures/wall-limewash-v2.png",
+      undefined,
+      undefined,
+      () => {
+        if (disposed || !wallMaterialForFallback) return;
+        wallMaterialForFallback.map = null;
+        wallMaterialForFallback.color.set("#d6cdbf");
+        wallMaterialForFallback.needsUpdate = true;
+      },
+    );
+    wallTexture.colorSpace = THREE.SRGBColorSpace;
+    wallTexture.wrapS = THREE.RepeatWrapping;
+    wallTexture.wrapT = THREE.RepeatWrapping;
+    wallTexture.repeat.set(4, 2);
+    wallTexture.anisotropy = Math.min(
+      8,
+      renderer.capabilities.getMaxAnisotropy(),
+    );
+
+    const wallMaterial = new THREE.MeshPhysicalMaterial({
+      map: wallTexture,
+      color: "#d6cdbf",
+      roughness: 0.98,
+      metalness: 0,
+      clearcoat: 0,
+      clearcoatRoughness: 1,
     });
+    wallMaterialForFallback = wallMaterial;
 
     // Tường bắt đầu từ sàn, nằm sau tủ.
-    addBox(7, 4.4, 0.12, 0, 2.2, -1.25, wallMaterial);
+    // Extend well beyond the camera frustum so the wall never ends inside the shot.
+    addBox(10, 5.2, 0.12, 0, 2.6, -1.25, wallMaterial);
+
+    // A low walnut skirting board gives the wall and floor a finished junction.
+    const roomSkirting = addRoundedWood(
+      10,
+      0.16,
+      0.08,
+      0,
+      0.08,
+      -1.155,
+      0.016,
+    );
+    roomSkirting.userData.excludeFromAltarBounds = true;
+
+    // Two matching side walls turn the backdrop into a quiet, enclosed room.
+    for (const x of [-4.94, 4.94]) {
+      addBox(0.12, 5.2, 6.5, x, 2.6, 2.06, wallMaterial);
+
+      const sideSkirting = addRoundedWood(
+        0.16,
+        0.16,
+        6.5,
+        x < 0 ? -4.84 : 4.84,
+        0.08,
+        2.06,
+        0.016,
+      );
+      sideSkirting.userData.excludeFromAltarBounds = true;
+    }
+
+    // Hậu cung gỗ có trụ, đầu cột và hai lớp mái đỡ bài vị.
+    for (const x of [-1.08, 1.08]) {
+      addRoundedWood(0.16, 2.28, 0.16, x, 2.43, -1.08, 0.018);
+      addRoundedWood(0.25, 0.13, 0.24, x, 3.59, -1.08, 0.02);
+      addRoundedWood(0.25, 0.13, 0.24, x, 1.28, -1.08, 0.02);
+
+      for (const offsetX of [-0.045, 0.045]) {
+        addBox(0.012, 1.94, 0.012, x + offsetX, 2.43, -0.986, borderMaterial);
+      }
+    }
+
+    addRoundedWood(2.45, 0.14, 0.24, 0, 3.58, -1.08, 0.025);
+    addRoundedWood(2.72, 0.075, 0.3, 0, 3.69, -1.08, 0.025);
+    addBox(2.62, 0.018, 0.012, 0, 3.63, -0.91, borderMaterial);
+
+    // Thảm lễ nhỏ đặt trước tủ, có đường viền và họa tiết hình thoi.
+    const rugGeometry = new THREE.BoxGeometry(2.75, 0.025, 0.82);
+    geometries.push(rugGeometry);
+    const rug = new THREE.Mesh(rugGeometry, rugMaterial);
+    rug.position.set(0, 0.0125, 1.5);
+    scene.add(rug);
+
+    addBox(2.61, 0.009, 0.018, 0, 0.03, 1.11, borderMaterial);
+    addBox(2.61, 0.009, 0.018, 0, 0.03, 1.89, borderMaterial);
+    addBox(0.018, 0.009, 0.74, -1.34, 0.03, 1.5, borderMaterial);
+    addBox(0.018, 0.009, 0.74, 1.34, 0.03, 1.5, borderMaterial);
+
+    const rugMotifGeometry = new THREE.BoxGeometry(0.09, 0.01, 0.09);
+    geometries.push(rugMotifGeometry);
+    for (const x of [-0.84, -0.42, 0, 0.42, 0.84]) {
+      const motif = new THREE.Mesh(rugMotifGeometry, borderMaterial);
+      motif.position.set(x, 0.03, 1.5);
+      motif.rotation.y = Math.PI / 4;
+      scene.add(motif);
+    }
 
 
     // Hai bình gốm đặt ở hai bên, gần phía sau mặt bàn.
@@ -441,7 +738,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     geometries.push(footRingGeometry, neckRingGeometry);
 
     // Họa tiết cánh hoa dạng hình học.
-    const petalGeometry = new THREE.SphereGeometry(1, 8, 6);
+    const petalGeometry = new THREE.SphereGeometry(1, 16, 10);
     geometries.push(petalGeometry);
 
     // Dựng cành bằng đoạn nối giữa hai điểm.
@@ -475,23 +772,28 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     };
 
     const flowerMaterial = new THREE.MeshStandardMaterial({
-      color: "#e8b832",
-      roughness: 0.75,
+      color: "#ddcfb3",
+      roughness: 0.86,
       metalness: 0,
     });
 
     const flowerCenterMaterial = new THREE.MeshStandardMaterial({
-      color: "#a66d1c",
+      color: "#c49a4a",
       roughness: 0.9,
       metalness: 0,
     });
 
-    const blossomGeometry = new THREE.SphereGeometry(1, 12, 8);
+    const blossomGeometry = new THREE.SphereGeometry(1, 20, 12);
     geometries.push(blossomGeometry);
 
-    for (const side of [1]) {
+    for (const side of [-1, 1]) {
       const vaseGroup = new THREE.Group();
-      vaseGroup.position.set(side * 1.28, 1.3, -0.38);
+      vaseGroup.position.set(
+        side * (side < 0 ? 1.31 : 1.26),
+        1.3,
+        side < 0 ? -0.4 : -0.35,
+      );
+      vaseGroup.rotation.z = side * 0.018;
 
       const vase = new THREE.Mesh(vaseGeometry, porcelainMaterial);
       vaseGroup.add(vase);
@@ -555,24 +857,33 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         [-0.08, 1.08, -0.16],
         [0.17, 0.90, -0.14],
       ];
+      const sideXShifts =
+        side < 0
+          ? [-0.025, 0, 0.015, 0, -0.025, 0, 0.015, 0, -0.025, 0, 0.015, 0]
+          : [0, 0.024, 0, -0.014, 0, 0.024, 0, -0.014, 0, 0.024, 0, -0.014];
+      const flowerYShifts = [0.02, 0, -0.015, 0.02, 0, -0.015, 0.02, 0, -0.015, 0.02, 0, -0.015];
 
-      const bouquetLeafGeometry = new THREE.SphereGeometry(1, 12, 8);
+      const bouquetLeafGeometry = new THREE.SphereGeometry(1, 16, 10);
       geometries.push(bouquetLeafGeometry);
 
-      for (const [x, y, z] of flowerTips) {
+      for (const [flowerIndex, [x, y, z]] of flowerTips.entries()) {
+        const flowerX = x + (sideXShifts[flowerIndex] ?? 0);
+        const flowerY = y + (flowerYShifts[flowerIndex] ?? 0);
+        const flowerZ = z + (side < 0 ? -0.008 : 0.008);
+
         addBranch(
           vaseGroup,
           new THREE.Vector3(0, 0.48, 0),
-          new THREE.Vector3(x, y, z),
+          new THREE.Vector3(flowerX, flowerY, flowerZ),
           0.006,
         );
 
         const blossom = new THREE.Group();
-        blossom.position.set(x, y, z);
+        blossom.position.set(flowerX, flowerY, flowerZ);
         blossom.rotation.set(
-          -0.15 + z * 1.2,
-          x * 1.5,
-          x * 0.6,
+          -0.15 + flowerZ * 1.2,
+          flowerX * 1.5,
+          flowerX * 0.6,
         );
 
         // Ba lớp cánh ngắn, xếp chồng thành bông.
@@ -616,7 +927,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
         // Thay đổi kích thước nhẹ giữa các bông.
         blossom.scale.setScalar(
-          0.9 + (Math.abs(x) / 0.28) * 0.15,
+          0.9 + (Math.abs(flowerX) / 0.28) * 0.15,
         );
 
         const center = new THREE.Mesh(
@@ -630,7 +941,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
         // Hai lá nằm dọc mỗi cành.
         const stemStart = new THREE.Vector3(0, 0.48, 0);
-        const stemEnd = new THREE.Vector3(x, y, z);
+        const stemEnd = new THREE.Vector3(flowerX, flowerY, flowerZ);
         const stemDirection = stemEnd.clone().sub(stemStart).normalize();
 
         for (const [index, fraction] of [0.45, 0.7].entries()) {
@@ -684,9 +995,67 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       [0.001, 0.04],
     ].map(([radius, height]) => new THREE.Vector2(radius, height));
 
-    const plateGeometry = new THREE.LatheGeometry(plateProfile, 40);
-    const fruitGeometry = new THREE.SphereGeometry(0.105, 16, 12);
-    const leafGeometry = new THREE.SphereGeometry(1, 8, 6);
+    const plateGeometry = new THREE.LatheGeometry(plateProfile, 64);
+    type FruitShape = "apple" | "pear" | "lime" | "orange" | "persimmon";
+    const createFruitGeometry = (shape: FruitShape) => {
+      const radius = 0.105;
+      const geometry = new THREE.SphereGeometry(radius, 40, 32);
+      const positions = geometry.attributes.position;
+
+      for (let index = 0; index < positions.count; index += 1) {
+        const x = positions.getX(index) / radius;
+        const y = positions.getY(index) / radius;
+        const z = positions.getZ(index) / radius;
+        const angle = Math.atan2(z, x);
+        const latitude = Math.abs(y);
+        let radialScale = 1;
+        let verticalScale = 1;
+
+        if (shape === "apple") {
+          radialScale = 1 - 0.07 * latitude + 0.025 * Math.cos(angle * 5) * latitude;
+          verticalScale = 0.98;
+        } else if (shape === "pear") {
+          radialScale = 1 - 0.2 * y + 0.025 * Math.cos(angle * 3) * (1 - latitude);
+          verticalScale = 1.08;
+        } else if (shape === "lime") {
+          radialScale = 1 + 0.018 * Math.cos(angle * 8) * latitude;
+          verticalScale = 0.86;
+        } else if (shape === "orange") {
+          radialScale = 1 + 0.014 * Math.cos(angle * 9) * latitude;
+          verticalScale = 0.92;
+        } else {
+          radialScale = 1 - 0.06 * latitude + 0.035 * Math.cos(angle * 5) * latitude;
+          verticalScale = 0.86;
+        }
+
+        const radial = Math.sqrt(x * x + z * z);
+        const topDimple = Math.max(0, (y - 0.72) / 0.28)
+          * Math.exp(-radial * radial * 28)
+          * 0.12;
+        const bottomDimple = Math.max(0, (-y - 0.78) / 0.22)
+          * Math.exp(-radial * radial * 30)
+          * 0.07;
+
+        positions.setXYZ(
+          index,
+          x * radius * radialScale,
+          radius * (y * verticalScale - topDimple + bottomDimple),
+          z * radius * radialScale,
+        );
+      }
+
+      positions.needsUpdate = true;
+      geometry.computeVertexNormals();
+      return geometry;
+    };
+    const fruitGeometries = [
+      createFruitGeometry("apple"),
+      createFruitGeometry("pear"),
+      createFruitGeometry("lime"),
+      createFruitGeometry("orange"),
+      createFruitGeometry("persimmon"),
+    ];
+    const leafGeometry = new THREE.SphereGeometry(1, 12, 8);
     const stemGeometry = new THREE.CylinderGeometry(
       0.008,
       0.01,
@@ -696,15 +1065,16 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
     geometries.push(
       plateGeometry,
-      fruitGeometry,
+      ...fruitGeometries,
       leafGeometry,
       stemGeometry,
     );
 
-    for (const side of [-1]) {
+    for (const side of [-1, 1]) {
       const offeringGroup = new THREE.Group();
-      offeringGroup.position.set(side * 1.25, 1.3, 0.15);
-      offeringGroup.scale.setScalar(1.25);
+      offeringGroup.position.set(side * 1.5, 1.3, side < 0 ? 0.13 : 0.17);
+      offeringGroup.rotation.y = side < 0 ? -0.035 : 0.025;
+      offeringGroup.scale.setScalar(side < 0 ? 1.24 : 1.26);
 
       const plate = new THREE.Mesh(plateGeometry, porcelainMaterial);
       offeringGroup.add(plate);
@@ -718,10 +1088,14 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         [0, 0.31, 0],
       ];
 
-      for (const [x, y, z] of fruitPositions) {
-        const fruit = new THREE.Mesh(fruitGeometry, fruitMaterial);
+      for (const [index, [x, y, z]] of fruitPositions.entries()) {
+        const fruit = new THREE.Mesh(fruitGeometries[index], fruitMaterials[index]);
         fruit.position.set(x, y, z);
-        fruit.scale.y = 0.95;
+        fruit.scale.set(
+          index % 2 === 0 ? 0.92 : 1,
+          index === 4 ? 1.08 : 0.94,
+          index % 2 === 0 ? 0.96 : 0.9,
+        );
         offeringGroup.add(fruit);
 
         const stem = new THREE.Mesh(stemGeometry, branchMaterial);
@@ -733,6 +1107,22 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         leaf.position.set(x + 0.028, y + 0.108, z);
         leaf.rotation.z = -0.3;
         offeringGroup.add(leaf);
+
+        if (index === 4) {
+          // Small green sepals break up the persimmon's otherwise smooth crown.
+          for (let sepalIndex = 0; sepalIndex < 5; sepalIndex += 1) {
+            const angle = (sepalIndex / 5) * Math.PI * 2;
+            const sepal = new THREE.Mesh(leafGeometry, leafMaterial);
+            sepal.scale.set(0.026, 0.004, 0.009);
+            sepal.position.set(
+              x + Math.cos(angle) * 0.02,
+              y + 0.09,
+              z + Math.sin(angle) * 0.02,
+            );
+            sepal.rotation.y = -angle;
+            offeringGroup.add(sepal);
+          }
+        }
       }
 
       scene.add(offeringGroup);
@@ -965,6 +1355,21 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       scene.add(candleStandGroup);
     }
 
+    // Ngọn lửa nhỏ trên đôi chân nến, dùng ánh sáng tĩnh để giữ hiệu năng.
+    const candleFlameGeometry = new THREE.ConeGeometry(0.028, 0.11, 10);
+    geometries.push(candleFlameGeometry);
+
+    for (const x of [-0.82, 0.82]) {
+      const flame = new THREE.Mesh(candleFlameGeometry, candleFlameMaterial);
+      flame.position.set(x, 2.17, -0.42);
+      flame.userData.skipShadow = true;
+      scene.add(flame);
+
+      const candleGlow = new THREE.PointLight("#ffbd70", 1, 1.6, 2);
+      candleGlow.position.set(x, 2.2, -0.42);
+      scene.add(candleGlow);
+    }
+
     // Texture sọc dưa mô phỏng, không phải ảnh chụp.
     const melonCanvas = document.createElement("canvas");
     melonCanvas.width = 256;
@@ -973,11 +1378,11 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     const melonContext = melonCanvas.getContext("2d");
 
     if (melonContext) {
-      melonContext.fillStyle = "#709344";
+      melonContext.fillStyle = "#607747";
       melonContext.fillRect(0, 0, 256, 128);
 
-      melonContext.strokeStyle = "#345c2c";
-      melonContext.lineWidth = 12;
+      melonContext.strokeStyle = "#40583a";
+      melonContext.lineWidth = 6;
       melonContext.lineCap = "round";
 
       for (let stripe = -1; stripe <= 12; stripe += 1) {
@@ -986,7 +1391,8 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         for (let y = 0; y <= 128; y += 2) {
           const x =
             stripe * (256 / 12) +
-            Math.sin((y / 128) * Math.PI * 4 + stripe * 0.7) * 3;
+            Math.sin((y / 128) * Math.PI * 6 + stripe * 0.7) * 5 +
+            Math.sin((y / 128) * Math.PI * 14 + stripe * 1.1) * 1.5;
 
           if (y === 0) {
             melonContext.moveTo(x, y);
@@ -1002,13 +1408,15 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     const melonTexture = new THREE.CanvasTexture(melonCanvas);
     melonTexture.colorSpace = THREE.SRGBColorSpace;
 
-    const melonMaterial = new THREE.MeshStandardMaterial({
+    const melonMaterial = new THREE.MeshPhysicalMaterial({
       map: melonTexture,
-      roughness: 0.55,
+      roughness: 0.8,
       metalness: 0,
+      clearcoat: 0.015,
+      clearcoatRoughness: 0.84,
     });
 
-    const melonGeometry = new THREE.SphereGeometry(0.18, 32, 24);
+    const melonGeometry = new THREE.SphereGeometry(0.18, 48, 32);
 
     const melonStandProfile = [
       [0.001, 0],
@@ -1031,23 +1439,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
     geometries.push(melonGeometry, melonStandGeometry);
 
-    const melonLabelMaterial = new THREE.MeshStandardMaterial({
-      color: "#b52220",
-      roughness: 0.8,
-      metalness: 0,
-      side: THREE.DoubleSide,
-    });
-
-    const melonLabelGeometry = new THREE.PlaneGeometry(0.12, 0.12);
-    const melonLabelBorderGeometry = new THREE.PlaneGeometry(
-      0.132,
-      0.132,
-    );
-
-    geometries.push(
-      melonLabelGeometry,
-      melonLabelBorderGeometry,
-    );
+    const melonOfferingGroups: THREE.Group[] = [];
 
     for (const x of [-0.62, 0.62]) {
       const melonGroup = new THREE.Group();
@@ -1064,27 +1456,8 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       melon.rotation.y = x;
       melonGroup.add(melon);
 
-      // Miếng trang trí hình thoi ở mặt trước quả.
-      // Đây là tấm phẳng mô phỏng, chưa ôm theo mặt cong.
-      const labelBorder = new THREE.Mesh(
-        melonLabelBorderGeometry,
-        borderMaterial,
-      );
-
-      labelBorder.position.set(0, 0.357, 0.174);
-      labelBorder.rotation.z = Math.PI / 4;
-      melonGroup.add(labelBorder);
-
-      const label = new THREE.Mesh(
-        melonLabelGeometry,
-        melonLabelMaterial,
-      );
-
-      label.position.set(0, 0.357, 0.176);
-      label.rotation.z = Math.PI / 4;
-      melonGroup.add(label);
-
       scene.add(melonGroup);
+      melonOfferingGroups.push(melonGroup);
     }
 
     // Lư hương mẫu trong góc tri ân.
@@ -1168,28 +1541,175 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     incenseContent.add(ash);
 
     const incenseMaterial = new THREE.MeshStandardMaterial({
-      color: "#a97143",
-      roughness: 1,
+      color: "#754b35",
+      roughness: 0.88,
     });
+    const sourceIncenseMaterials = ["#70452f", "#80533a", "#76503a"].map(
+      (color) => new THREE.MeshStandardMaterial({ color, roughness: 0.9 }),
+    );
     const emberMaterial = new THREE.MeshStandardMaterial({
       color: "#55403a",
       emissive: "#ff5a1f",
       emissiveIntensity: 0,
       roughness: 0.8,
     });
-    const stickGeometry = new THREE.CylinderGeometry(0.012, 0.012, 0.8, 8);
+    const stickGeometry = new THREE.CylinderGeometry(0.008, 0.012, 0.8, 10);
     const emberGeometry = new THREE.SphereGeometry(0.018, 8, 8);
+    const plantedIncense = new THREE.Group();
+    plantedIncense.visible = false;
+    incenseContent.add(plantedIncense);
     geometries.push(stickGeometry, emberGeometry);
 
-    for (const x of [-0.12, 0, 0.12]) {
+    const plantedStickLayout = [
+      { x: -0.071, z: -0.012, tilt: -0.024, top: 2.438 },
+      { x: 0, z: 0.012, tilt: 0.012, top: 2.452 },
+      { x: 0.071, z: -0.006, tilt: 0.027, top: 2.438 },
+    ];
+    for (const { x, z, tilt, top } of plantedStickLayout) {
       const stick = new THREE.Mesh(stickGeometry, incenseMaterial);
-      stick.position.set(x, 2.05, 0);
-      incenseContent.add(stick);
+      stick.position.set(x, 2.05, z);
+      stick.rotation.z = tilt;
+      plantedIncense.add(stick);
 
       const ember = new THREE.Mesh(emberGeometry, emberMaterial);
-      ember.position.set(x, 2.45, 0);
-      incenseContent.add(ember);
+      ember.position.set(x, top, z);
+      plantedIncense.add(ember);
     }
+
+    const ritualStickGeometry = new THREE.CylinderGeometry(
+      0.006,
+      0.009,
+      0.52,
+      10,
+    );
+    geometries.push(ritualStickGeometry);
+
+    const sourceIncense = new THREE.Group();
+    sourceIncense.position.set(-1.38, 1.315, 0.66);
+    sourceIncense.rotation.x = Math.PI / 2;
+    const sourceIncenseSticks: THREE.Mesh[] = [];
+    for (let index = 0; index < 9; index += 1) {
+      const stick = new THREE.Mesh(
+        ritualStickGeometry,
+        sourceIncenseMaterials[index % sourceIncenseMaterials.length],
+      );
+      stick.position.x = (index - 4) * 0.018;
+      stick.rotation.z = ((index % 3) - 1) * 0.012;
+      sourceIncense.add(stick);
+      sourceIncenseSticks.push(stick);
+    }
+    scene.add(sourceIncense);
+
+    const heldIncense = new THREE.Group();
+    heldIncense.visible = false;
+    const heldEmbers: THREE.Mesh[] = [];
+    for (const x of [-0.044, 0, 0.044]) {
+      const stick = new THREE.Mesh(ritualStickGeometry, incenseMaterial);
+      stick.position.set(x, 0.26, 0);
+      heldIncense.add(stick);
+
+      const ember = new THREE.Mesh(emberGeometry, emberMaterial);
+      ember.position.set(x, 0.52, 0);
+      ember.visible = false;
+      heldIncense.add(ember);
+      heldEmbers.push(ember);
+    }
+    scene.add(heldIncense);
+
+    const handRoot = new THREE.Group();
+    handRoot.visible = false;
+    scene.add(handRoot);
+
+    const handTexture = textureLoader.load("/images/ritual-hand-pinch-v1.png");
+    handTexture.colorSpace = THREE.SRGBColorSpace;
+    const handSpriteMaterial = new THREE.MeshBasicMaterial({
+      map: handTexture,
+      transparent: true,
+      alphaTest: 0.035,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      toneMapped: false,
+    });
+    const handSpriteGeometry = new THREE.PlaneGeometry(0.85, 0.567);
+    const handSprite = new THREE.Mesh(handSpriteGeometry, handSpriteMaterial);
+    handSprite.position.z = -0.22;
+    handSprite.renderOrder = 8;
+    handSprite.userData.excludeFromAltarBounds = true;
+    handSprite.userData.skipShadow = true;
+    handRoot.add(handSprite);
+
+    const lighterHandRoot = new THREE.Group();
+    lighterHandRoot.visible = false;
+    scene.add(lighterHandRoot);
+
+    const lighterHandTexture = textureLoader.load(
+      "/images/ritual-lighter-hand-v1.png",
+    );
+    lighterHandTexture.colorSpace = THREE.SRGBColorSpace;
+    const lighterHandMaterial = new THREE.MeshBasicMaterial({
+      map: lighterHandTexture,
+      transparent: true,
+      alphaTest: 0.035,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      toneMapped: false,
+    });
+    const lighterHandGeometry = new THREE.PlaneGeometry(1.15, 0.767);
+    const lighterHandSprite = new THREE.Mesh(
+      lighterHandGeometry,
+      lighterHandMaterial,
+    );
+    lighterHandSprite.position.z = 0.12;
+    lighterHandSprite.renderOrder = 7;
+    lighterHandSprite.userData.excludeFromAltarBounds = true;
+    lighterHandSprite.userData.skipShadow = true;
+    lighterHandRoot.add(lighterHandSprite);
+
+    const lighterFlame = new THREE.Group();
+    lighterFlame.position.set(-0.32, 0.28, 0.25);
+    lighterFlame.visible = false;
+    const lighterFlameOuterGeometry = new THREE.ConeGeometry(
+      0.025,
+      0.12,
+      12,
+    );
+    const lighterFlameInnerGeometry = new THREE.ConeGeometry(
+      0.013,
+      0.075,
+      12,
+    );
+    geometries.push(lighterFlameOuterGeometry, lighterFlameInnerGeometry);
+    const lighterFlameOuterMaterial = new THREE.MeshBasicMaterial({
+      color: "#ff8b32",
+      transparent: true,
+      opacity: 0.92,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    const lighterFlameInnerMaterial = new THREE.MeshBasicMaterial({
+      color: "#fff1a8",
+      transparent: true,
+      opacity: 0.96,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    const lighterFlameOuter = new THREE.Mesh(
+      lighterFlameOuterGeometry,
+      lighterFlameOuterMaterial,
+    );
+    const lighterFlameInner = new THREE.Mesh(
+      lighterFlameInnerGeometry,
+      lighterFlameInnerMaterial,
+    );
+    lighterFlameOuter.renderOrder = 12;
+    lighterFlameInner.renderOrder = 13;
+    lighterFlameOuter.userData.excludeFromAltarBounds = true;
+    lighterFlameInner.userData.excludeFromAltarBounds = true;
+    lighterFlame.add(lighterFlameOuter, lighterFlameInner);
+    lighterHandRoot.add(lighterFlame);
+    const lighterGlow = new THREE.PointLight("#ff9f43", 0, 0.9, 2);
+    lighterGlow.position.set(-0.32, 0.29, 0.29);
+    lighterHandRoot.add(lighterGlow);
 
     const incenseLight = new THREE.PointLight("#ff8b45", 0, 2, 2);
     incenseLight.position.set(0, 2.4, 0);
@@ -1220,6 +1740,50 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       );
     }
 
+    // Viền đồng thanh mảnh quanh bài vị, phối cùng hoa văn trên cánh tủ.
+    for (const x of [-0.72, 0.72]) {
+      addBox(0.012, 1.66, 0.012, x, 2.4, -1.015, borderMaterial);
+    }
+    for (const y of [1.58, 3.22]) {
+      addBox(1.34, 0.012, 0.012, 0, y, -1.015, borderMaterial);
+    }
+
+    let ornamentMaterialForFallback: THREE.MeshPhysicalMaterial | null = null;
+    const altarOrnamentTexture = textureLoader.load(
+      "/textures/altar-ornament.png",
+      undefined,
+      undefined,
+      () => {
+        if (disposed || !ornamentMaterialForFallback) return;
+        ornamentMaterialForFallback.map = null;
+        ornamentMaterialForFallback.color.set("#75634b");
+        ornamentMaterialForFallback.needsUpdate = true;
+      },
+    );
+    altarOrnamentTexture.colorSpace = THREE.SRGBColorSpace;
+    altarOrnamentTexture.anisotropy = Math.min(
+      8,
+      renderer.capabilities.getMaxAnisotropy(),
+    );
+    const altarOrnamentGeometry = new THREE.PlaneGeometry(1.42, 2.13);
+    geometries.push(altarOrnamentGeometry);
+    const altarOrnamentMaterial = new THREE.MeshPhysicalMaterial({
+      map: altarOrnamentTexture,
+      color: "#675b49",
+      roughness: 0.78,
+      metalness: 0,
+      clearcoat: 0,
+      clearcoatRoughness: 0.8,
+    });
+    ornamentMaterialForFallback = altarOrnamentMaterial;
+    const altarOrnament = new THREE.Mesh(
+      altarOrnamentGeometry,
+      altarOrnamentMaterial,
+    );
+    altarOrnament.position.set(0, 2.4, -1.025);
+    altarOrnament.userData.skipShadow = true;
+    scene.add(altarOrnament);
+
     // Chữ in trên nền trong suốt.
     const remembranceCanvas = document.createElement("canvas");
     remembranceCanvas.width = 1024;
@@ -1229,16 +1793,24 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
     if (remembranceContext) {
       remembranceContext.clearRect(0, 0, 1024, 512);
-      remembranceContext.fillStyle = "#dec18a";
+      remembranceContext.fillStyle = "#f0d9a5";
+      remembranceContext.strokeStyle = "rgba(35, 17, 10, 0.8)";
       remembranceContext.textAlign = "center";
       remembranceContext.textBaseline = "middle";
+      remembranceContext.shadowColor = "rgba(20, 8, 4, 0.9)";
+      remembranceContext.shadowBlur = 7;
+      remembranceContext.shadowOffsetY = 2;
 
       remembranceContext.font =
         '110px Georgia, "Times New Roman", serif';
+      remembranceContext.lineWidth = 9;
+      remembranceContext.strokeText("Tưởng nhớ", 512, 175);
       remembranceContext.fillText("Tưởng nhớ", 512, 175);
 
       remembranceContext.font =
         'bold 145px Georgia, "Times New Roman", serif';
+      remembranceContext.lineWidth = 11;
+      remembranceContext.strokeText("tổ tiên", 512, 335);
       remembranceContext.fillText("tổ tiên", 512, 335);
     }
 
@@ -1250,6 +1822,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     const remembranceMaterial = new THREE.MeshBasicMaterial({
       map: remembranceTexture,
       transparent: true,
+      depthTest: false,
       depthWrite: false,
     });
 
@@ -1261,7 +1834,8 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       remembranceMaterial,
     );
 
-    remembranceText.position.set(0, 2.55, -1.025);
+    remembranceText.position.set(0, 2.55, -0.94);
+    remembranceText.renderOrder = 10;
     remembranceText.userData.skipShadow = true;
 
     scene.add(remembranceText);
@@ -1283,8 +1857,9 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     const altarBounds = new THREE.Box3();
 
     scene.traverse((object) => {
-      if (!(object instanceof THREE.Mesh)) return;
-
+      if (!(object instanceof THREE.Mesh) || object.userData.excludeFromAltarBounds) {
+        return;
+      }
       const materials = Array.isArray(object.material)
         ? object.material
         : [object.material];
@@ -1354,9 +1929,9 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         horizontalHalfFov
       );
 
-      // Chừa khoảng thở quanh toàn bộ mô hình.
+      // Giữ trọn bàn thờ và thảm lễ trong khung hình.
       const distance =
-        (altarSphere.radius / Math.sin(limitingHalfFov)) * 1.12;
+        (altarSphere.radius / Math.sin(limitingHalfFov)) * 0.82;
 
       controls.target.copy(altarSphere.center);
 
@@ -1378,6 +1953,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       if (contextLost) return;
       renderer.render(scene, camera);
     };
+    renderScene = render;
 
     // Create a soft smoke texture locally.
     const smokeCanvas = document.createElement("canvas");
@@ -1428,14 +2004,207 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       }
     }
 
+    const sparkleCanvas = document.createElement("canvas");
+    sparkleCanvas.width = 48;
+    sparkleCanvas.height = 48;
+    const sparkleContext = sparkleCanvas.getContext("2d");
+    if (sparkleContext) {
+      const glow = sparkleContext.createRadialGradient(24, 24, 0, 24, 24, 24);
+      glow.addColorStop(0, "rgba(255, 250, 225, 1)");
+      glow.addColorStop(0.28, "rgba(255, 218, 145, 0.88)");
+      glow.addColorStop(0.7, "rgba(232, 165, 75, 0.28)");
+      glow.addColorStop(1, "rgba(232, 165, 75, 0)");
+      sparkleContext.fillStyle = glow;
+      sparkleContext.fillRect(0, 0, 48, 48);
+    }
+
+    const sparkleTexture = new THREE.CanvasTexture(sparkleCanvas);
+    sparkleTexture.colorSpace = THREE.SRGBColorSpace;
+
+    const fireworkBursts: {
+      points: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>;
+      positions: THREE.BufferAttribute;
+      velocities: THREE.Vector3[];
+      center: THREE.Vector3;
+      delay: number;
+    }[] = [];
+
+    for (const [index, side] of [-1, 1].entries()) {
+      const particleCount = 12;
+      const geometry = new THREE.BufferGeometry();
+      const positions = new THREE.BufferAttribute(
+        new Float32Array(particleCount * 3),
+        3,
+      );
+      const colors = new THREE.BufferAttribute(
+        new Float32Array(particleCount * 3),
+        3,
+      );
+      const velocities: THREE.Vector3[] = [];
+
+      for (let particle = 0; particle < particleCount; particle += 1) {
+        const angle = (particle / particleCount) * Math.PI * 2 + index * 0.12;
+        const radius = 0.17 + (particle % 3) * 0.045;
+        velocities.push(
+          new THREE.Vector3(
+            Math.cos(angle) * radius,
+            Math.sin(angle) * radius,
+            ((particle % 3) - 1) * 0.025,
+          ),
+        );
+
+        const color = new THREE.Color(
+          particle % 3 === 0 ? "#fff0bd" : "#e8ad57",
+        );
+        colors.setXYZ(particle, color.r, color.g, color.b);
+      }
+
+      geometry.setAttribute("position", positions);
+      geometry.setAttribute("color", colors);
+
+      const material = new THREE.PointsMaterial({
+        map: sparkleTexture,
+        size: 0.09,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const points = new THREE.Points(geometry, material);
+      points.visible = false;
+      points.frustumCulled = false;
+      scene.add(points);
+
+      fireworkBursts.push({
+        points,
+        positions,
+        velocities,
+        center: new THREE.Vector3(side * 0.98, 3.05, -0.88),
+        delay: index * 0.12,
+      });
+    }
+
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     );
 
     let isLit = false;
+    let isLighting = false;
     let animationFrame: number | null = null;
     let lastTime: number | null = null;
     let smokeTime = 0;
+    let fireworkStartedAt: number | null = null;
+    let ritualStartedAt: number | null = null;
+    let onRitualComplete: (() => void) | null = null;
+
+    const ritualKeyframes = [
+      {
+        time: 0,
+        hand: new THREE.Vector3(-3.1, 1.48, 0.78),
+        incense: new THREE.Vector3(-1.08, 1.315, 0.72),
+        incenseRotation: Math.PI / 2,
+        handArcHeight: 0,
+        incenseArcHeight: 0,
+      },
+      {
+        time: 0.75,
+        hand: new THREE.Vector3(-1.38, 1.43, 0.72),
+        incense: new THREE.Vector3(-1.08, 1.315, 0.72),
+        incenseRotation: Math.PI / 2,
+        handArcHeight: 0,
+        incenseArcHeight: 0,
+      },
+      {
+        time: 1.05,
+        hand: new THREE.Vector3(-1.38, 1.62, 0.72),
+        incense: new THREE.Vector3(-1.08, 1.48, 0.72),
+        incenseRotation: 0,
+        handArcHeight: 0,
+        incenseArcHeight: 0,
+      },
+      {
+        time: 2.25,
+        hand: new THREE.Vector3(-1.38, 1.62, 0.72),
+        incense: new THREE.Vector3(-1.08, 1.48, 0.72),
+        incenseRotation: 0,
+        handArcHeight: 0,
+        incenseArcHeight: 0,
+      },
+      {
+        time: 3.0,
+        hand: new THREE.Vector3(-0.3, 1.55, 0.36),
+        incense: new THREE.Vector3(0, 1.517, 0.22),
+        incenseRotation: 0,
+        handArcHeight: 0.4,
+        incenseArcHeight: 0.34,
+      },
+      {
+        time: 3.3,
+        hand: new THREE.Vector3(-0.3, 1.55, 0.36),
+        incense: new THREE.Vector3(0, 1.517, 0.22),
+        incenseRotation: 0,
+        handArcHeight: 0,
+        incenseArcHeight: 0,
+      },
+      {
+        time: 3.65,
+        hand: new THREE.Vector3(-0.92, 1.72, 0.72),
+        incense: new THREE.Vector3(0, 1.517, 0.22),
+        incenseRotation: 0,
+        handArcHeight: 0,
+        incenseArcHeight: 0,
+      },
+      {
+        time: 4.4,
+        hand: new THREE.Vector3(-3.2, 1.92, 0.92),
+        incense: new THREE.Vector3(0, 1.517, 0.22),
+        incenseRotation: 0,
+        handArcHeight: 0,
+        incenseArcHeight: 0,
+      },
+    ];
+
+    const lighterKeyframes = [
+      {
+        time: 0,
+        position: new THREE.Vector3(3.2, 1.55, 0.55),
+        arcHeight: 0,
+      },
+      {
+        time: 0.82,
+        position: new THREE.Vector3(3.2, 1.55, 0.55),
+        arcHeight: 0,
+      },
+      {
+        time: 1.35,
+        position: new THREE.Vector3(-0.76, 1.72, 0.55),
+        arcHeight: 0.3,
+      },
+      {
+        time: 1.9,
+        position: new THREE.Vector3(-0.76, 1.72, 0.55),
+        arcHeight: 0,
+      },
+      {
+        time: 2.25,
+        position: new THREE.Vector3(0.5, 1.92, 0.5),
+        arcHeight: 0.12,
+      },
+      {
+        time: 2.55,
+        position: new THREE.Vector3(3.2, 1.55, 0.55),
+        arcHeight: 0,
+      },
+    ];
+
+    const ritualPickupTime = 0.75;
+    const lighterFlameStart = 1.35;
+    const lighterFlameEnd = 1.95;
+    const ritualIgnitionTime = 1.5;
+    const ritualPlantTime = 3.0;
+    const ritualDuration = 4.4;
 
     const updateSmoke = () => {
       for (const particle of smokeParticles) {
@@ -1459,6 +2228,180 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       }
     };
 
+    const updateIncenseRitual = (time: number) => {
+      if (!isLighting || ritualStartedAt === null) return;
+
+      const elapsed = (time - ritualStartedAt) / 1000;
+      const nextFrameIndex = ritualKeyframes.findIndex(
+        (frame, index) =>
+          index < ritualKeyframes.length - 1 &&
+          elapsed >= frame.time &&
+          elapsed <= ritualKeyframes[index + 1].time,
+      );
+      const frameIndex = Math.max(
+        0,
+        Math.min(nextFrameIndex, ritualKeyframes.length - 2),
+      );
+      const from = ritualKeyframes[frameIndex];
+      const to = ritualKeyframes[frameIndex + 1];
+      const progress = THREE.MathUtils.clamp(
+        (elapsed - from.time) / (to.time - from.time),
+        0,
+        1,
+      );
+      const eased = progress * progress * (3 - 2 * progress);
+
+      handRoot.position.lerpVectors(from.hand, to.hand, eased);
+      handRoot.position.y += from.handArcHeight * Math.sin(eased * Math.PI);
+      heldIncense.position.lerpVectors(from.incense, to.incense, eased);
+      heldIncense.position.y +=
+        from.incenseArcHeight * Math.sin(eased * Math.PI);
+      heldIncense.rotation.x = THREE.MathUtils.lerp(
+        from.incenseRotation,
+        to.incenseRotation,
+        eased,
+      );
+
+      const lighterNextFrameIndex = lighterKeyframes.findIndex(
+        (frame, index) =>
+          index < lighterKeyframes.length - 1 &&
+          elapsed >= frame.time &&
+          elapsed <= lighterKeyframes[index + 1].time,
+      );
+      if (lighterNextFrameIndex < 0) {
+        lighterHandRoot.position.copy(
+          lighterKeyframes[lighterKeyframes.length - 1].position,
+        );
+      } else {
+        const lighterFrom = lighterKeyframes[lighterNextFrameIndex];
+        const lighterTo = lighterKeyframes[lighterNextFrameIndex + 1];
+        const lighterProgress = THREE.MathUtils.clamp(
+          (elapsed - lighterFrom.time) /
+            (lighterTo.time - lighterFrom.time),
+          0,
+          1,
+        );
+        const lighterEased =
+          lighterProgress * lighterProgress * (3 - 2 * lighterProgress);
+        lighterHandRoot.position.lerpVectors(
+          lighterFrom.position,
+          lighterTo.position,
+          lighterEased,
+        );
+        lighterHandRoot.position.y +=
+          lighterFrom.arcHeight * Math.sin(lighterEased * Math.PI);
+      }
+      lighterHandRoot.visible = elapsed >= 0.82 && elapsed < 2.55;
+      const isLighterFlameOn =
+        elapsed >= lighterFlameStart && elapsed < lighterFlameEnd;
+      lighterFlame.visible = isLighterFlameOn;
+      lighterGlow.intensity = isLighterFlameOn
+        ? 1.1 + Math.sin(time * 0.06) * 0.18
+        : 0;
+      lighterFlame.scale.y = 0.94 + Math.sin(time * 0.08) * 0.12;
+      lighterFlame.rotation.z = Math.sin(time * 0.05) * 0.07;
+
+      if (elapsed >= ritualPickupTime) {
+        for (const stick of sourceIncenseSticks.slice(3, 6)) {
+          stick.visible = false;
+        }
+      }
+      heldIncense.visible =
+        elapsed >= ritualPickupTime && elapsed < ritualPlantTime;
+
+      if (elapsed >= ritualIgnitionTime) {
+        for (const ember of heldEmbers) ember.visible = true;
+        emberMaterial.color.set("#ff9a50");
+        emberMaterial.emissiveIntensity = elapsed < ritualPlantTime ? 1.5 : 2;
+      }
+
+      if (elapsed >= ritualPlantTime && !isLit) {
+        heldIncense.visible = false;
+        plantedIncense.visible = true;
+        incenseLight.intensity = 4;
+        isLit = true;
+        smokeTime = 0;
+      }
+
+      if (elapsed >= ritualDuration) {
+        handRoot.visible = false;
+        lighterHandRoot.visible = false;
+        lighterFlame.visible = false;
+        lighterGlow.intensity = 0;
+        isLighting = false;
+        ritualStartedAt = null;
+        fireworkStartedAt = time;
+        const complete = onRitualComplete;
+        onRitualComplete = null;
+        complete?.();
+      }
+    };
+
+    const finishRitualImmediately = () => {
+      if (!isLighting) return;
+
+      for (const stick of sourceIncenseSticks.slice(3, 6)) {
+        stick.visible = false;
+      }
+      heldIncense.visible = false;
+      handRoot.visible = false;
+      lighterHandRoot.visible = false;
+      lighterFlame.visible = false;
+      lighterGlow.intensity = 0;
+      plantedIncense.visible = true;
+      emberMaterial.color.set("#ff9a50");
+      emberMaterial.emissiveIntensity = 2;
+      incenseLight.intensity = 4;
+      isLit = true;
+      isLighting = false;
+      ritualStartedAt = null;
+      fireworkStartedAt = null;
+      smokeTime = 0;
+
+      const complete = onRitualComplete;
+      onRitualComplete = null;
+      complete?.();
+    };
+
+    const updateFireworks = (time: number) => {
+      if (!isLit || reducedMotion.matches || fireworkStartedAt === null) {
+        for (const burst of fireworkBursts) {
+          burst.points.visible = false;
+          burst.points.material.opacity = 0;
+        }
+        if (reducedMotion.matches) fireworkStartedAt = null;
+        return;
+      }
+
+      const elapsed = (time - fireworkStartedAt) / 1000;
+      const duration = 1.35;
+
+      for (const burst of fireworkBursts) {
+        const progress = (elapsed - burst.delay) / duration;
+        if (progress < 0 || progress >= 1) {
+          burst.points.visible = false;
+          burst.points.material.opacity = 0;
+          continue;
+        }
+
+        const expansion = 1 - (1 - progress) ** 2;
+        burst.points.visible = true;
+        burst.points.material.opacity = Math.sin(progress * Math.PI) * 0.72;
+
+        for (const [particle, velocity] of burst.velocities.entries()) {
+          burst.positions.setXYZ(
+            particle,
+            burst.center.x + velocity.x * expansion,
+            burst.center.y + velocity.y * expansion + progress * 0.045,
+            burst.center.z + velocity.z * expansion,
+          );
+        }
+        burst.positions.needsUpdate = true;
+      }
+
+      if (elapsed >= duration + 0.12) fireworkStartedAt = null;
+    };
+
     const stopSmokeAnimation = () => {
       if (animationFrame !== null) {
         cancelAnimationFrame(animationFrame);
@@ -1473,21 +2416,22 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
       if (
         contextLost ||
-        !isLit ||
-        reducedMotion.matches ||
+        (!isLit && !isLighting) ||
         document.hidden
       ) {
         lastTime = null;
         return;
       }
 
-      if (lastTime !== null) {
+      if (lastTime !== null && !reducedMotion.matches) {
         // Limit the time step so smoke does not jump on a slow device.
         smokeTime += Math.min((time - lastTime) / 1000, 0.05);
       }
 
       lastTime = time;
-      updateSmoke();
+      if (!reducedMotion.matches) updateSmoke();
+      updateIncenseRitual(time);
+      updateFireworks(time);
       render();
 
       animationFrame = requestAnimationFrame(animateSmoke);
@@ -1497,9 +2441,14 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       stopSmokeAnimation();
       if (contextLost) return;
       updateSmoke();
+      updateIncenseRitual(performance.now());
+      updateFireworks(performance.now());
       render();
 
-      if (isLit && !reducedMotion.matches && !document.hidden) {
+      if (
+        (isLighting || (isLit && !reducedMotion.matches)) &&
+        !document.hidden
+      ) {
         animationFrame = requestAnimationFrame(animateSmoke);
       }
     };
@@ -1507,6 +2456,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     const handleContextLost = () => {
       contextLost = true;
       stopSmokeAnimation();
+      finishRitualImmediately();
 
       controls.enabled = false;
       resetRef.current = null;
@@ -1527,15 +2477,19 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     document.addEventListener("visibilitychange", syncSmokeAnimation);
 
     incenseRef.current = {
-      setLit: (lit) => {
-        isLit = lit;
-        emberMaterial.color.set(lit ? "#ff9a50" : "#55403a");
-        emberMaterial.emissiveIntensity = lit ? 2 : 0;
-        incenseLight.intensity = lit ? 0.6 : 0;
+      light: (onComplete) => {
+        if (isLit || isLighting) return;
 
-        if (!lit) {
-          smokeTime = 0;
-        }
+        isLighting = true;
+        ritualStartedAt = performance.now();
+        onRitualComplete = onComplete;
+        handRoot.visible = true;
+        heldIncense.visible = false;
+        plantedIncense.visible = false;
+        for (const ember of heldEmbers) ember.visible = false;
+        emberMaterial.color.set("#55403a");
+        emberMaterial.emissiveIntensity = 0;
+        incenseLight.intensity = 0;
 
         syncSmokeAnimation();
       },
@@ -1599,10 +2553,12 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     };
 
     const decorationRoot = new THREE.Group();
+    decorationRoot.matrixAutoUpdate = false;
 
     // Mặt bàn trong cảnh hiện tại nằm ở cao độ 1.3.
     // Đặt vật phẩm nhỏ phía trước bên trái lư hương.
     decorationRoot.position.set(-0.55, 1.3, 0.38);
+    decorationRoot.updateMatrix();
 
     scene.add(decorationRoot);
 
@@ -1619,8 +2575,22 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
       currentDecorationId = nextId;
 
+      if (nextId === "boiled-chicken") {
+        // Đặt gà cúng cân đối ở khoảng trống phía trước bên trái bàn thờ.
+        decorationRoot.position.set(-0.68, 1.3, 0.52);
+        decorationRoot.scale.setScalar(0.68);
+      } else {
+        decorationRoot.position.set(-0.55, 1.3, 0.38);
+        decorationRoot.scale.setScalar(1);
+      }
+      decorationRoot.updateMatrix();
+
       if (nextId) {
-        currentDecoration = createDigitalDecoration(nextId);
+        currentDecoration = createDigitalDecoration(nextId, () => {
+          if (disposed || currentDecorationId !== nextId) return;
+          renderer.shadowMap.needsUpdate = true;
+          render();
+        });
         decorationRoot.add(currentDecoration);
       }
 
@@ -1635,8 +2605,11 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     const observer = new ResizeObserver(resize);
     observer.observe(host);
     resize();
+    sceneReady = true;
+    revealSceneWhenReady();
 
     return () => {
+      disposed = true;
       decorationControllerRef.current = null;
 
       if (currentDecoration) {
@@ -1668,16 +2641,37 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         particle.material.dispose();
       }
 
+      for (const burst of fireworkBursts) {
+        scene.remove(burst.points);
+        burst.points.geometry.dispose();
+        burst.points.material.dispose();
+      }
+
+      scene.remove(sourceIncense, heldIncense, handRoot, lighterHandRoot);
+      handSpriteGeometry.dispose();
+      handSpriteMaterial.dispose();
+      handTexture.dispose();
+      lighterHandGeometry.dispose();
+      lighterHandMaterial.dispose();
+      lighterHandTexture.dispose();
+      lighterFlameOuterMaterial.dispose();
+      lighterFlameInnerMaterial.dispose();
+
       smokeTexture.dispose();
+      sparkleTexture.dispose();
       incenseMaterial.dispose();
+      sourceIncenseMaterials.forEach((material) => material.dispose());
       emberMaterial.dispose();
       ashMaterial.dispose();
       porcelainMaterial.dispose();
+      porcelainTexture.dispose();
       blueMaterial.dispose();
       branchMaterial.dispose();
-      fruitMaterial.dispose();
+      fruitMaterials.forEach((material) => material.dispose());
+      fruitSkinTextures.forEach((texture) => texture.dispose());
       leafMaterial.dispose();
       candleMaterial.dispose();
+      candleFlameMaterial.dispose();
       flowerMaterial.dispose();
       flowerCenterMaterial.dispose();
       melonMaterial.dispose();
@@ -1689,13 +2683,16 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       doorMaterial.dispose();
       doorTexture.dispose();
       floorTexture.dispose();
-      melonLabelMaterial.dispose();
       wallMaterial.dispose();
+      wallTexture.dispose();
+      altarOrnamentMaterial.dispose();
+      altarOrnamentTexture.dispose();
       remembranceMaterial.dispose();
       remembranceTexture.dispose();
       borderMaterial.dispose();
       bronze.dispose();
       floorMaterial.dispose();
+      rugMaterial.dispose();
 
       light.shadow.dispose();
       scene.environment = null;
@@ -1752,180 +2749,93 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
             className="h-[360px] w-full sm:h-[440px] lg:h-[500px]"
           />
 
+          {sceneLoading && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="absolute inset-0 z-20 flex items-center justify-center bg-[#eee9df]"
+            >
+              <div className="flex flex-col items-center gap-3 text-center text-stone-700">
+                <span className="h-8 w-8 animate-spin rounded-full border-2 border-amber-700/25 border-t-amber-800" />
+                <span className="text-sm font-medium">
+                  Đang chuẩn bị không gian bàn thờ…
+                </span>
+              </div>
+            </div>
+          )}
+
+          {textureFallbackUsed && !sceneLoading && (
+            <div
+              role="status"
+              className="absolute bottom-3 left-3 z-20 rounded-lg bg-white/90 px-3 py-2 text-xs text-stone-700 shadow-sm"
+            >
+              Một số chất liệu chưa tải được; cảnh đang dùng màu dự phòng.
+            </div>
+          )}
+
           {/* Quick Incense Status Pill over 3D Canvas */}
-          <div className="absolute top-3.5 left-3.5 pointer-events-none z-10">
+          <div
+            role="status"
+            aria-live="polite"
+            className="absolute top-3.5 left-3.5 pointer-events-none z-10"
+          >
             <span
               className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md shadow-sm transition-all ${
-                incenseLit
+                incenseLighting || incenseLit
                   ? "bg-amber-950/80 text-amber-200 border border-amber-400/50"
                   : "bg-black/50 text-stone-200 border border-white/20"
               }`}
             >
               <Flame
                 className={`w-3.5 h-3.5 ${
-                  incenseLit ? "text-amber-400 animate-pulse fill-current" : "text-stone-400"
+                  incenseLighting || incenseLit
+                    ? "text-amber-400 animate-pulse fill-current"
+                    : "text-stone-400"
                 }`}
               />
-              <span>{incenseLit ? "Hương đang thắp" : "Hương chưa thắp"}</span>
+              <span>
+                {incenseLighting
+                  ? "Đang thắp hương"
+                  : incenseLit
+                    ? "Hương đang thắp"
+                    : "Hương chưa thắp"}
+              </span>
             </span>
           </div>
         </div>
       )}
 
-      {/* Memorial Tribute Display (if recorded) */}
-      <div className="border-t border-line bg-surface-soft/60 p-4 sm:p-6">
-        {memorial ? (
-          <div className="flex items-start gap-3">
-            {memorial.avatarUrl && (
-              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-amber-400/40 bg-surface">
-                <img src={memorial.avatarUrl} alt={`Di ảnh ${memorial.name}`} className="h-full w-full object-cover" onError={(event) => { event.currentTarget.classList.add("hidden"); event.currentTarget.nextElementSibling?.classList.remove("hidden"); }} />
-                <Heart className="hidden h-full w-full p-4 text-rose-500" aria-hidden="true" />
-              </div>
-            )}
-            <div className="min-w-0 flex-1 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400">
-                <Heart className="w-3.5 h-3.5 fill-current text-rose-500" />
-                <span>GHI CHÚ TƯỞNG NHỚ ĐÍNH KÈM</span>
-              </div>
-
-            <h3 className="font-display text-xl font-bold text-ink">
-              {memorial.name}
-              {memorial.relation && (
-                <span className="text-sm font-normal text-stone-500 dark:text-stone-400 ml-2">
-                  ({memorial.relation})
-                </span>
-              )}
-            </h3>
-
-            {memorial.note?.trim() && (
-              <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-stone-700 dark:text-stone-200 italic bg-surface/80 p-3.5 rounded-xl border border-line">
-                “{memorial.note}”
-              </p>
-            )}
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h4 className="font-display font-semibold text-base text-ink mb-0.5">
-                Chưa có ghi chú tưởng nhớ
-              </h4>
-              <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
-                Bạn có thể ghi lại tên người thân và một tâm nguyện để gắn kết vào không gian 3D này.
-              </p>
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onOpenMemorial}
-              className="text-xs shrink-0 border-line text-ink hover:text-accent cursor-pointer"
-            >
-              Tạo ghi chú tưởng nhớ
-            </Button>
-          </div>
-        )}
-      </div>
-
       {/* Interactive Controls Toolbar */}
-      <div className="border-t border-line bg-surface p-4 sm:p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Incense Action Button */}
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              disabled={Boolean(error) || incensePending}
-              aria-pressed={incenseLit}
-              onClick={handleToggleIncense}
-              className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md flex items-center gap-2 cursor-pointer ${
-                incenseLit
-                  ? "bg-stone-800 text-stone-200 hover:bg-stone-700 border border-stone-600"
-                  : "bg-gradient-to-r from-red-800 via-amber-800 to-red-900 hover:from-red-700 hover:to-amber-700 text-white shadow-amber-900/20"
-              }`}
-            >
-              <Flame
-                className={`w-4 h-4 ${
-                  incenseLit ? "text-amber-400 animate-pulse fill-current" : "text-amber-200"
-                }`}
-              />
-              <span>{incenseLit ? "Tắt làn hương" : "Thắp hương lòng"}</span>
-            </button>
-
-            <span className="text-xs text-stone-600 dark:text-stone-300 font-medium">
-              {incensePending
-                ? "Đang ghi nhận lượt thắp hương…"
-                : incenseError || (incenseLit
-                  ? "Làn hương thanh tịnh đang dâng lên trong không gian."
-                  : "Nhấn để dâng nén hương thơm thành kính.")}
-            </span>
-          </div>
-          {incenseError && <p role="alert" className="text-sm text-danger">{incenseError}</p>}
-
-          {/* Camera View Controls */}
-          <div
-            role="group"
-            aria-label="Điều khiển góc nhìn 3D"
-            className="flex items-center gap-1.5 self-start md:self-auto"
-          >
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={Boolean(error)}
-              onClick={() => viewRef.current?.rotate(-Math.PI / 12)}
-              className="text-xs h-9 px-3 gap-1 border-line cursor-pointer"
-              title="Xoay góc nhìn sang trái"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Xoay trái</span>
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={Boolean(error)}
-              onClick={() => viewRef.current?.rotate(Math.PI / 12)}
-              className="text-xs h-9 px-3 gap-1 border-line cursor-pointer"
-              title="Xoay góc nhìn sang phải"
-            >
-              <RotateCw className="w-3.5 h-3.5" />
-              <span>Xoay phải</span>
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={Boolean(error)}
-              onClick={() => viewRef.current?.zoom(0.85)}
-              className="text-xs h-9 px-3 gap-1 border-line cursor-pointer"
-              title="Phóng to góc nhìn"
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-              <span>Phóng to</span>
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={Boolean(error)}
-              onClick={() => viewRef.current?.zoom(1.15)}
-              className="text-xs h-9 px-3 gap-1 border-line cursor-pointer"
-              title="Thu nhỏ góc nhìn"
-            >
-              <ZoomOut className="w-3.5 h-3.5" />
-              <span>Thu nhỏ</span>
-            </Button>
-          </div>
-        </div>
-
-        <p className="mt-3 text-xs leading-relaxed text-stone-500 dark:text-stone-400">
-          💡 <strong>Mẹo tương tác:</strong> Bạn có thể dùng chuột kéo để xoay tự do 360°, cuộn con lăn (hoặc thao tác 2 ngón tay trên điện thoại) để thu/phóng mô hình bàn thờ.
-        </p>
+      <div className="flex justify-center border-t border-line bg-surface p-4 sm:p-6">
+        {/* Incense Action Button */}
+        <button
+          type="button"
+          disabled={Boolean(error) || sceneLoading || incenseLighting || incenseLit}
+          aria-busy={incenseLighting}
+          onClick={handleLightIncense}
+          className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-80 ${
+            incenseLit
+              ? "bg-stone-800 text-stone-200 border border-stone-600"
+              : "bg-gradient-to-r from-red-800 via-amber-800 to-red-900 text-white shadow-amber-900/20 hover:from-red-700 hover:to-amber-700"
+          }`}
+        >
+          <Flame
+            className={`w-4 h-4 ${
+              incenseLighting || incenseLit
+                ? "text-amber-400 animate-pulse fill-current"
+                : "text-amber-200"
+            }`}
+          />
+          <span>
+            {incenseLighting
+              ? "Đang thắp hương…"
+              : incenseLit
+                ? "Hương đang cháy"
+                : "Thắp hương lòng"}
+          </span>
+        </button>
       </div>
+      {children}
     </div>
   );
 };

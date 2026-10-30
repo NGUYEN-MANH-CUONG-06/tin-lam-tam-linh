@@ -38,6 +38,16 @@ const DIGITAL_ITEMS = Object.freeze({
     quantity: 1,
     saleEnabled: false,
   }),
+
+  BOILED_CHICKEN: Object.freeze({
+    code: "BOILED_CHICKEN",
+    name: "Gà luộc mâm lễ",
+    kind: "PERMANENT",
+    description: "Mô hình gà luộc để người dùng chủ động bày trên bàn thờ.",
+    price: 10000,
+    quantity: 1,
+    saleEnabled: true,
+  }),
 });
 
 module.exports = { DIGITAL_ITEMS };

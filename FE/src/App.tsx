@@ -9,18 +9,19 @@ import {
 import { readPrivateJson, writePrivateJson } from "./lib/privateStorage";
 import { DEMO_MODE_LABEL, exitDemoMode, isDemoMode } from "./data/demoMode";
 import { ensureDemoSeeded } from "./data/demoSeed";
+import { WISH_RELEASE_SESSION_KEY } from "./data/wishReleaseSession";
 import { clearDemoValues, readDemoValue, writeDemoValue } from "./data/demoStorage";
 import { apiRequest, ApiError } from "./lib/api";
 import { clearPersonalStorage } from "./lib/clearPersonalStorage";
 import { getMoodContentUnavailableMessage } from "./data/moodAvailability";
 import { AppHeader, NavScreen } from "./components/AppHeader";
+import { AppSectionSidebar } from "./components/AppSectionSidebar";
 import { AppFooter } from "./components/AppFooter";
 import { ScreenFocus } from "./components/ScreenFocus";
 import { SavedSignalDialog } from "./components/SavedSignalDialog";
 import { toast, ToastContainer } from "./components/ui/Toast";
 import { LogoutConfirmDialog } from "./components/LogoutConfirmDialog";
 import { useTheme } from "./hooks/useTheme";
-import type { MemorialRecord } from "./screens/MemorialSpaceScreen";
 import type { CultureRegionSlug } from "./screens/CulturalMapScreen";
 import type { RegionalExperienceKind } from "./screens/RegionalExperienceScreen";
 import { GuestScreen } from "./screens/GuestScreen";
@@ -83,11 +84,6 @@ import {
 import {
   deleteCalendarNote,
   loadCalendarNotes,
-  loadMemorialProfiles,
-  memorialProfileToRecord,
-  createMemorialProfile,
-  updateMemorialProfile,
-  recordIncense,
   saveCalendarNote,
 } from "./data/memoryService";
 
@@ -119,8 +115,6 @@ const SettingsScreen = lazy(() => import("./screens/SettingsScreen").then((modul
 const AccountScreen = lazy(() => import("./screens/AccountScreen").then((module) => ({ default: module.AccountScreen })));
 const VirtualSanctuaryScreen = lazy(() => import("./screens/VirtualSanctuaryScreen").then((module) => ({ default: module.VirtualSanctuaryScreen })));
 const AncestorAltarScreen = lazy(() => import("./screens/AncestorAltarScreen").then((module) => ({ default: module.AncestorAltarScreen })));
-const MemorialSpaceScreen = lazy(() => import("./screens/MemorialSpaceScreen").then((module) => ({ default: module.MemorialSpaceScreen })));
-const MemorialFormScreen = lazy(() => import("./screens/MemorialFormScreen").then((module) => ({ default: module.MemorialFormScreen })));
 const CulturalMapScreen = lazy(() => import("./screens/CulturalMapScreen").then((module) => ({ default: module.CulturalMapScreen })));
 const RegionCultureScreen = lazy(() => import("./screens/RegionCultureScreen").then((module) => ({ default: module.RegionCultureScreen })));
 const RegionalExperienceScreen = lazy(() => import("./screens/RegionalExperienceScreen").then((module) => ({ default: module.RegionalExperienceScreen })));
@@ -516,104 +510,6 @@ const getCultureRegionFromLocation = (): CultureRegionSlug => {
   return "north";
 };
 
-const parseMemorialRecord = (
-  value: unknown
-): MemorialRecord | null => {
-  if (
-    typeof value !== "object" ||
-    value === null ||
-    Array.isArray(value)
-  ) {
-    return null;
-  }
-
-  const record = value as Record<string, unknown>;
-
-  if (
-    typeof record.name !== "string" ||
-    typeof record.relation !== "string" ||
-    typeof record.date !== "string"
-  ) {
-    return null;
-  }
-
-  const name = record.name.trim();
-  const relation = record.relation.trim();
-  const date = record.date.trim();
-
-  if (!name || !relation) return null;
-
-  if (
-    record.note !== undefined &&
-    record.note !== null &&
-    typeof record.note !== "string"
-  ) {
-    return null;
-  }
-
-  const match = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-
-  if (!match) return null;
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-
-  if (
-    year < 1 ||
-    month < 1 ||
-    month > 12 ||
-    day < 1 ||
-    day > 31
-  ) {
-    return null;
-  }
-
-  const parsedDate = new Date(0);
-  parsedDate.setHours(0, 0, 0, 0);
-  parsedDate.setFullYear(year, month - 1, day);
-
-  if (
-    parsedDate.getFullYear() !== year ||
-    parsedDate.getMonth() !== month - 1 ||
-    parsedDate.getDate() !== day
-  ) {
-    return null;
-  }
-
-  const note =
-    typeof record.note === "string"
-      ? record.note.trim()
-      : "";
-
-  return {
-    name,
-    relation,
-    date,
-    note: note || undefined,
-  };
-};
-
-const loadMemorialRecord = (
-  email?: string | null
-): MemorialRecord | null => {
-  const accountId = email?.trim().toLowerCase() || "guest";
-
-  try {
-    const raw = localStorage.getItem(
-      `tltl-memorial-${accountId}`
-    );
-
-    if (!raw) return null;
-
-    const parsed: unknown = JSON.parse(raw);
-
-    return parseMemorialRecord(parsed);
-  } catch {
-    return null;
-  }
-};
-
 export default function App() {
   const todayDateString = new Date().toDateString();
 
@@ -663,8 +559,6 @@ export default function App() {
         "experience",
         "sanctuary",
         "ancestor-altar",
-        "memorial",
-        "memorial-form",
         "xinxam",
         "wish",
         "zen",
@@ -791,18 +685,8 @@ export default function App() {
 
 
         try {
-          const [remoteMemorials, remoteNotes] = await Promise.all([
-            loadMemorialProfiles(),
-            loadCalendarNotes(),
-          ]);
+          const remoteNotes = await loadCalendarNotes();
           if (active) {
-            if (remoteMemorials.length) {
-              const preferredId = localStorage.getItem(`tltl-selected-memorial-${user.user.email.trim().toLowerCase()}`);
-              const selected = remoteMemorials.find((profile) => profile.id === preferredId) || remoteMemorials[0];
-              setMemorial(memorialProfileToRecord(selected));
-            } else {
-              setMemorial(null);
-            }
             if (remoteNotes.length > 0) {
               for (const note of remoteNotes) {
                 try {
@@ -818,7 +702,7 @@ export default function App() {
             }
           }
         } catch {
-          // Giữ cache local nếu memorial/calendar API chưa sẵn sàng.
+          // Giữ cache local nếu calendar API chưa sẵn sàng.
         }
       }
 
@@ -1112,23 +996,6 @@ export default function App() {
     else navigateTo("account");
   };
 
-  const [memorial, setMemorial] =
-    useState<MemorialRecord | null>(() =>
-      loadMemorialRecord(initialUser?.email)
-    );
-  const [memorialFormMode, setMemorialFormMode] =
-    useState<"create" | "edit">("create");
-  const handleSelectMemorial = (record: MemorialRecord | null) => {
-    setMemorial(record);
-    if (!currentUser) return;
-    const key = `tltl-selected-memorial-${currentUser.email.trim().toLowerCase()}`;
-    try {
-      if (record?.id) localStorage.setItem(key, record.id);
-      else localStorage.removeItem(key);
-    } catch {
-      // Hồ sơ vẫn được chọn trong phiên hiện tại nếu storage không khả dụng.
-    }
-  };
 
   // Active signal computed from currentSignalId
   const activeSignal = analyzedSignal?.id === currentSignalId
@@ -1167,12 +1034,6 @@ export default function App() {
   }, [screen, currentSignalId, analyzedSignal?.id]);
 
   useEffect(() => {
-    setMemorial(loadMemorialRecord(currentUser?.email));
-    if (isDemoMode()) {
-      void loadMemorialProfiles().then((profiles) => {
-        if (profiles.length) setMemorial((current) => current || memorialProfileToRecord(profiles[0]));
-      }).catch(() => {});
-    }
   }, [currentUser?.email]);
 
   // Tài khoản và cài đặt yêu cầu đăng nhập ngoài chế độ demo.
@@ -1238,6 +1099,14 @@ export default function App() {
     const handlePopState = (event: PopStateEvent) => {
       const path = window.location.pathname.replace(/^\//, "");
       const params = new URLSearchParams(window.location.search);
+
+      if (path !== "wish") {
+        try {
+          sessionStorage.removeItem(WISH_RELEASE_SESSION_KEY);
+        } catch {
+          // No-op when session storage is unavailable.
+        }
+      }
 
       setXinKeoDrawId(
         path === "xinkeo"
@@ -1332,8 +1201,6 @@ export default function App() {
           "experience",
           "sanctuary",
           "ancestor-altar",
-          "memorial",
-          "memorial-form",
           "xinxam",
           "wish",
           "zen",
@@ -1372,6 +1239,14 @@ export default function App() {
     authenticatedUser?: UserProfile | null,
     cultureRegionParam?: CultureRegionSlug
   ) => {
+    if (screen === "wish" && newScreen !== "wish") {
+      try {
+        sessionStorage.removeItem(WISH_RELEASE_SESSION_KEY);
+      } catch {
+        // No-op when session storage is unavailable.
+      }
+    }
+
     let targetScreen = newScreen;
     const effectiveUser =
       authenticatedUser !== undefined
@@ -1982,15 +1857,8 @@ export default function App() {
 
 
 
-    void Promise.all([loadMemorialProfiles(), loadCalendarNotes()])
-      .then(([remoteMemorials, remoteNotes]) => {
-        if (remoteMemorials.length) {
-          const preferredId = localStorage.getItem(`tltl-selected-memorial-${user.email.trim().toLowerCase()}`);
-          const selected = remoteMemorials.find((profile) => profile.id === preferredId) || remoteMemorials[0];
-          setMemorial(memorialProfileToRecord(selected));
-        } else {
-          setMemorial(null);
-        }
+    void loadCalendarNotes()
+      .then((remoteNotes) => {
         if (remoteNotes.length > 0) {
           try {
             localStorage.setItem(getCalendarNotesStorageKey(user.email), JSON.stringify(remoteNotes));
@@ -2786,9 +2654,15 @@ export default function App() {
     cornerHasCurrentResult &&
     cornerLoadState.status === "error";
 
+  const sidebarArea = ["account", "mood-journey", "notifications", "settings", "membership"].includes(screen)
+    ? "account"
+    : ["culture", "culture-map", "region-culture", "rituals", "calendar", "good-days"].includes(screen)
+      ? "discover"
+      : null;
+
   return (
     <div className={`app-shell ${dark ? "dark" : ""} ${["login", "register", "forgot", "reset-password"].includes(screen) ? "lg:h-screen lg:max-h-screen lg:overflow-hidden" : ""}`}>
-      {isDemoMode() && <div role="status" className="sticky top-0 z-[80] flex items-center justify-center gap-3 border-b border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold text-ink"><span>{DEMO_MODE_LABEL}</span><a href="/admin?demo=1" className="underline underline-offset-2">Mở admin demo</a><button type="button" onClick={exitDemoMode} className="underline underline-offset-2">Thoát demo</button></div>}
+      {isDemoMode() && <div role="status" className="relative z-[80] flex items-center justify-center gap-3 border-b border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold text-ink"><span>{DEMO_MODE_LABEL}</span><a href="/admin?demo=1" className="underline underline-offset-2">Mở admin demo</a><button type="button" onClick={exitDemoMode} className="underline underline-offset-2">Thoát demo</button></div>}
       {/* Universal Header - tự động ẩn khi ấn đăng nhập tại LoginScreen */}
       {!isLoginImmersive && (
         <AppHeader
@@ -2805,6 +2679,9 @@ export default function App() {
 
       {/* Screen Router */}
       <div className={`app-screen-outlet ${["login", "register", "forgot"].includes(screen) ? "flex-1 min-h-0 lg:overflow-hidden" : ""}`}>
+        <div className={sidebarArea ? "app-area-layout" : undefined}>
+          {sidebarArea && <AppSectionSidebar area={sidebarArea} currentScreen={screen} onNavigate={navigateTo} user={displayUser} />}
+          <div className={sidebarArea ? "app-area-layout__content" : undefined}>
         <Suspense
           fallback={
             <div
@@ -2838,9 +2715,9 @@ export default function App() {
             onGoToCulture={() => navigateTo("culture")}
             onGoToExperience={() => navigateTo("experience")}
             onGoToZen={() => navigateTo("zen")}
-            onGoToReminders={() => navigateTo("notifications")}
             onGoToXinXam={() => navigateTo("xinxam")}
             onGoToRituals={() => navigateTo("rituals")}
+            onGoToReminders={() => navigateTo("notifications")}
             onGoToGratitude={() => navigateTo("gratitude")}
             onGoToCultureMap={() => navigateTo("culture-map")}
           />
@@ -2928,141 +2805,23 @@ export default function App() {
         {screen === "sanctuary" && (
           <VirtualSanctuaryScreen
             key={currentUser?.email ?? "guest"}
-            memorial={memorial}
             currentUserEmail={currentUser?.email}
             onBackToExperience={() => navigateTo("experience")}
             onGoToAltar={() => navigateTo("ancestor-altar")}
-            onGoToMemorial={() => navigateTo("memorial")}
             onGoToZen={() => navigateTo("zen")}
             onGoToLogin={() => navigateTo("login")}
-            onRecordIncense={async () => {
-              if ((!currentUser && !isDemoMode()) || !memorial?.id) throw new Error("Hãy chọn hồ sơ tưởng niệm.");
-              await recordIncense(memorial.id);
-            }}
           />
         )}
 
         {screen === "ancestor-altar" && (
           <AncestorAltarScreen
             key={currentUser?.email ?? "guest"}
-            memorial={memorial}
             currentUserEmail={currentUser?.email}
             onBack={() => navigateTo("sanctuary")}
-            onGoToMemorial={() => navigateTo("memorial")}
             isLoggedIn={Boolean(currentUser) || isDemoMode()}
-            onRecordIncense={async () => {
-              if ((!currentUser && !isDemoMode()) || !memorial?.id) return false;
-              try {
-                await recordIncense(memorial.id);
-                return true;
-              } catch {
-                return false;
-              }
-            }}
             onSaveTribute={(text) =>
               handleSavePrivateWish(text, "Tri ân gia tiên")
             }
-            onGoToReminders={() => navigateTo("notifications")}
-          />
-        )}
-
-        {screen === "memorial" && (
-          <MemorialSpaceScreen
-            onSelect={handleSelectMemorial}
-            memorial={memorial}
-            onBack={() => navigateTo("sanctuary")}
-            onCreate={() => {
-              setMemorialFormMode("create");
-              navigateTo("memorial-form");
-            }}
-            onEdit={() => {
-              if (!memorial) return;
-
-              setMemorialFormMode("edit");
-              navigateTo("memorial-form");
-            }}
-            onGoToAltar={() => navigateTo("ancestor-altar")}
-            onGoToReminders={() => navigateTo("notifications")}
-          />
-        )}
-
-        {screen === "memorial-form" && (
-          <MemorialFormScreen
-            key={`${currentUser?.email ?? "guest"}:${memorialFormMode}:${
-              memorialFormMode === "edit"
-                ? memorial?.id ?? "local"
-                : "new"
-            }`}
-            initialValue={
-              memorialFormMode === "edit" ? memorial : null
-            }
-            isLoggedIn={Boolean(currentUser) || isDemoMode()}
-            onBack={() => navigateTo("memorial")}
-            onSave={async (nextMemorial, options) => {
-              const scope = cornerAccountScopeRef.current;
-              const accountId =
-                currentUser?.email?.trim().toLowerCase() || "guest";
-              let savedMemorial = nextMemorial;
-              if (currentUser || isDemoMode()) {
-                const input = {
-                  fullName: nextMemorial.name.trim(),
-                  relationship: nextMemorial.relation.trim(),
-                  deathDate: nextMemorial.date,
-                  avatarUrl: nextMemorial.avatarUrl || null,
-                  note: nextMemorial.note?.trim() ?? "",
-                };
-                let profile;
-                if (nextMemorial.id) {
-                  // This form has no calendar selector; keep the current anniversary on edit.
-                  profile = await updateMemorialProfile(nextMemorial.id, input);
-                } else {
-                  const [, month, day] = nextMemorial.date.split("-").map(Number);
-                  profile = await createMemorialProfile({
-                    ...input,
-                    anniversary: options.createAnnualReminder
-                      ? {
-                          calendar: "SOLAR",
-                          day,
-                          month,
-                          repeatYearly: true,
-                        }
-                      : null,
-                  });
-                }
-                savedMemorial = memorialProfileToRecord(profile);
-                if (cornerAccountScopeRef.current !== scope) {
-                  return null;
-                }
-                window.dispatchEvent(new Event("tltl-memorial-profiles-change"));
-              }
-              try {
-                localStorage.setItem(
-                  `tltl-memorial-${accountId}`,
-                  JSON.stringify(savedMemorial)
-                );
-              } catch {
-                if (!currentUser) {
-                  throw new Error(
-                    "Trình duyệt chưa lưu được hồ sơ trên thiết bị."
-                  );
-                }
-
-                // Tài khoản đã nhận xác nhận lưu từ BE.
-                toast.info(
-                  "Đã lưu hồ sơ trên máy chủ, nhưng chưa lưu được bộ nhớ đệm trên thiết bị."
-                );
-              }
-              setMemorial(savedMemorial);
-              if (currentUser && savedMemorial.id) {
-                try {
-                  localStorage.setItem(`tltl-selected-memorial-${accountId}`, savedMemorial.id);
-                } catch {
-                  // Keep the selection in memory for this session.
-                }
-              }
-              navigateTo("memorial");
-              return savedMemorial;
-            }}
           />
         )}
 
@@ -3073,10 +2832,6 @@ export default function App() {
               navigateTo("culture-detail", id);
             }}
             onGoToHome={() => navigateTo("today")}
-            onGoToRituals={() => navigateTo("rituals")}
-            onGoToCalendar={() => navigateTo("calendar")}
-            onGoToGoodDays={() => navigateTo("good-days")}
-            onGoToMap={() => navigateTo("culture-map")}
           />
         )}
 
@@ -3128,7 +2883,6 @@ export default function App() {
               );
             }}
             onGoToWish={() => navigateTo("wish")}
-            onGoToMemorial={() => navigateTo("memorial")}
           />
         )}
 
@@ -3263,9 +3017,6 @@ export default function App() {
               navigateTo("ritual-detail", id);
             }}
             onGoToCulture={() => navigateTo("culture")}
-            onGoToCalendar={() => navigateTo("calendar")}
-            onGoToPlan={() => navigateTo("good-days")}
-            onGoToMap={() => navigateTo("culture-map")}
           />
         )}
 
@@ -3466,10 +3217,7 @@ export default function App() {
             onGoToXinXam={() => navigateTo("xinxam")}
             onGoToWish={() => navigateTo("wish")}
             onGoToMood={() => navigateTo("mood")}
-            onGoToMoodJourney={() => navigateTo("mood-journey")}
-            onGoToNotifications={() => navigateTo("notifications")}
             onGoToHome={() => navigateTo("today")}
-            onGoToSettings={() => navigateTo("settings")}
           />
         )}
 
@@ -3560,7 +3308,6 @@ export default function App() {
                 setDemoProfileName("An Nhiên");
                 setUserSettings(DEFAULT_USER_SETTINGS);
                 setSelectedTopics([]);
-                setMemorial(null);
                 setJournalText("");
                 setPendingSave(null);
                 return true;
@@ -3570,7 +3317,6 @@ export default function App() {
               catch { return false; }
               setUserCornerData({ signals: [], xam: [], wishes: [] });
               setOpenedSavedSignal(null);
-              setMemorial(null);
               setJournalText("");
               setPendingSave(null);
               setIsCheckedIn(false);
@@ -3582,11 +3328,13 @@ export default function App() {
         )}
           </ScreenFocus>
         </Suspense>
+          </div>
+        </div>
       </div>
 
       {/* Universal Footer - Ẩn trên các màn Auth (login, register, forgot) */}
       {!["login", "register", "forgot"].includes(screen) && (
-        <AppFooter onNavigate={navigateTo} showMembershipBanner={screen !== "account"} />
+        <AppFooter onNavigate={navigateTo} />
       )}
 
       <SavedSignalDialog

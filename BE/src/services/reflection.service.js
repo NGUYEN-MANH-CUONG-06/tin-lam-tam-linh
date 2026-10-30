@@ -15,6 +15,7 @@ const REGION_TO_DB = {
   "Bắc Bộ": "NORTH",
   "Trung Bộ": "CENTRAL",
   "Nam Bộ": "SOUTH",
+  "Toàn quốc": "NATIONWIDE",
 };
 
 const DB_TO_REGION = { NORTH: "Bắc Bộ", CENTRAL: "Trung Bộ", SOUTH: "Nam Bộ", NATIONWIDE: "Toàn quốc" };
@@ -145,11 +146,9 @@ function toWishItem(wish) {
 
 async function drawXam(userId, input) {
   const region = REGION_TO_DB[input.region];
-
-  const cards = await xinXamRepository.listCatalog(
-    `${region}:${input.topic}`,
-    region,
-  );
+  const cards = input.region === "Toàn quốc"
+    ? await xinXamRepository.listUnifiedCatalog(input.topic)
+    : await xinXamRepository.listCatalog(`${region}:${input.topic}`, region);
 
   if (cards.length === 0) {
     throw new ApiError(
@@ -418,11 +417,9 @@ async function deleteWish(userId, id) {
 
 async function getXamAvailability(input) {
   const region = REGION_TO_DB[input.region];
-
-  const cards = await xinXamRepository.listCatalog(
-    `${region}:${input.topic}`,
-    region,
-  );
+  const cards = input.region === "Toàn quốc"
+    ? await xinXamRepository.listUnifiedCatalog(input.topic)
+    : await xinXamRepository.listCatalog(`${region}:${input.topic}`, region);
 
   return {
     region: input.region,

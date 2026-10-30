@@ -16,10 +16,10 @@ import {
   Flower2,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
 import "../styles/WishScreen.css";
 import { SchoolSupportNotice } from "../components/SchoolSupportNotice";
+import { WISH_RELEASE_SESSION_KEY } from "../data/wishReleaseSession";
 
 const SouthernRiverScene = React.lazy(() =>
   import("../components/SouthernRiverScene").then((module) => ({
@@ -29,6 +29,21 @@ const SouthernRiverScene = React.lazy(() =>
 
 export type WishTopic = "Bình an" | "Gia đạo" | "Công danh" | "Tình duyên";
 export type WishMode = "journal" | "ephemeral";
+
+function readWishReleaseForCurrentRoute(): string {
+  if (window.location.pathname.replace(/\/$/, "") !== "/wish") return "";
+  try {
+    const saved = sessionStorage.getItem(WISH_RELEASE_SESSION_KEY);
+    const parsed: unknown = saved ? JSON.parse(saved) : null;
+    if (
+      typeof parsed === "object" && parsed !== null &&
+      "wish" in parsed && typeof parsed.wish === "string"
+    ) return parsed.wish;
+  } catch {
+    // The release can still be used normally when session storage is unavailable.
+  }
+  return "";
+}
 
 interface WishScreenProps {
   onBackToExperience: () => void;
@@ -107,8 +122,11 @@ export const WishScreen: React.FC<WishScreenProps> = ({
   onDraftChange,
   currentUserEmail,
 }) => {
-  // Screen views: 'form' | 'variantA' (Lưu riêng) | 'variantB' (Biểu tượng tan biến)
-  const [viewState, setViewState] = useState<"form" | "variantA" | "variantB">("form");
+  // Keep the just-released lantern available when this tab reloads /wish.
+  const [restoredLanternWish] = useState(readWishReleaseForCurrentRoute);
+  const [viewState, setViewState] = useState<"form" | "variantA" | "variantB">(
+    restoredLanternWish ? "variantB" : "form"
+  );
 
   // Form State - default to empty string so user never accidentally saves sample text
   const [content, setContent] = useState(initialContent);
@@ -145,7 +163,7 @@ export const WishScreen: React.FC<WishScreenProps> = ({
       mountedRef.current = false;
     };
   }, []);
-  const [pendingLanternWish, setPendingLanternWish] = useState("");
+  const [pendingLanternWish, setPendingLanternWish] = useState(restoredLanternWish);
 
   useEffect(() => {
     const shouldKeepDraft =
@@ -183,6 +201,12 @@ export const WishScreen: React.FC<WishScreenProps> = ({
   const handleWriteAnother = () => {
     saveAttemptRef.current = null;
 
+    try {
+      sessionStorage.removeItem(WISH_RELEASE_SESSION_KEY);
+    } catch {
+      // No-op when session storage is unavailable.
+    }
+
     if (submitLockRef.current) return;
 
     setContent("");
@@ -218,6 +242,14 @@ export const WishScreen: React.FC<WishScreenProps> = ({
     }
 
     if (mode === "ephemeral") {
+      try {
+        sessionStorage.setItem(
+          WISH_RELEASE_SESSION_KEY,
+          JSON.stringify({ wish: cleanContent })
+        );
+      } catch {
+        // The current release still works for this page view.
+      }
       setPendingLanternWish(cleanContent);
       setContent("");
       setHasActuallySaved(false);
@@ -291,7 +323,11 @@ export const WishScreen: React.FC<WishScreenProps> = ({
 
   return (
     <div className="screen-shell">
-      <main className="page-container max-w-5xl">
+      <main
+        className={`page-container ${
+          viewState === "variantB" ? "wish-release-page" : "max-w-5xl"
+        }`}
+      >
         {/* =========================================================================
             VIEW 1: FORM SOẠN ĐIỀU ƯỚC (IMAGE 1)
            ========================================================================= */}
@@ -539,7 +575,7 @@ export const WishScreen: React.FC<WishScreenProps> = ({
 
               <p className="text-xs leading-relaxed text-muted">
                 {mode === "ephemeral"
-                  ? "Ở chế độ hoa đăng, lời viết chỉ dùng trong phiên này, không gửi lên máy chủ và không chia sẻ công khai. Tải lại trang sẽ mất nội dung."
+                  ? "Ở chế độ hoa đăng, lời viết chỉ dùng trong tab này, không gửi lên máy chủ và không chia sẻ công khai. Rời màn hình sẽ kết thúc phiên hoa đăng."
                   : "Ở chế độ lưu riêng, lời viết được gửi lên máy chủ để lưu theo tài khoản. Chỉ thông báo lưu thành công sau khi nhận được xác nhận."}
               </p>
               </div>
@@ -792,10 +828,10 @@ export const WishScreen: React.FC<WishScreenProps> = ({
         {viewState === "variantB" && (
           <div>
             {/* Top Bar with Variant Switchers */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 text-xs text-muted">
+            <div className="wish-release-topbar">
               <nav
                 aria-label="Đường dẫn"
-                className="flex flex-wrap items-center gap-2"
+                className="wish-release-breadcrumb"
               >
                 <button
                   type="button"
@@ -822,76 +858,32 @@ export const WishScreen: React.FC<WishScreenProps> = ({
                 </span>
               </nav>
 
-              <div className="flex items-center gap-3">
-                <span className="px-3 py-1 rounded-full bg-action text-white font-semibold text-xs">
-                  ● Thả trôi an nhiên
-                </span>
-              </div>
-            </div>
-
-            <div className="text-center mb-8">
-              <span className="inline-block text-xs uppercase font-bold tracking-wider text-muted bg-surface px-3.5 py-1 rounded-full border border-line mb-6">
-                ● KHOẢNG LẶNG BUÔNG BỎ • KHÔNG LƯU TRỮ VĂN BẢN
+              <span className="wish-release-private">
+                <Lock aria-hidden="true" />
+                Phiên riêng · Không lưu
               </span>
-
-              {/* Floating Lotus Lantern Motif */}
-              <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-b from-amber-950/40 to-stone-900 border-2 border-amber-400/50 flex items-center justify-center text-accent shadow-xl mb-3 relative wishing-lotus-glow">
-                <div className="w-10 h-10 rounded-full bg-amber-400/20 blur-md absolute -top-1" />
-                <span className="text-4xl filter drop-shadow">🪷</span>
-              </div>
-
-              <div className="text-xs uppercase font-serif tracking-widest text-amber-700 dark:text-amber-400 font-semibold mb-4">
-                HOA ĐĂNG TRÔI AN YÊN
-              </div>
-
-              <h1 tabIndex={-1} className="wish-page-title mb-3 outline-none focus:outline-none flex items-center justify-center">
-                <span className="wish-seal-badge" aria-hidden="true">願</span>
-                <span>Bạn đã gửi gắm một khoảng lòng</span>
-              </h1>
-              <p className="text-sm text-muted max-w-xl mx-auto leading-relaxed">
-                Lời bạn viết vừa được thả thành hoa đăng trong cảnh sông 3D riêng của phiên này.
-                Nội dung chỉ tồn tại trong lúc bạn đang trải nghiệm và sẽ mất khi rời màn hình.
-              </p>
             </div>
 
-            {/* Central Ephemeral Box (Parchment Result Card) */}
-            <div className="wish-result-card max-w-2xl mx-auto mb-8 relative">
-              <div className="flex items-start gap-3.5 mb-6">
-                <div className="w-10 h-10 rounded-panel bg-surface flex items-center justify-center text-accent flex-shrink-0">
-                  <Flower2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold uppercase tracking-wider text-accent">
-                      LỜI NHẮC VỀ SỰ BUÔNG BỎ
-                    </span>
-                    <Badge variant="secondary" className="text-xs bg-surface">
-                      Không lưu vào nhật ký
-                    </Badge>
-                  </div>
-
-                  <h4 className="font-bold text-base text-ink mb-1.5 font-display">
-                    Hoa đăng chỉ hiển thị trong phiên riêng này.
-                  </h4>
-                  <p className="text-sm text-muted leading-relaxed">
-                    Lời viết không được gửi lên máy chủ, lưu vào nhật ký hoặc chia sẻ công khai.
-                    Khi rời màn hình, phiên hoa đăng sẽ kết thúc.
-                  </p>
-                </div>
+            <header className="wish-release-hero">
+              <span className="wish-release-mark" aria-hidden="true">
+                <Flower2 />
+              </span>
+              <div>
+                <p className="wish-release-kicker">Hoa đăng an yên</p>
+                <h1 tabIndex={-1} className="wish-release-title">
+                  Lời nguyện đã được thả
+                </h1>
+                <p className="wish-release-subtitle">
+                  Lời bạn gửi đang trôi trong khung cảnh riêng của phiên này.
+                </p>
               </div>
+            </header>
 
-              {pendingLanternWish && (
-                <div className="mb-5 rounded-xl border border-amber-500/20 bg-surface-soft/70 p-4 text-left">
-                  <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-accent">
-                    Lời viết gắn với hoa đăng của bạn
-                  </div>
-                  <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-ink">
-                    {pendingLanternWish}
-                  </p>
-                </div>
-              )}
-
-              <div className="overflow-hidden rounded-xl border border-line bg-stone-950">
+            <section
+              className="wish-release-stage"
+              aria-label="Cảnh sông hoa đăng"
+            >
+              <div className="wish-release-scene-frame">
                 <LanternSceneBoundary>
                   <Suspense
                     fallback={
@@ -911,15 +903,32 @@ export const WishScreen: React.FC<WishScreenProps> = ({
                   </Suspense>
                 </LanternSceneBoundary>
               </div>
+            </section>
 
-              <div className="pt-4 border-t border-line text-center text-xs text-muted italic">
-                Bạn không cần cảm thấy khác đi ngay lúc này.
-                Có thể dừng lại một chút rồi chọn việc nhỏ tiếp theo phù hợp với mình.
-              </div>
-            </div>
+            <section className="wish-release-details">
+              {pendingLanternWish && (
+                <article className="wish-release-wish">
+                  <p className="wish-release-detail-label">Lời gửi gắm của bạn</p>
+                  <blockquote>{pendingLanternWish}</blockquote>
+                </article>
+              )}
+
+              <aside className="wish-release-privacy">
+                <span className="wish-release-privacy-icon" aria-hidden="true">
+                  <Lock />
+                </span>
+                <div>
+                  <h2>Riêng tư trong phiên này</h2>
+                  <p>
+                    Lời viết không được gửi lên máy chủ, lưu vào nhật ký hay chia sẻ công khai.
+                    Rời màn hình sẽ kết thúc phiên hoa đăng.
+                  </p>
+                </div>
+              </aside>
+            </section>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <div className="wish-release-actions">
               <Button
                 variant="default"
                 size="lg"
@@ -942,7 +951,7 @@ export const WishScreen: React.FC<WishScreenProps> = ({
               {onGoToExplore && (
                 <button
                   onClick={onGoToExplore}
-                  className="text-xs font-semibold text-accent hover:underline flex items-center gap-1 cursor-pointer"
+                  className="min-h-11 px-3 text-sm font-semibold text-accent hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <span>Khám phá phong thổ văn hóa 3 miền</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -950,21 +959,18 @@ export const WishScreen: React.FC<WishScreenProps> = ({
               )}
             </div>
 
-            <div className="max-w-2xl mx-auto mb-8 rounded-card border border-line bg-surface p-5">
-              <h2 className="mb-2 text-base font-semibold text-ink">
-                Một khoảng dừng nhỏ
-              </h2>
-
-              <p className="text-sm leading-relaxed text-muted">
-                Nếu muốn, bạn có thể dừng một lát, thả lỏng vai
-                rồi quay lại việc đang làm. Không cần thực hiện thêm nghi thức.
-              </p>
-            </div>
+            <p className="wish-release-aftercare">
+              Bạn có thể dừng lại một chút rồi tiếp tục khi thấy sẵn sàng.
+            </p>
           </div>
         )}
 
         {/* Global Footer Motto */}
-        <div className="text-center pt-10 border-t border-line mt-16">
+        <div
+          className={`wish-screen-footer text-center pt-10 border-t border-line mt-16 ${
+            viewState === "variantB" ? "wish-release-footer" : ""
+          }`}
+        >
           <div className="text-xs uppercase tracking-widest text-muted font-medium">
             Nơi lưu giữ nét đẹp tín ngưỡng văn hóa dân gian Việt, chiêm nghiệm tinh tế và hướng tâm thiện lành giữa đời sống hiện đại.
           </div>

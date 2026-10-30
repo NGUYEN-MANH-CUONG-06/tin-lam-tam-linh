@@ -1289,3 +1289,22 @@
   margin: 9px 0 0;
   white-space: pre-wrap;
 }
+
+/* Keep editor controls readable and easy to operate across screen sizes. */
+.editor-nav-item {
+  min-height: 46px;
+  font-size: 15px;
+}
+
+.editor-primary-btn,
+.editor-public-link,
+.editor-quick-refresh-btn,
+.editor-theme-btn {
+  min-height: 46px;
+  font-size: 15px;
+}
+
+.editor-workspace :is(input, select, textarea) {
+  min-height: 44px;
+  font-size: 16px;
+}

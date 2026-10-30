@@ -13,7 +13,6 @@ import {
   Bookmark,
   Volume2,
   MapPin,
-  ExternalLink,
   Layers,
   ZoomIn,
   ZoomOut,
@@ -30,8 +29,6 @@ import {
 import { DetailNotFound } from "../components/DetailNotFound";
 import { ReadingBookmarkButton } from "../components/ReadingBookmarkButton";
 import { SavedReadingList } from "../components/SavedReadingList";
-import { ContentProvenance } from "../components/ContentProvenance";
-import { getCultureMetadata } from "../data/readingMetadata";
 import { ChauVanAudioLibrary } from "../components/ChauVanAudioLibrary";
 import { ScrollReveal } from "../components/ScrollReveal";
 import { ApiError, apiRequest } from "../lib/api";
@@ -585,10 +582,6 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
             <span>Thời lượng đọc: {article.readingTime}</span>
           </div>
 
-          <div className="ml-auto hidden sm:flex items-center gap-1.5 text-xs text-muted/80">
-            <Flower2 className="w-3.5 h-3.5 text-amber-500" />
-            <span>Nguồn tham khảo</span>
-          </div>
         </div>
 
         {/* Magazine Main Title */}
@@ -645,11 +638,6 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
                 <MapPin className="w-4 h-4 text-accent shrink-0" />
                 <span className="italic text-ink font-medium">{article.caption}</span>
               </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1">
-                {article.metadata?.imageCredit && <span className="text-xs text-muted">Ghi công: {article.metadata.imageCredit}</span>}
-                {article.metadata?.imageSource && <a href={article.metadata.imageSource} target="_blank" rel="noreferrer" className="text-xs text-accent underline underline-offset-2">Trang ảnh gốc ↗</a>}
-                {article.metadata?.imageRightsBasis && <span className="text-xs text-muted">Quyền sử dụng: {article.metadata.imageRightsBasis}</span>}
-              </div>
             </div>
           </div>
         </ScrollReveal>}
@@ -694,14 +682,6 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
               </button>
             ))}
 
-            <button
-              type="button"
-              onClick={() => scrollToSection("article-sources")}
-              className="min-h-11 w-full rounded-xl px-3 py-2.5 text-left text-sm text-accent font-medium hover:bg-accent/10 flex items-center gap-2"
-            >
-              <Flower2 className="w-3.5 h-3.5" />
-              <span>Tài liệu tham khảo & Nguồn trích dẫn</span>
-            </button>
           </nav>
         </details>
 
@@ -843,29 +823,6 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
               </div>
             </ScrollReveal>
 
-            {/* Editorial Principle & Scholarly Citations Section */}
-            <ScrollReveal
-              variant="up"
-              as="section"
-              id="article-sources"
-              tabIndex={-1}
-              aria-labelledby="article-sources-title"
-              className="scroll-mt-28 rounded-3xl border border-line bg-surface p-6 sm:p-8 shadow-xs"
-            >
-              <div className="flex items-center gap-2.5 mb-4">
-                <Flower2 className="w-5 h-5 text-accent" />
-                <h2
-                  id="article-sources-title"
-                  className="font-display text-2xl font-bold text-ink"
-                >
-                  Nguồn thư tịch & Cơ sở biên soạn
-                </h2>
-              </div>
-
-              <ContentProvenance
-                metadata={getCultureMetadata(article)}
-              />
-            </ScrollReveal>
 
             {/* Navigation Action Buttons Row */}
             <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-line">
@@ -927,14 +884,6 @@ const CultureDetailContent: React.FC<CultureDetailScreenProps> = ({
                     </button>
                   ))}
 
-                  <button
-                    type="button"
-                    onClick={() => scrollToSection("article-sources")}
-                    className="w-full text-left text-xs text-accent/80 hover:text-accent min-h-9 py-2 px-3 rounded-xl transition-colors flex items-center gap-2 mt-2 pt-2 border-t border-line/40 font-medium"
-                  >
-                    <Flower2 className="w-3.5 h-3.5" />
-                    <span>Nguồn thư tịch & Biên soạn</span>
-                  </button>
                 </nav>
               </Card>
 

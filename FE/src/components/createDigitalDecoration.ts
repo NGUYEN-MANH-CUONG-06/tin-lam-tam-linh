@@ -1,14 +1,17 @@
 import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 export type DecorationId =
   | "lotus-vase"
   | "river-lantern"
   | "jade-lotus"
   | "golden-lotus"
-  | "incense-burner";
+  | "incense-burner"
+  | "boiled-chicken";
 
 export function createDigitalDecoration(
-  id: DecorationId
+  id: DecorationId,
+  onAssetLoaded?: () => void,
 ): THREE.Group {
   const group = new THREE.Group();
 
@@ -29,7 +32,62 @@ export function createDigitalDecoration(
     return mesh;
   };
 
-  if (id === "incense-burner") {
+  if (id === "boiled-chicken") {
+    // Model 3D gà cúng 180.000 tam giác từ file GLB (tách 3 vật liệu: mâm sứ trắng, da vàng óng, mào đỏ tươi)
+    const chickenHolder = new THREE.Group();
+    // Góc xoay hướng nhẹ về trung tâm bàn thờ (~25° - 35°) để lộ cánh, mào và đầu gà uy nghiêm
+    chickenHolder.rotation.y = 0.52;
+    group.add(chickenHolder);
+
+    const loader = new GLTFLoader();
+    loader.load(
+      "/models/offering-chicken.glb",
+      (gltf) => {
+        const model = gltf.scene;
+        model.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+
+            const mat = child.material;
+            if (mat) {
+              if (mat.name === "BoiledChickenPlate") {
+                child.material = new THREE.MeshPhysicalMaterial({
+                  color: "#faf7f2",
+                  roughness: 0.18,
+                  metalness: 0.02,
+                  clearcoat: 0.45,
+                  clearcoatRoughness: 0.15,
+                });
+              } else if (mat.name === "BoiledChickenSkin") {
+                child.material = new THREE.MeshPhysicalMaterial({
+                  color: "#cca038", // Da gà luộc vàng óng truyền thống
+                  roughness: 0.52,
+                  metalness: 0.0,
+                  clearcoat: 0.12,
+                  clearcoatRoughness: 0.42,
+                });
+              } else if (mat.name === "BoiledChickenComb") {
+                child.material = new THREE.MeshPhysicalMaterial({
+                  color: "#b82015", // Mào cờ đỏ tươi
+                  roughness: 0.38,
+                  metalness: 0.0,
+                  clearcoat: 0.15,
+                });
+              }
+            }
+          }
+        });
+        chickenHolder.add(model);
+        group.updateMatrix();
+        onAssetLoaded?.();
+      },
+      undefined,
+      (err) => {
+        console.error("Lỗi tải /models/offering-chicken.glb:", err);
+      }
+    );
+  } else if (id === "incense-burner") {
     const bronze = "#a7783c";
 
     addMesh(
@@ -168,6 +226,8 @@ export function createDigitalDecoration(
 }
 
 export function disposeDigitalDecoration(group: THREE.Group): void {
+  const textures = new Set<THREE.Texture>();
+
   group.traverse((object) => {
     if (!(object instanceof THREE.Mesh)) return;
 
@@ -177,8 +237,23 @@ export function disposeDigitalDecoration(group: THREE.Group): void {
       ? object.material
       : [object.material];
 
-    materials.forEach((material) => material.dispose());
+    materials.forEach((material) => {
+      const materialWithTextures = material as THREE.Material & {
+        map?: THREE.Texture | null;
+        bumpMap?: THREE.Texture | null;
+        roughnessMap?: THREE.Texture | null;
+      };
+      if (materialWithTextures.map) textures.add(materialWithTextures.map);
+      if (materialWithTextures.bumpMap) {
+        textures.add(materialWithTextures.bumpMap);
+      }
+      if (materialWithTextures.roughnessMap) {
+        textures.add(materialWithTextures.roughnessMap);
+      }
+      material.dispose();
+    });
   });
 
+  textures.forEach((texture) => texture.dispose());
   group.removeFromParent();
 }

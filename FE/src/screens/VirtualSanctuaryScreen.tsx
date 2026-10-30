@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Flower2,
-  Heart,
   Landmark,
   Sparkles,
   Compass,
@@ -18,8 +17,8 @@ import { Card } from "@/src/components/ui/card";
 import { SceneErrorBoundary } from "../components/SceneErrorBoundary";
 import { useJadeDecoration } from "../hooks/useJadeDecoration";
 import { JadeDecorationControl } from "../components/JadeDecorationControl";
+import { isDemoMode } from "../data/demoMode";
 
-import type { MemorialRecord } from "./MemorialSpaceScreen";
 
 const SanctuaryScene = lazy(() =>
   import("../components/SanctuaryScene").then((module) => ({
@@ -28,27 +27,21 @@ const SanctuaryScene = lazy(() =>
 );
 
 interface VirtualSanctuaryScreenProps {
-  memorial: MemorialRecord | null;
   currentUserEmail?: string;
   onGoToLogin: () => void;
   onBackToExperience: () => void;
   onGoToAltar: () => void;
-  onGoToMemorial: () => void;
   onGoToZen: () => void;
-  onRecordIncense?: () => Promise<void>;
 }
 
 export const VirtualSanctuaryScreen: React.FC<
   VirtualSanctuaryScreenProps
 > = ({
-  memorial,
   currentUserEmail,
   onGoToLogin,
   onBackToExperience,
   onGoToAltar,
-  onGoToMemorial,
   onGoToZen,
-  onRecordIncense,
 }) => {
   const [show3D, setShow3D] = useState(false);
   const jadeDecoration = useJadeDecoration(currentUserEmail);
@@ -106,14 +99,6 @@ export const VirtualSanctuaryScreen: React.FC<
               >
                 <Landmark className="w-4 h-4" />
                 <span>Ghé bàn thờ gia tiên</span>
-              </Button>
-              <Button
-                variant="outline"
-                onClick={onGoToMemorial}
-                className="gap-2 border-line text-ink hover:text-accent cursor-pointer"
-              >
-                <Heart className="w-4 h-4 text-rose-500" />
-                <span>Góc tưởng niệm</span>
               </Button>
             </div>
           </div>
@@ -185,7 +170,7 @@ export const VirtualSanctuaryScreen: React.FC<
             </Button>
           </div>
 
-          {currentUserEmail && (
+          {(currentUserEmail || isDemoMode()) && (
             <JadeDecorationControl state={jadeDecoration} />
           )}
 
@@ -209,9 +194,6 @@ export const VirtualSanctuaryScreen: React.FC<
                   }
                 >
                   <SanctuaryScene
-                    memorial={memorial}
-                    onOpenMemorial={onGoToMemorial}
-                    onRecordIncense={onRecordIncense}
                     decoration={jadeDecoration.decoration}
                   />
                 </Suspense>
@@ -236,7 +218,7 @@ export const VirtualSanctuaryScreen: React.FC<
             </span>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-2 gap-5">
             <Card
               onClick={onGoToAltar}
               className="group p-6 rounded-2xl border-line border-t-4 border-t-amber-700 cursor-pointer hover:bg-surface-soft hover:shadow-md transition-all"
@@ -252,24 +234,6 @@ export const VirtualSanctuaryScreen: React.FC<
               </p>
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-accent">
                 Ghé thăm <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </Card>
-
-            <Card
-              onClick={onGoToMemorial}
-              className="group p-6 rounded-2xl border-line border-t-4 border-t-rose-700 cursor-pointer hover:bg-surface-soft hover:shadow-md transition-all"
-            >
-              <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-400/25 flex items-center justify-center text-rose-600 dark:text-rose-400 mb-4 group-hover:scale-105 transition-transform">
-                <Heart className="w-6 h-6" />
-              </div>
-              <h3 className="font-display text-xl font-bold text-ink mb-2 group-hover:text-rose-600 transition-colors">
-                Góc tưởng niệm
-              </h3>
-              <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed mb-5">
-                Lưu giữ một cái tên, một ngày nhớ và lời tri ân chỉ thuộc về riêng bạn.
-              </p>
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400">
-                Mở góc riêng <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </span>
             </Card>
 

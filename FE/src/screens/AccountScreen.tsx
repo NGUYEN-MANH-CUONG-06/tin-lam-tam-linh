@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Flower2,
   Scroll,
@@ -17,8 +17,6 @@ import {
   AlertTriangle,
   RotateCcw,
   Compass,
-  Settings,
-  Bell,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
@@ -26,13 +24,6 @@ import { Card } from "../components/ui/card";
 import { MoodKey, type MoodContextKey, type SignalData } from "../data/demoSignals";
 import { SavedItemActions } from "../components/SavedItemActions";
 import { AppDialog } from "../components/AppDialog";
-import { apiRequest } from "../lib/api";
-import { isDemoMode } from "../data/demoMode";
-
-interface AccountMembershipStatus {
-  subscription: { started_at: string; expires_at: string } | null;
-  aiUsage: { successfulUsed: number; inProgress: number; successfulRemaining: number; successfulLimit: number; attemptsUsed: number; attemptsRemaining: number; providerAttemptLimit: number; nextUsableAt: string | null };
-}
 
 export interface SavedSignalItem {
   id: string;
@@ -93,10 +84,7 @@ interface AccountScreenProps {
   onGoToXinXam: () => void;
   onGoToWish: () => void;
   onGoToMood: () => void;
-  onGoToMoodJourney?: () => void;
-  onGoToNotifications?: () => void;
   onGoToHome: () => void;
-  onGoToSettings?: () => void;
 }
 
 const normalizeSearchText = (value: string): string =>
@@ -137,10 +125,7 @@ export const AccountScreen: React.FC<AccountScreenProps> = ({
   onGoToXinXam,
   onGoToWish,
   onGoToMood,
-  onGoToMoodJourney,
-  onGoToNotifications,
   onGoToHome,
-  onGoToSettings,
 }) => {
   // 3 Primary Tabs
   const [activeTab, setActiveTab] = useState<
@@ -171,34 +156,6 @@ export const AccountScreen: React.FC<AccountScreenProps> = ({
 
   const [openedWish, setOpenedWish] = useState<SavedWishItem | null>(null);
   const [openedXam, setOpenedXam] = useState<SavedXinXamItem | null>(null);
-  const [membershipStatus, setMembershipStatus] = useState<AccountMembershipStatus | null>(null);
-  const [membershipLoadFailed, setMembershipLoadFailed] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    if (isDemoMode()) {
-      setMembershipStatus({
-        subscription: { started_at: new Date().toISOString(), expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() },
-        aiUsage: {
-          successfulUsed: 1,
-          inProgress: 0,
-          successfulRemaining: 2,
-          successfulLimit: 3,
-          attemptsUsed: 1,
-          attemptsRemaining: 4,
-          providerAttemptLimit: 5,
-          nextUsableAt: null,
-        },
-      });
-      setMembershipLoadFailed(false);
-      return () => { active = false; };
-    }
-    apiRequest<AccountMembershipStatus>("/membership/status")
-      .then((value) => { if (active) setMembershipStatus(value); })
-      .catch(() => { if (active) setMembershipLoadFailed(true); });
-    return () => { active = false; };
-  }, [currentUser?.email]);
-
   // Helper date parsing (DD/MM/YYYY)
   const parseVnDate = (value: string): number => {
     const match = value.trim().match(
@@ -361,7 +318,6 @@ export const AccountScreen: React.FC<AccountScreenProps> = ({
         !matchesSearch(searchQuery, [
           item.category,
           item.quote,
-          item.region,
           item.stickNumber,
           item.fortuneType,
         ])
@@ -521,60 +477,8 @@ export const AccountScreen: React.FC<AccountScreenProps> = ({
               </div>
             </div>
 
-            {onGoToSettings && (
-              <button
-                onClick={onGoToSettings}
-                title="Cài đặt & Tùy chọn cá nhân"
-                className="p-2.5 rounded-full border border-line bg-surface hover:bg-surface text-muted hover:text-accent transition-colors cursor-pointer"
-                aria-label="Cài đặt"
-              >
-                <Settings className="w-4 h-4" />
-              </button>
-            )}
           </div>
         </div>
-
-        <Card className="mb-8 border-line bg-surface p-5">
-          <h2 className="font-display text-lg font-semibold text-ink">Hội viên và lượt AI</h2>
-          {membershipLoadFailed ? <p role="alert" className="mt-2 text-sm text-danger">Chưa thể tải thông tin hội viên và lượt AI.</p> : !membershipStatus ? <p role="status" className="mt-2 text-sm text-muted">Đang tải thông tin hội viên và lượt AI…</p> : <>
-            <p className="mt-2 text-sm text-ink">{membershipStatus.subscription ? `Gói Tâm An · có hiệu lực đến ${new Date(membershipStatus.subscription.expires_at).toLocaleString("vi-VN")}` : "Gói hiện tại: Miễn phí · Chưa có gói hội viên đang hoạt động"}</p>
-            <p className="mt-1 text-sm text-muted">Lượt AI theo năm (chỉ dùng khi gói hội viên còn hiệu lực): đã hoàn tất {membershipStatus.aiUsage.successfulUsed} lượt, {membershipStatus.aiUsage.inProgress} lượt đang xử lý; còn {membershipStatus.aiUsage.successfulRemaining}/{membershipStatus.aiUsage.successfulLimit} lượt. Trong 24 giờ, đã dùng {membershipStatus.aiUsage.attemptsUsed}/{membershipStatus.aiUsage.providerAttemptLimit} lần gọi.</p>
-            {membershipStatus.aiUsage.nextUsableAt && <p className="mt-1 text-sm text-muted">Có thể dùng tiếp từ {new Date(membershipStatus.aiUsage.nextUsableAt).toLocaleString("vi-VN")}.</p>}
-          </>}
-        </Card>
-
-        {onGoToMoodJourney && (
-          <Card
-            onClick={onGoToMoodJourney}
-            className="group p-5 mb-8 border-line bg-surface-soft cursor-pointer hover:bg-surface"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-surface border border-line flex items-center justify-center text-accent">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <div>
-                  <h2 className="font-display font-bold text-lg group-hover:text-accent">
-                    Lịch sử cảm xúc
-                  </h2>
-                  <p className="text-xs text-muted mt-0.5">
-                    Xem lại các lần check-in và lời chiêm nghiệm bạn đã lưu.
-                  </p>
-                </div>
-              </div>
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent">
-                Xem nội dung đã lưu{" "}
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </div>
-          </Card>
-        )}
-
-        {onGoToNotifications && (
-          <Card onClick={onGoToNotifications} className="group p-5 mb-8 border-line cursor-pointer hover:bg-surface-soft">
-            <div className="flex items-center justify-between gap-4"><span className="flex items-center gap-3 font-semibold"><Bell className="w-4 h-4 text-accent" /> Thông báo</span><span className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent">Xem trạng thái <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" /></span></div>
-          </Card>
-        )}
 
         {/* 3 Primary Navigation Tabs */}
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6">
@@ -753,11 +657,6 @@ export const AccountScreen: React.FC<AccountScreenProps> = ({
                         >
                           {item.category}
                         </Badge>
-                      </div>
-
-                      {/* Region/Temple line */}
-                      <div className="text-xs text-muted mb-2 font-medium">
-                        {item.region}
                       </div>
 
                       {/* Title */}
@@ -1225,9 +1124,6 @@ export const AccountScreen: React.FC<AccountScreenProps> = ({
           </button>
 
           <div className="flex items-center gap-2 mb-2 pr-12 flex-wrap">
-            <Badge variant="terracotta" className="text-xs">
-              {openedXam.region}
-            </Badge>
             <Badge variant="outline" className="text-xs bg-surface text-accent border-line">
               {openedXam.category}
             </Badge>

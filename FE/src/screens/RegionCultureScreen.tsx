@@ -60,7 +60,7 @@ export const RegionCultureScreen: React.FC<RegionCultureScreenProps> = ({
         </div>
         <h1 className="mb-3 font-display text-2xl font-bold text-ink">Khám phá {REGION_LABELS[region]}</h1>
         <p className="mb-5 max-w-3xl text-sm leading-relaxed text-muted">
-          Chọn một trải nghiệm văn hóa bên dưới. Bài viết và địa điểm sẽ xuất hiện tại đây khi hồ sơ nguồn, quyền sử dụng và thông tin vùng miền được xác minh.
+          Chọn một trải nghiệm văn hóa bên dưới. Bài viết và địa điểm sẽ xuất hiện tại đây sau khi nội dung, quyền sử dụng và thông tin vùng miền được kiểm tra.
         </p>
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Button

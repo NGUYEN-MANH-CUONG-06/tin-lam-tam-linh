@@ -2,7 +2,7 @@ import { apiRequest } from "../lib/api";
 import { isDemoMode } from "./demoMode";
 import { readDemoValue, writeDemoValue } from "./demoStorage";
 import { DEMO_PUBLIC_SOURCES } from "./demoContent";
-import { getXinXamResult, type RegionType, type TopicType } from "./xinXamData";
+import { getXinXamResult, XIN_XAM_REGIONS, type RegionType, type TopicType } from "./xinXamData";
 import { trackProductEvent } from "./productAnalytics";
 import type { SavedWishItem, SavedXinXamItem } from "../screens/AccountScreen";
 import type { ContentMetadata } from "./contentMetadata";
@@ -113,7 +113,10 @@ export function drawXinXam(
   options: { signal?: AbortSignal } = {},
 ): Promise<XinXamDrawResponse> {
   if (isDemoMode()) {
-    const result = getXinXamResult(region as RegionType, topic as TopicType);
+    const resultRegion = region === "Toàn quốc"
+      ? XIN_XAM_REGIONS[Math.floor(Math.random() * XIN_XAM_REGIONS.length)]
+      : region as RegionType;
+    const result = getXinXamResult(resultRegion as RegionType, topic as TopicType);
     const poem = [result.poem.line1, result.poem.line2, result.poem.line3, result.poem.line4].join("\n");
     const source = DEMO_PUBLIC_SOURCES.xinXamPractice;
     const metadata: ContentMetadata = {
@@ -135,13 +138,13 @@ export function drawXinXam(
       stickNumber: result.stickNumber,
       fortuneType: result.fortuneType || result.sealText,
       category: result.category || topic,
-      region,
+      region: resultRegion,
       quote: result.quote,
       date: new Date().toISOString(),
       source,
       verified: false,
       active: true,
-      xamType: `${region}:${topic}`,
+      xamType: `${resultRegion}:${topic}`,
       classification: result.fortuneType || result.sealText,
       rank: "Trung Xăm",
       classificationGroup: "NEUTRAL",

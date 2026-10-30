@@ -37,9 +37,7 @@ import {
   setReadingBookmark,
   useReadingBookmark,
 } from "../hooks/useReadingBookmarks";
-import { ContentProvenance } from "../components/ContentProvenance";
 import { RitualPrayerSection } from "../components/RitualPrayerSection";
-import { getRitualMetadata } from "../data/readingMetadata";
 import { ScrollReveal } from "../components/ScrollReveal";
 import { trackProductEvent } from "../data/productAnalytics";
 
@@ -492,9 +490,6 @@ const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
                 </div>
                 <figcaption className="p-3 bg-surface border-t border-line/60 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted">
                   <span>{detail.heroCaption}</span>
-                  <span>Ghi công: {detail.heroArtCredit}</span>
-                  {detail.heroSourceUrl && <a href={detail.heroSourceUrl} target="_blank" rel="noreferrer" className="underline">Nguồn ảnh ↗</a>}
-                  {detail.heroRightsBasis && <span>Căn cứ quyền: {detail.heroRightsBasis}</span>}
                 </figcaption>
               </figure>
             </ScrollReveal>
@@ -765,16 +760,6 @@ const RitualDetailContent: React.FC<RitualDetailLoaderProps> = ({
               </div>
             </ScrollReveal>
 
-            {/* Provenance & Nguồn tham khảo */}
-            <ScrollReveal variant="up" as="section" aria-labelledby="ritual-sources-title" className="rounded-3xl border border-line bg-surface p-6">
-              <h2
-                id="ritual-sources-title"
-                className="mb-4 font-display text-lg sm:text-xl font-bold text-ink flex items-center gap-2"
-              >
-                <span>Nguồn khảo cứu & Người phụ trách duyệt nội dung</span>
-              </h2>
-              <ContentProvenance metadata={getRitualMetadata(ritual)} />
-            </ScrollReveal>
           </div>
 
           {/* Right Sticky Sidebar: Checklist & Safety */}

@@ -41,11 +41,11 @@ export function PushNotificationSettings() {
     }
   };
   return (
-    <section className="my-5 rounded-xl border border-line p-4">
-      <h3 className="font-semibold">Nhắc giỗ trên thiết bị này</h3>
-      <p className="my-2 text-sm">
-        Đăng ký trình duyệt này và bật Thông báo đẩy của tài khoản
-        để nhận nhắc trước 3 ngày theo lịch đã lưu.
+    <section className="mt-5 border-t border-line pt-5" aria-labelledby="device-reminders-title">
+      <h3 id="device-reminders-title" className="font-semibold">Nhắc giỗ trên thiết bị này</h3>
+      <p className="my-2 text-sm text-muted">
+        Đăng ký trình duyệt này, sau đó bật “Thông báo trên thiết bị” ở phía trên
+        để nhận lời nhắc trước 3 ngày theo lịch đã lưu.
         Thông báo có thể đến khi trang web không mở; thời điểm hiển thị
         phụ thuộc kết nối và cài đặt của thiết bị.
       </p>
@@ -53,22 +53,22 @@ export function PushNotificationSettings() {
         <button
           type="button"
           disabled={busy}
-          className="rounded-lg border border-line px-4 py-2"
+          className="min-h-11 rounded-lg border border-line px-4 py-2 disabled:cursor-wait disabled:opacity-60"
           onClick={() => void change(true)}
         >
-          Đăng ký nhận thông báo
+          {busy ? "Đang cập nhật…" : "Đăng ký trình duyệt này"}
         </button>
         <button
           type="button"
           disabled={busy}
-          className="rounded-lg border border-line px-4 py-2"
+          className="min-h-11 rounded-lg border border-line px-4 py-2 disabled:cursor-wait disabled:opacity-60"
           onClick={() => void change(false)}
         >
-          Ngừng nhận trên thiết bị
+          {busy ? "Đang cập nhật…" : "Ngừng nhận trên thiết bị"}
         </button>
       </div>
       {isDemoMode() && <p className="mt-2 text-xs text-muted">Trạng thái demo: {readDemoValue("push-enabled", false) ? "Đang bật" : "Đang tắt"}. Không đăng ký với máy chủ.</p>}
-      {message && <p role="status" className="mt-3 text-sm">{message}</p>}
+      {message && <p role="status" aria-live="polite" className="mt-3 text-sm">{message}</p>}
     </section>
   );
 }
