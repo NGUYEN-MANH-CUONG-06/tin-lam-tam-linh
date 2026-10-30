@@ -1,15 +1,41 @@
 import React from "react";
-import { Bell, BookOpen, CalendarDays, Compass, Heart, Map, Settings, Sparkles, UserRound, UsersRound } from "lucide-react";
+import {
+  Bell,
+  BookOpen,
+  CalendarDays,
+  Compass,
+  Flower2,
+  Heart,
+  Landmark,
+  Map,
+  Music2,
+  PenLine,
+  ScrollText,
+  Settings,
+  Sparkles,
+  Sun,
+  UserRound,
+  UsersRound,
+  Waves,
+  Wind,
+} from "lucide-react";
 import type { NavScreen } from "./AppHeader";
 
 type Props = {
-  area: "account" | "discover";
+  area: "account" | "discover" | "experience";
   currentScreen: NavScreen;
   onNavigate: (screen: NavScreen) => void;
   user?: { name: string; email: string } | null;
 };
 
-const groups: Record<Props["area"], { title: string; links: { label: string; screen: NavScreen; icon: React.ElementType }[] }[]> = {
+type SidebarLink = {
+  label: string;
+  screen: NavScreen;
+  icon: React.ElementType;
+  activeScreens?: NavScreen[];
+};
+
+const groups: Record<Props["area"], { title: string; links: SidebarLink[] }[]> = {
   account: [
     { title: "TÀI KHOẢN", links: [
       { label: "Tổng quan", screen: "account", icon: UserRound },
@@ -23,14 +49,32 @@ const groups: Record<Props["area"], { title: string; links: { label: string; scr
   ],
   discover: [
     { title: "VĂN HÓA", links: [
-      { label: "Bài viết văn hóa", screen: "culture", icon: BookOpen },
-      { label: "Bản đồ văn hóa", screen: "culture-map", icon: Map },
-      { label: "Theo vùng miền", screen: "region-culture", icon: Compass },
+      { label: "Bài viết văn hóa", screen: "culture", icon: BookOpen, activeScreens: ["culture-detail"] },
+      { label: "Bản đồ di sản ba miền", screen: "culture-map", icon: Map, activeScreens: ["region-culture"] },
+      { label: "Hát chầu văn", screen: "chau-van", icon: Music2 },
+      { label: "Tín ngưỡng biển miền Trung", screen: "sea-prayer", icon: Waves },
+      { label: "Văn hóa Nam Bộ", screen: "southern-culture", icon: Flower2 },
     ] },
     { title: "NGHI LỄ & LỊCH", links: [
-      { label: "Cẩm nang nghi lễ", screen: "rituals", icon: Sparkles },
-      { label: "Lịch văn hóa", screen: "calendar", icon: CalendarDays },
-      { label: "Ngày tốt cá nhân", screen: "good-days", icon: CalendarDays },
+      { label: "Cẩm nang nghi lễ", screen: "rituals", icon: Sparkles, activeScreens: ["ritual-detail"] },
+      { label: "Lịch văn hóa", screen: "calendar", icon: CalendarDays, activeScreens: ["calendar", "calendar-detail"] },
+      { label: "Kế hoạch ngày dự định", screen: "good-days", icon: Sun },
+    ] },
+  ],
+  experience: [
+    { title: "TĨNH TÂM & NGUYỆN ƯỚC", links: [
+      { label: "Thiền ngắn an tịnh", screen: "zen", icon: Wind },
+      { label: "Lời nguyện hoa đăng", screen: "wish", icon: PenLine },
+      { label: "Một lời biết ơn", screen: "gratitude", icon: Heart },
+    ] },
+    { title: "CHIÊM NGHIỆM DÂN GIAN", links: [
+      { label: "Xin xăm", screen: "xinxam", icon: ScrollText },
+      { label: "Xin keo âm dương", screen: "xinkeo", icon: Compass },
+      { label: "Xem tử vi", screen: "astrology", icon: Sparkles },
+    ] },
+    { title: "GIA TIÊN & TƯỞNG NHỚ", links: [
+      { label: "Không gian gia tiên", screen: "ancestor-altar", icon: Landmark },
+      { label: "Không gian 3D & tưởng niệm", screen: "sanctuary", icon: Flower2 },
     ] },
   ],
 };
@@ -42,25 +86,35 @@ const settingsSections = [
   { label: "Dữ liệu & quyền riêng tư", id: "settings-data" },
 ];
 
+const areaLabels: Record<Props["area"], { aside: string; nav: string }> = {
+  account: { aside: "Điều hướng Góc của tôi", nav: "Các mục tài khoản" },
+  discover: { aside: "Điều hướng Khám phá", nav: "Các mục khám phá" },
+  experience: { aside: "Điều hướng Trải nghiệm", nav: "Các trải nghiệm" },
+};
+
 export const AppSectionSidebar: React.FC<Props> = ({ area, currentScreen, onNavigate, user }) => (
-  <aside className="app-section-sidebar" aria-label={area === "account" ? "Điều hướng Góc của tôi" : "Điều hướng Khám phá"}>
-    <nav className="app-section-sidebar__nav" aria-label={area === "account" ? "Các mục tài khoản" : "Các mục khám phá"}>
+  <aside className="app-section-sidebar" aria-label={areaLabels[area].aside}>
+    <nav className="app-section-sidebar__nav" aria-label={areaLabels[area].nav}>
       {groups[area].map((group) => (
         <div className="app-section-sidebar__group" key={group.title}>
           <h2>{group.title}</h2>
-          {group.links.map(({ label, screen, icon: Icon }) => (
-            <button
-              key={screen}
-              type="button"
-              className="app-section-sidebar__link"
-              aria-current={currentScreen === screen ? "page" : undefined}
-              onClick={() => onNavigate(screen)}
-            >
-              <Icon aria-hidden="true" />
-              <span>{label}</span>
-              {currentScreen === screen && <i aria-hidden="true" />}
-            </button>
-          ))}
+          {group.links.map(({ label, screen, icon: Icon, activeScreens }) => {
+            const active = screen === currentScreen || activeScreens?.includes(currentScreen);
+
+            return (
+              <button
+                key={screen}
+                type="button"
+                className="app-section-sidebar__link"
+                aria-current={active ? "page" : undefined}
+                onClick={() => onNavigate(screen)}
+              >
+                <Icon aria-hidden="true" />
+                <span>{label}</span>
+                {active && <i aria-hidden="true" />}
+              </button>
+            );
+          })}
         </div>
       ))}
       {currentScreen === "settings" && (
@@ -78,11 +132,11 @@ export const AppSectionSidebar: React.FC<Props> = ({ area, currentScreen, onNavi
           <span className="app-section-sidebar__avatar">{(user?.name || "A").slice(0, 1).toUpperCase()}</span>
           <span><strong>{user?.name || "Góc cá nhân"}</strong><small>Thông tin tài khoản</small></span>
         </button>
-      ) : (
+      ) : area === "discover" ? (
         <button type="button" className="app-section-sidebar__back" onClick={() => onNavigate("experience")}>
           <Compass aria-hidden="true" /><span>Về Trải nghiệm</span>
         </button>
-      )}
+      ) : null}
     </div>
   </aside>
 );

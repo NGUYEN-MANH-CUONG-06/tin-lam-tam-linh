@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { getDemoRoyalLanternStock, useRoyalLantern } from "../data/inventoryService";
 import { isDemoMode } from "../data/demoMode";
+import { DemoCommercePurchaseDialog } from "./DemoCommercePurchaseDialog";
 import { disposeThreeScene } from "./threeSceneUtils";
 
 interface FloatingLantern {
@@ -211,6 +212,8 @@ export function SouthernRiverScene({
   const [sessionWishes, setSessionWishes] = useState<string[]>([]);
   const [customWish, setCustomWish] = useState("");
   const [showInputModal, setShowInputModal] = useState(false);
+  const [showLanternPurchase, setShowLanternPurchase] = useState(false);
+  const [royalLanternStock, setRoyalLanternStock] = useState(() => isDemoMode() ? getDemoRoyalLanternStock() : 0);
   const [selectedLanternWish, setSelectedLanternWish] = useState<string | null>(null);
 
   const [lanternStyle, setLanternStyle] =
@@ -228,6 +231,13 @@ export function SouthernRiverScene({
     return () => {
       aliveRef.current = false;
     };
+  }, []);
+
+  useEffect(() => {
+    if (!isDemoMode()) return;
+    const refreshDemoStock = () => setRoyalLanternStock(getDemoRoyalLanternStock());
+    window.addEventListener("tltl-demo-inventory-change", refreshDemoStock);
+    return () => window.removeEventListener("tltl-demo-inventory-change", refreshDemoStock);
   }, []);
 
   const releaseLanternRef = useRef<
@@ -1609,6 +1619,7 @@ export function SouthernRiverScene({
       sessionStorage.setItem(storageKey, requestId);
 
       await useRoyalLantern(requestId);
+      if (isDemoMode()) setRoyalLanternStock(getDemoRoyalLanternStock());
 
       if (!aliveRef.current) return;
 
@@ -1786,11 +1797,20 @@ export function SouthernRiverScene({
             </fieldset>
 
             {lanternStyle === "royal" && (
-              <p className="text-xs leading-relaxed text-muted">
-                {isDemoMode()
-                  ? `Hội viên demo đã đăng ký · còn ${getDemoRoyalLanternStock()} lượt đèn hoàng gia trong kho. Lượt dùng chỉ lưu trên trình duyệt.`
-                  : "Đèn hoàng gia dùng một lượt trong kho hội viên. Mỗi năm hội viên Tâm An được tặng một lượt."}
-              </p>
+              <div className="space-y-1 text-xs leading-relaxed text-muted">
+                <p>{isDemoMode()
+                  ? `Demo Mode · còn ${royalLanternStock} hoa đăng xịn trong kho; mỗi lần thả trừ một chiếc.`
+                  : "Đèn hoàng gia dùng một lượt trong kho hội viên. Mỗi năm hội viên Tâm An được tặng một lượt."}</p>
+                {isDemoMode() && (
+                  <button
+                    type="button"
+                    className="min-h-11 font-semibold text-accent underline underline-offset-2"
+                    onClick={() => { setShowInputModal(false); setShowLanternPurchase(true); }}
+                  >
+                    Mua thêm hoa đăng xịn
+                  </button>
+                )}
+              </div>
             )}
 
             {royalError && (
@@ -1847,6 +1867,14 @@ export function SouthernRiverScene({
             </div>
           </div>
         </AppDialog>
+      )}
+
+      {showLanternPurchase && isDemoMode() && (
+        <DemoCommercePurchaseDialog
+          sku="ROYAL_LANTERN_BUNDLE"
+          onClose={() => setShowLanternPurchase(false)}
+          onPurchaseComplete={(state) => setRoyalLanternStock(state.inventory.royalLanterns)}
+        />
       )}
 
       {error && (

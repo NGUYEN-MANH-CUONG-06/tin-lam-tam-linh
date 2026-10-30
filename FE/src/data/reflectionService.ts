@@ -117,6 +117,7 @@ export function drawXinXam(
       ? XIN_XAM_REGIONS[Math.floor(Math.random() * XIN_XAM_REGIONS.length)]
       : region as RegionType;
     const result = getXinXamResult(resultRegion as RegionType, topic as TopicType);
+    const drawId = `demo-xam-${crypto.randomUUID()}`;
     const poem = [result.poem.line1, result.poem.line2, result.poem.line3, result.poem.line4].join("\n");
     const source = DEMO_PUBLIC_SOURCES.xinXamPractice;
     const metadata: ContentMetadata = {
@@ -133,8 +134,8 @@ export function drawXinXam(
       editorialNote: "Bài thơ và lời diễn giải trong phiên demo là nội dung mẫu, chưa xác minh như nguyên văn thẻ tại một cơ sở thờ tự.",
     };
     return Promise.resolve({
-      id: `demo-xam-${Date.now()}`,
-      drawId: `demo-xam-${Date.now()}`,
+      id: drawId,
+      drawId,
       stickNumber: result.stickNumber,
       fortuneType: result.fortuneType || result.sealText,
       category: result.category || topic,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { UnverifiedImage } from "../components/UnverifiedImage";
 import {
   ArrowLeft,
@@ -34,6 +34,12 @@ import { PartnerGifts } from "../components/PartnerGifts";
 import { isDemoMode } from "../data/demoMode";
 import type { MembershipTerm } from "../data/membershipIntent";
 import { writeMembershipIntent } from "../data/membershipIntent";
+import { loadDemoCommerceState, type DemoCommerceState } from "../data/demoCommerceService";
+import { DEMO_COMMERCE_CHANGED_EVENT, openDemoPremiumPurchase } from "../data/demoPremiumEvents";
+import { clearDemoValues } from "../data/demoStorage";
+import { quoteDemoCheckout, resetDemoCommerceState } from "../data/demoCommerceService";
+import { DEMO_COMMERCE_CATALOG, DEMO_COMMERCE_CONFIG, DEMO_PREMIUM_BENEFITS } from "../data/demoCommerceCatalog";
+import { AppDialog } from "../components/AppDialog";
 
 interface MembershipScreenProps {
   onBackToHome: () => void;
@@ -50,6 +56,14 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
 }) => {
   const [membershipStatus, setMembershipStatus] =
     useState<MembershipStatus | null>(null);
+  const [demoCommerce, setDemoCommerce] = useState<DemoCommerceState>(loadDemoCommerceState);
+  const [resetDemoOpen, setResetDemoOpen] = useState(false);
+  useEffect(() => {
+    if (!isDemoMode()) return;
+    const refreshDemoCommerce = () => setDemoCommerce(loadDemoCommerceState());
+    window.addEventListener(DEMO_COMMERCE_CHANGED_EVENT, refreshDemoCommerce);
+    return () => window.removeEventListener(DEMO_COMMERCE_CHANGED_EVENT, refreshDemoCommerce);
+  }, []);
 
   const membershipAvailability = !membershipStatus
     ? "Chưa xác định trạng thái thanh toán"
@@ -71,6 +85,109 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
     : "Giá và trạng thái được tải từ máy chủ";
 
   const featureMatrix = membershipStatus?.benefits ?? [];
+
+  const resetDemoData = () => {
+    clearDemoValues();
+    const nextCommerceState = resetDemoCommerceState();
+    setDemoCommerce(nextCommerceState);
+    window.dispatchEvent(new Event(DEMO_COMMERCE_CHANGED_EVENT));
+    setResetDemoOpen(false);
+  };
+
+  if (isDemoMode()) {
+    const premiumPrice = quoteDemoCheckout("PREMIUM_BENEFITS", 1, demoCommerce).totalVnd;
+    const transactionStatus = (status: DemoCommerceState["transactions"][number]["status"]) => ({
+      succeeded: "Thành công",
+      failed: "Thất bại",
+      cancelled: "Đã hủy",
+    })[status];
+
+    return (
+      <div className="screen-shell">
+        <main className="page-container max-w-4xl">
+          <button type="button" onClick={onBackToHome} className="mb-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-muted hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Hôm nay
+          </button>
+
+          <section className="rounded-3xl border border-amber-500/35 bg-surface p-5 shadow-sm sm:p-8" aria-labelledby="demo-premium-membership-title">
+            <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(240px,0.72fr)] md:items-center">
+              <div>
+                <h1 id="demo-premium-membership-title" className="font-display text-3xl font-bold text-ink">TIN LẮM TÂM LINH PREMIUM</h1>
+                <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">Trải nghiệm văn hóa Việt sâu sắc hơn với những quyền lợi dành riêng cho bạn.</p>
+                <p className="mt-3 text-3xl font-bold text-accent">{premiumPrice.toLocaleString("vi-VN")}đ <span className="text-sm font-normal text-muted">/ gói</span></p>
+                <p className="mt-1 text-xs text-muted">Mua một lần — Không tự động gia hạn</p>
+                <Button type="button" className="mt-5 min-h-12 w-full sm:w-auto" onClick={openDemoPremiumPurchase}>Nhận quyền lợi Premium</Button>
+              </div>
+              <div className="overflow-hidden rounded-2xl border border-line bg-surface-soft">
+                <UnverifiedImage src="/images/tea_bowl.jpg" alt="Tách trà trong không gian văn hóa Việt" className="aspect-[4/3] w-full object-cover" />
+              </div>
+            </div>
+
+            <ul className="mt-6 grid gap-3 border-t border-line pt-5 text-sm text-ink sm:grid-cols-2">
+              <li>{DEMO_PREMIUM_BENEFITS.xamDetailedReadings} lượt luận giải xăm chi tiết</li>
+              <li>{DEMO_PREMIUM_BENEFITS.keoDetailedReadings} lượt luận giải keo âm dương</li>
+              <li>{DEMO_PREMIUM_BENEFITS.virtualChickens} gà ảo tiêu hao</li>
+              <li>{DEMO_PREMIUM_BENEFITS.royalLanterns} hoa đăng xịn</li>
+              <li>Giảm {DEMO_COMMERCE_CONFIG.memberAdditionalPurchaseDiscountPercent}% cho sản phẩm mua thêm đủ điều kiện</li>
+            </ul>
+            <p role="note" className="mt-5 text-xs text-muted">Thanh toán mô phỏng — Không phát sinh giao dịch thật.</p>
+          </section>
+
+          <section className="mt-5 rounded-2xl border border-line bg-surface p-5 sm:p-6" aria-labelledby="demo-my-benefits-title">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 id="demo-my-benefits-title" className="font-display text-xl font-semibold text-ink">Quyền lợi của tôi</h2>
+                {!demoCommerce.entitlements.premiumOwned && <p className="mt-1 text-sm text-muted">Bạn chưa sở hữu Premium. Quyền lợi sẽ hiển thị tại đây sau khi mua trong bản demo.</p>}
+              </div>
+              {demoCommerce.entitlements.premiumOwned && <span className="text-sm font-semibold text-accent">Đã sở hữu Premium</span>}
+            </div>
+
+            {demoCommerce.entitlements.premiumOwned && <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-xl bg-surface-soft p-3"><dt className="text-xs text-muted">Lượt xăm còn lại</dt><dd className="mt-1 text-xl font-semibold text-ink">{demoCommerce.entitlements.xamDetailedReadings}</dd></div>
+              <div className="rounded-xl bg-surface-soft p-3"><dt className="text-xs text-muted">Lượt keo còn lại</dt><dd className="mt-1 text-xl font-semibold text-ink">{demoCommerce.entitlements.keoDetailedReadings}</dd></div>
+              <div className="rounded-xl bg-surface-soft p-3"><dt className="text-xs text-muted">Gà ảo còn lại</dt><dd className="mt-1 text-xl font-semibold text-ink">{demoCommerce.inventory.virtualChickens}</dd></div>
+              <div className="rounded-xl bg-surface-soft p-3"><dt className="text-xs text-muted">Hoa đăng còn lại</dt><dd className="mt-1 text-xl font-semibold text-ink">{demoCommerce.inventory.royalLanterns}</dd></div>
+            </dl>}
+
+            <details className="mt-4 border-t border-line pt-3">
+              <summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">Lịch sử mua và sử dụng</summary>
+              <div className="mt-3 grid gap-5 lg:grid-cols-2">
+                <section aria-labelledby="demo-premium-transactions-title">
+                  <h3 id="demo-premium-transactions-title" className="text-sm font-semibold text-ink">Giao dịch</h3>
+                  {demoCommerce.transactions.length > 0 ? <ul className="mt-2 max-h-64 space-y-2 overflow-auto text-xs text-muted">
+                    {demoCommerce.transactions.map((transaction) => <li key={transaction.id} className="rounded-xl border border-line p-3">
+                      <span className="font-semibold text-ink">{DEMO_COMMERCE_CATALOG[transaction.sku].name}</span> × {transaction.quantity} · {transaction.totalVnd.toLocaleString("vi-VN")}đ<br />
+                      {new Date(transaction.createdAt).toLocaleString("vi-VN")} · {transactionStatus(transaction.status)} · ID: {transaction.id}
+                    </li>)}
+                  </ul> : <p className="mt-2 text-sm text-muted">Chưa có giao dịch.</p>}
+                </section>
+                <section aria-labelledby="demo-premium-uses-title">
+                  <h3 id="demo-premium-uses-title" className="text-sm font-semibold text-ink">Lượt và vật phẩm đã sử dụng</h3>
+                  {demoCommerce.readingUses.length + demoCommerce.inventoryUses.length > 0 ? <ul className="mt-2 max-h-64 space-y-2 overflow-auto text-xs text-muted">
+                    {demoCommerce.readingUses.map((use) => <li key={use.id} className="rounded-xl border border-line p-3">Luận giải {use.kind === "xam" ? "xăm" : "keo"} · nội dung {use.readingId}<br />{new Date(use.createdAt).toLocaleString("vi-VN")} · ID: {use.id}</li>)}
+                    {demoCommerce.inventoryUses.map((use) => <li key={use.id} className="rounded-xl border border-line p-3">Dùng {use.quantity} {use.item === "virtualChickens" ? "gà ảo" : "hoa đăng"}<br />{new Date(use.createdAt).toLocaleString("vi-VN")} · ID: {use.id}</li>)}
+                  </ul> : <p className="mt-2 text-sm text-muted">Chưa có lượt hoặc vật phẩm được sử dụng.</p>}
+                </section>
+              </div>
+            </details>
+
+            <div className="mt-4 border-t border-line pt-3">
+              <Button type="button" variant="outline" onClick={() => setResetDemoOpen(true)}>Đặt lại dữ liệu demo</Button>
+            </div>
+          </section>
+
+          {resetDemoOpen && <AppDialog labelledBy="reset-demo-title" onClose={() => setResetDemoOpen(false)}>
+            <h2 id="reset-demo-title" className="font-display text-xl font-bold text-ink">Đặt lại dữ liệu demo?</h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted">Thao tác này xóa dữ liệu trải nghiệm được lưu trong namespace demo trên thiết bị, gồm số dư, giao dịch và tiến độ demo. Tài khoản và dữ liệu production không bị tác động.</p>
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setResetDemoOpen(false)}>Hủy</Button>
+              <Button type="button" onClick={resetDemoData}>Đặt lại dữ liệu demo</Button>
+            </div>
+          </AppDialog>}
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="screen-shell">
@@ -153,14 +270,14 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
         </section>
 
         <MembershipCheckout
-          key={currentUserEmail || "guest"}
-          email={currentUserEmail}
-          onLogin={(term) => {
-            writeMembershipIntent(term);
-            onGoToLogin(term);
-          }}
-          onStatusChange={setMembershipStatus}
-        />
+            key={currentUserEmail || "guest"}
+            email={currentUserEmail}
+            onLogin={(term) => {
+              writeMembershipIntent(term);
+              onGoToLogin(term);
+            }}
+            onStatusChange={setMembershipStatus}
+          />
 
         {/* 2 Primary Plans Comparison: Free vs Tam An */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 items-stretch">
@@ -386,6 +503,16 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
           <p className="my-6 text-sm text-muted">
             Đăng nhập để gửi và theo dõi đề xuất hợp tác.
           </p>
+        )}
+        {resetDemoOpen && isDemoMode() && (
+          <AppDialog labelledBy="reset-demo-title" onClose={() => setResetDemoOpen(false)}>
+            <h2 id="reset-demo-title" className="font-display text-xl font-bold text-ink">Đặt lại dữ liệu demo?</h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted">Thao tác này xóa dữ liệu trải nghiệm được lưu trong namespace demo trên thiết bị, gồm số dư, giao dịch và tiến độ demo. Tài khoản và dữ liệu production không bị tác động.</p>
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setResetDemoOpen(false)}>Hủy</Button>
+              <Button type="button" onClick={resetDemoData}>Đặt lại dữ liệu demo</Button>
+            </div>
+          </AppDialog>
         )}
       </main>
     </div>

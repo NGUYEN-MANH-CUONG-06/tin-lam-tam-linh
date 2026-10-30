@@ -15,6 +15,7 @@ import {
 interface AppFooterProps {
   onNavigate?: (screen: NavScreen) => void;
   showMembershipBanner?: boolean;
+  compactDemo?: boolean;
 }
 
 interface FooterMembershipStatus {
@@ -36,7 +37,7 @@ const demoMembershipPlans: FooterMembershipStatus["plans"] = [
   { term: "yearly", name: "Tâm An năm", price: 490000, months: 12 },
 ];
 
-export const AppFooter: React.FC<AppFooterProps> = ({ onNavigate, showMembershipBanner = true }) => {
+export const AppFooter: React.FC<AppFooterProps> = ({ onNavigate, showMembershipBanner = true, compactDemo = false }) => {
   const [dailyProverb, setDailyProverb] = useState<DailyProverb | null>(null);
   const [proverbLoadFailed, setProverbLoadFailed] = useState(false);
   const [membershipStatus, setMembershipStatus] = useState<FooterMembershipStatus | null>(null);
@@ -96,6 +97,29 @@ export const AppFooter: React.FC<AppFooterProps> = ({ onNavigate, showMembership
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
+  if (compactDemo) {
+    return (
+      <footer className="site-footer site-footer--compact-demo" role="contentinfo">
+        <div className="footer-demo-compact__inner">
+          <div className="footer-demo-compact__brand">
+            <span className="font-display text-lg font-bold text-ink">Tin Lắm Tâm Linh</span>
+            <p className="text-sm text-muted">Khám phá văn hóa Việt trong không gian số.</p>
+          </div>
+          <nav className="footer-demo-compact__links" aria-label="Điều hướng cuối trang">
+            <button type="button" onClick={() => goTo("today")} className="footer-link">Trang chủ</button>
+            <button type="button" onClick={() => goTo("experience")} className="footer-link">Trải nghiệm</button>
+            <button type="button" onClick={() => goTo("culture")} className="footer-link">Khám phá</button>
+            <button type="button" onClick={() => goTo("about")} className="footer-link">Về chúng tôi</button>
+            <button type="button" onClick={() => goTo("membership")} className="footer-link">Gói đăng ký</button>
+          </nav>
+        </div>
+        <div className="site-footer__lower">
+          <div className="footer-demo-compact__copyright">© 2026 Tin Lắm Tâm Linh.</div>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer className="site-footer" role="contentinfo">

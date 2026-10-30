@@ -21,6 +21,7 @@ import { ScreenFocus } from "./components/ScreenFocus";
 import { SavedSignalDialog } from "./components/SavedSignalDialog";
 import { toast, ToastContainer } from "./components/ui/Toast";
 import { LogoutConfirmDialog } from "./components/LogoutConfirmDialog";
+import { DemoPremiumPurchaseDialogHost } from "./components/DemoPremiumPurchaseDialog";
 import { useTheme } from "./hooks/useTheme";
 import type { CultureRegionSlug } from "./screens/CulturalMapScreen";
 import type { RegionalExperienceKind } from "./screens/RegionalExperienceScreen";
@@ -120,6 +121,7 @@ const RegionCultureScreen = lazy(() => import("./screens/RegionCultureScreen").t
 const RegionalExperienceScreen = lazy(() => import("./screens/RegionalExperienceScreen").then((module) => ({ default: module.RegionalExperienceScreen })));
 const MoodJourneyScreen = lazy(() => import("./screens/MoodJourneyScreen").then((module) => ({ default: module.MoodJourneyScreen })));
 const NotificationScreen = lazy(() => import("./screens/NotificationScreen").then((module) => ({ default: module.NotificationScreen })));
+const AboutScreen = lazy(() => import("./screens/AboutScreen").then((module) => ({ default: module.AboutScreen })));
 
 export type SavedEntry = SavedSignalItem;
 
@@ -572,6 +574,7 @@ export default function App() {
         "horoscope",
         "astrology",
         "membership",
+        "about",
         "settings",
       ].includes(path)
     ) {
@@ -1213,6 +1216,7 @@ export default function App() {
           "horoscope",
           "astrology",
           "membership",
+          "about",
           "settings",
         ].includes(path)
       ) {
@@ -2656,8 +2660,33 @@ export default function App() {
 
   const sidebarArea = ["account", "mood-journey", "notifications", "settings", "membership"].includes(screen)
     ? "account"
-    : ["culture", "culture-map", "region-culture", "rituals", "calendar", "good-days"].includes(screen)
+    : [
+        "culture",
+        "culture-detail",
+        "culture-map",
+        "region-culture",
+        "chau-van",
+        "sea-prayer",
+        "southern-culture",
+        "rituals",
+        "ritual-detail",
+        "calendar",
+        "calendar-detail",
+        "good-days",
+      ].includes(screen)
       ? "discover"
+      : [
+          "experience",
+          "zen",
+          "wish",
+          "gratitude",
+          "xinxam",
+          "xinkeo",
+          "sanctuary",
+          "ancestor-altar",
+          "astrology",
+        ].includes(screen)
+        ? "experience"
       : null;
 
   return (
@@ -2700,6 +2729,8 @@ export default function App() {
             onGoToRituals={() => navigateTo("rituals")}
           />
         )}
+
+        {screen === "about" && <AboutScreen onNavigate={navigateTo} />}
 
         {screen === "today" && (
           <TodayScreen
@@ -2797,7 +2828,7 @@ export default function App() {
             onGoToGratitude={() => navigateTo("gratitude")}
             onGoToXinKeo={() => navigateTo("xinkeo")}
             onGoToAstrology={() => navigateTo("astrology")}
-            onGoToSanctuary={() => navigateTo("sanctuary")}
+            onGoToAncestorAltar={() => navigateTo("ancestor-altar")}
             onGoToCulture={() => navigateTo("culture")}
           />
         )}
@@ -3334,7 +3365,7 @@ export default function App() {
 
       {/* Universal Footer - Ẩn trên các màn Auth (login, register, forgot) */}
       {!["login", "register", "forgot"].includes(screen) && (
-        <AppFooter onNavigate={navigateTo} />
+        <AppFooter onNavigate={navigateTo} compactDemo={isDemoMode()} />
       )}
 
       <SavedSignalDialog
@@ -3347,6 +3378,7 @@ export default function App() {
         onConfirm={handleConfirmLogout}
         onCancel={handleCancelLogout}
       />
+      <DemoPremiumPurchaseDialogHost />
       <ToastContainer />
     </div>
   );

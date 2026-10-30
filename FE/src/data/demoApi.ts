@@ -1,4 +1,5 @@
 import { readDemoValue, writeDemoValue } from "./demoStorage";
+import { loadDemoCommerceState } from "./demoCommerceService";
 
 /**
  * Local API boundary used while `?demo=1` is active.
@@ -14,6 +15,7 @@ export async function demoApiRequest<T>(
   if (path === "/inventory" && method === "GET") {
     const owned = readDemoValue<string[]>("owned-items", ["ROYAL_LANTERN"]);
     const equipped = readDemoValue<string | null>("equipped-decoration", null);
+    const virtualChickenOffering = readDemoValue<boolean>("virtual-chicken-offering", false);
     const catalog = [
       { code: "ROYAL_LANTERN", name: "Đèn Tâm An", kind: "PERMANENT", description: "Vật phẩm trang trí không gian 3D." },
       { code: "JADE_LOTUS", name: "Bình sen ngọc", kind: "PERMANENT", description: "Vật phẩm trang trí không gian thờ." },
@@ -24,7 +26,7 @@ export async function demoApiRequest<T>(
 
     return {
       items: catalog
-        .filter((item) => owned.includes(item.code))
+        .filter((item) => owned.includes(item.code) || (item.code === "BOILED_CHICKEN" && virtualChickenOffering))
         .map((item) => ({
           ...item,
           quantity: item.kind === "CONSUMABLE" ? 5 : 1,
@@ -37,13 +39,17 @@ export async function demoApiRequest<T>(
     const payload = JSON.parse(String(init.body || "{}")) as { itemCode?: string | null };
     const itemCode = payload.itemCode || null;
     const owned = readDemoValue<string[]>("owned-items", ["ROYAL_LANTERN"]);
+    const virtualChickenOffering = readDemoValue<boolean>("virtual-chicken-offering", false);
+    const virtualChickenStock = loadDemoCommerceState().inventory.virtualChickens;
     const decorationCodes = ["JADE_LOTUS", "GOLDEN_LOTUS", "INCENSE_BURNER", "BOILED_CHICKEN"];
 
-    if (itemCode && (!decorationCodes.includes(itemCode) || !owned.includes(itemCode))) {
+    const canUseChickenOffering = itemCode === "BOILED_CHICKEN" && (owned.includes(itemCode) || virtualChickenOffering || virtualChickenStock > 0);
+    if (itemCode && (!decorationCodes.includes(itemCode) || (!owned.includes(itemCode) && !canUseChickenOffering))) {
       throw new Error("Trong demo, chỉ có thể bày vật phẩm trang trí đã sở hữu.");
     }
 
     writeDemoValue("equipped-decoration", itemCode);
+    writeDemoValue("virtual-chicken-offering", Boolean(itemCode === "BOILED_CHICKEN" && !owned.includes(itemCode)));
     return { itemCode } as T;
   }
 

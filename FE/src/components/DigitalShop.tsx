@@ -251,6 +251,13 @@ export function DigitalShop({ email }: { email?: string }) {
     };
   }, [email, storageKey, reload]);
 
+  useEffect(() => {
+    if (!isDemoMode()) return;
+    const refreshDemoShop = () => setReload((value) => value + 1);
+    window.addEventListener("tltl-demo-inventory-change", refreshDemoShop);
+    return () => window.removeEventListener("tltl-demo-inventory-change", refreshDemoShop);
+  }, []);
+
   const selected = catalog?.items.find(
     (item) => item.code === selectedCode
   );

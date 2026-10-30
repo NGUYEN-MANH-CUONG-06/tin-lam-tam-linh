@@ -247,7 +247,7 @@ export const AncestorAltarScreen: React.FC<AncestorAltarScreenProps> = ({
             </p>
           )}
 
-          <JadeDecorationControl state={jadeDecoration} />
+          <JadeDecorationControl state={jadeDecoration} allowDemoChickenOffering />
 
           <div id="ancestor-scene-panel" className="overflow-hidden rounded-2xl">
             <Suspense

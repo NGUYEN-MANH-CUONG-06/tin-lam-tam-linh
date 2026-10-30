@@ -56,15 +56,18 @@ export function getPublishableTraditionalSticks(
         isApproved(translation.metadata) &&
         translation.metadata.quotationVerified;
 
+      const publishableCard = {
+        active: true,
+        verified,
+        editorial_status: "PUBLISHED",
+        source: getLocatableSource(stick.metadata),
+        poem: translation?.lines,
+        interpretations: [reflection],
+      };
+
       return (
         stick.collectionId === collectionId &&
-        isPublishableXamCard({
-          active: true,
-          verified,
-          source: getLocatableSource(stick.metadata),
-          poem: translation?.lines,
-          interpretations: [reflection],
-        })
+        isPublishableXamCard(publishableCard)
       );
     }
   );

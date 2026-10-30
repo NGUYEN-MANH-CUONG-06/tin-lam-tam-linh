@@ -40,6 +40,7 @@ export type NavScreen =
   | "horoscope"
   | "astrology"
   | "membership"
+  | "about"
   | "settings";
 
 interface AppHeaderProps {
@@ -54,11 +55,11 @@ interface AppHeaderProps {
 }
 
 const navItems: { label: string; target: NavScreen; screens: NavScreen[] }[] = [
-  { label: "Hôm nay", target: "today", screens: ["today", "mood", "loading", "result", "saved"] },
+  { label: "Trang chủ", target: "today", screens: ["today", "mood", "loading", "result", "saved"] },
   { label: "Trải nghiệm", target: "experience", screens: ["experience", "xinxam", "wish", "zen", "gratitude", "xinkeo", "horoscope", "astrology", "sanctuary", "ancestor-altar"] },
   { label: "Khám phá", target: "culture", screens: ["culture", "culture-detail", "culture-map", "region-culture", "chau-van", "sea-prayer", "southern-culture", "rituals", "ritual-detail", "calendar", "calendar-detail", "good-days"] },
-  { label: "Góc của tôi", target: "account", screens: ["account", "settings", "mood-journey", "notifications"] },
-  { label: "Gói Tâm An", target: "membership", screens: ["membership"] },
+  { label: "Về chúng tôi", target: "about", screens: ["about"] },
+  { label: "Gói đăng ký", target: "membership", screens: ["membership"] },
 ];
 
 export const AppHeader: React.FC<AppHeaderProps> = ({

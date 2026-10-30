@@ -23,7 +23,7 @@ interface ExperienceScreenProps {
   onGoToGratitude: () => void;
   onGoToXinKeo: () => void;
   onGoToAstrology: () => void;
-  onGoToSanctuary: () => void;
+  onGoToAncestorAltar: () => void;
   onGoToCulture: () => void;
 }
 
@@ -53,7 +53,7 @@ export const ExperienceScreen: React.FC<ExperienceScreenProps> = ({
   onGoToGratitude,
   onGoToXinKeo,
   onGoToAstrology,
-  onGoToSanctuary,
+  onGoToAncestorAltar,
   onGoToCulture,
 }) => {
   const groups: ExperienceGroup[] = [
@@ -149,7 +149,7 @@ export const ExperienceScreen: React.FC<ExperienceScreenProps> = ({
           image: "/images/ancestor_portrait.jpg",
           badge: "Cội nguồn gia tiên",
           tag: "Lòng hiếu kính · Ký ức",
-          onClick: onGoToSanctuary,
+          onClick: onGoToAncestorAltar,
         },
         {
           id: "astrology",

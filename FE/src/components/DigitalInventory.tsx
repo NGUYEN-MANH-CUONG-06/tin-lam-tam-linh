@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { apiRequest } from "../lib/api";
 import { isDemoMode } from "../data/demoMode";
 import { readDemoValue } from "../data/demoStorage";
+import { loadDemoCommerceState } from "../data/demoCommerceService";
 
 interface Item {
   code: string;
@@ -29,11 +30,14 @@ export function DigitalInventory({
 
     if (isDemoMode()) {
       const owned = readDemoValue<string[]>("owned-items", ["ROYAL_LANTERN"]);
+      const commerceInventory = loadDemoCommerceState().inventory;
       const demoItems: Item[] = [
         { code: "ROYAL_LANTERN", name: "Đèn Tâm An", kind: "PERMANENT", description: "Vật phẩm trang trí không gian 3D.", quantity: owned.includes("ROYAL_LANTERN") ? 1 : 0 },
         { code: "GOLDEN_LOTUS", name: "Sen vàng", kind: "PERMANENT", description: "Biểu tượng thanh tịnh trong không gian thờ.", quantity: owned.includes("GOLDEN_LOTUS") ? 1 : 0 },
         { code: "INCENSE_BURNER", name: "Nén hương thành tâm", kind: "CONSUMABLE", description: "Vật phẩm dâng hương dùng thử.", quantity: owned.includes("INCENSE_BURNER") ? 5 : 0 },
         { code: "BOILED_CHICKEN", name: "Gà luộc mâm lễ", kind: "PERMANENT", description: "Mô hình gà luộc có thể chủ động bày hoặc cất khỏi bàn thờ.", quantity: owned.includes("BOILED_CHICKEN") ? 1 : 0 },
+        { code: "VIRTUAL_CHICKEN", name: "Gà ảo", kind: "CONSUMABLE", description: "Vật phẩm dùng một lần để dâng mô hình gà hiện có trên bàn thờ.", quantity: commerceInventory.virtualChickens },
+        { code: "ROYAL_LANTERN_CONSUMABLE", name: "Hoa đăng xịn", kind: "CONSUMABLE", description: "Hoa đăng tiêu hao dùng trong trải nghiệm thả đèn hiện có.", quantity: commerceInventory.royalLanterns },
       ];
       setItems(demoItems.filter((item) => item.quantity > 0));
       setLoading(false);

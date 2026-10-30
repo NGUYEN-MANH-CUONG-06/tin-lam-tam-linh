@@ -1,6 +1,6 @@
 import { apiRequest } from "../lib/api";
 import { isDemoMode } from "./demoMode";
-import { readDemoValue, writeDemoValue } from "./demoStorage";
+import { consumeDemoInventory, loadDemoCommerceState } from "./demoCommerceService";
 
 export interface LanternUseReceipt {
   id: string;
@@ -10,10 +10,13 @@ export interface LanternUseReceipt {
 
 export function useRoyalLantern(requestId: string) {
   if (isDemoMode()) {
-    const stock = getDemoRoyalLanternStock();
-    if (stock < 1) return Promise.reject(new Error("Kho demo đã hết đèn hoàng gia."));
-    writeDemoValue("royal-lantern-stock", stock - 1);
-    return Promise.resolve({ id: `demo-${requestId}`, itemCode: "ROYAL_LANTERN", replayed: false } satisfies LanternUseReceipt);
+    try {
+      const prior = loadDemoCommerceState().inventoryUses.some((use) => use.requestId === requestId);
+      consumeDemoInventory("royalLanterns", 1, requestId);
+      return Promise.resolve({ id: `demo-${requestId}`, itemCode: "ROYAL_LANTERN", replayed: prior } satisfies LanternUseReceipt);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
   return apiRequest<LanternUseReceipt>(
     "/inventory/royal-lantern/use",
@@ -25,5 +28,5 @@ export function useRoyalLantern(requestId: string) {
 }
 
 export function getDemoRoyalLanternStock(): number {
-  return Math.max(0, readDemoValue<number>("royal-lantern-stock", 1));
+  return loadDemoCommerceState().inventory.royalLanterns;
 }

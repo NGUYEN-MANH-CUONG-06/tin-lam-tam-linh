@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { isDemoMode } from "../data/demoMode";
+import { DetailedReadingUnlock } from "../components/DetailedReadingUnlock";
 import { Badge } from "@/src/components/ui/badge";
 import { Card } from "@/src/components/ui/card";
 import {
@@ -309,10 +310,12 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
   const [reflectionText, setReflectionText] = useState("");
   const [isCasting, setIsCasting] = useState(false);
   const [castResult, setCastResult] = useState<KeoOutcome | null>(null);
+  const [castResultId, setCastResultId] = useState<string | null>(null);
   // Chốt quẻ trước khi tung. Nhờ vậy mặt nhìn thấy trong lúc xoay chính là
   // mặt sẽ chạm đĩa, không bị thay hình ở khoảnh khắc animation kết thúc.
   const [landingResult, setLandingResult] = useState<KeoOutcome | null>(null);
   const landingOutcomeRef = useRef<KeoOutcome | null>(null);
+  const landingCastIdRef = useRef<string | null>(null);
   const settledPiecesRef = useRef(new Set<string>());
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [throwCount, setThrowCount] = useState(0);
@@ -346,6 +349,8 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
     setSessionId(null);
     setThrowCount(0);
     setCastResult(null);
+    setCastResultId(null);
+    landingCastIdRef.current = null;
     setLandingResult(null);
     setIsCasting(false);
     setIsRequestingKeo(false);
@@ -396,6 +401,8 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
             setLandingResult(restored);
             setCastResult(restored);
+            setCastResultId(last.id);
+            landingCastIdRef.current = last.id;
           }
 
           setSessionReady(true);
@@ -476,6 +483,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
     let nextSessionId = sessionId;
     let outcome: KeoOutcome;
+    let outcomeId: string;
 
     try {
       if (isLoggedIn) {
@@ -559,6 +567,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
         if (version !== sessionVersionRef.current) return;
 
         setThrowCount(cast.throwNumber);
+        outcomeId = cast.id;
 
         outcome = {
           ...KEO_OUTCOMES[cast.type],
@@ -572,6 +581,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
         const piece1 = sides[0] & 1 ? "duong" : "am";
         const piece2 = sides[1] & 1 ? "duong" : "am";
+        outcomeId = `demo-keo-${crypto.randomUUID()}`;
 
         const type: KeoResultType =
           piece1 !== piece2
@@ -597,7 +607,9 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
       setLandingResult(outcome);
       landingOutcomeRef.current = outcome;
+      landingCastIdRef.current = outcomeId;
       setCastResult(null);
+      setCastResultId(null);
       animationStarted = true;
       setIsCasting(true);
 
@@ -610,6 +622,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
         requestAnimationFrame(() => {
           if (version !== sessionVersionRef.current) return;
           setCastResult(outcome);
+          setCastResultId(outcomeId);
           setIsCasting(false);
           requestLockRef.current = false;
         });
@@ -867,6 +880,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                         if (settledPiecesRef.current.size === 2) {
                           if (landingOutcomeRef.current) {
                             setCastResult(landingOutcomeRef.current);
+                            setCastResultId(landingCastIdRef.current);
                           }
                           setIsCasting(false);
                           requestLockRef.current = false;
@@ -895,6 +909,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                         if (settledPiecesRef.current.size === 2) {
                           if (landingOutcomeRef.current) {
                             setCastResult(landingOutcomeRef.current);
+                            setCastResultId(landingCastIdRef.current);
                           }
                           setIsCasting(false);
                           requestLockRef.current = false;
@@ -1019,6 +1034,21 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                     </Button>
                   )}
                 </div>
+
+                {isDemoMode() && castResultId && (
+                  <DetailedReadingUnlock
+                    key={`keo:${castResultId}`}
+                    kind="keo"
+                    resultId={castResultId}
+                    sections={[
+                      { title: "Kết quả lượt gieo", content: `${castResult.title} — ${castResult.statusLabel}. ${castResult.meaning}` },
+                      { title: "Ý nghĩa biểu tượng trong lượt demo", content: `Hai mặt keo của lượt này là ${castResult.piece1 === "am" ? "một mặt âm" : "một mặt dương"} và ${castResult.piece2 === "am" ? "một mặt âm" : "một mặt dương"}. Đây là mô tả hình thức của kết quả gieo, không xác nhận một ý nguyện hay sự việc.` },
+                      { title: "Cách diễn giải theo kết quả", content: castResult.type === "nhat-am-nhat-duong" ? "Có thể dùng hình ảnh hai mặt khác nhau để tự hỏi mình đã cân nhắc đủ các góc nhìn chưa; kết quả không thay cho trao đổi hoặc quyết định dựa trên dữ kiện." : castResult.type === "nhi-duong" ? "Lượt gieo có hai mặt dương. Phần suy ngẫm có thể tập trung vào việc kiểm tra giả định và chuẩn bị phương án dự phòng, không xem đây là dấu hiệu chắc chắn thuận lợi." : "Lượt gieo có hai mặt âm. Có thể tạm dừng để làm rõ điều còn thiếu; kết quả không dự báo bất lợi hay khẳng định điều gì sẽ xảy ra." },
+                      { title: "Điều nên cân nhắc", content: castResult.guidance },
+                      { title: "Gợi ý suy ngẫm", content: "Thông tin thực tế nào sẽ giúp bạn đánh giá câu hỏi này rõ hơn trước khi chọn bước tiếp theo?" },
+                    ]}
+                  />
+                )}
               </div>
             </div>
           ) : (

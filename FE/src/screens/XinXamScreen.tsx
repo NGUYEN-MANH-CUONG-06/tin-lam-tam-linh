@@ -38,10 +38,37 @@ import {
 import { ApiError } from "../lib/api";
 import { hasCompleteXamPoem, isPublishableXamCard, normalizeXamPoemLines } from "../../../shared/xin-xam-publication.mjs";
 import { enterDemoMode, isDemoMode } from "../data/demoMode";
+import { readDemoValue, writeDemoValue } from "../data/demoStorage";
+import { DetailedReadingUnlock } from "../components/DetailedReadingUnlock";
 
 export type XinXamDrawResult = XinXamResult & {
   drawId: string;
 };
+
+interface DemoXinXamSnapshot {
+  drawId: string;
+  result: XinXamResult;
+}
+
+function loadDemoXinXamSnapshot(): DemoXinXamSnapshot | null {
+  if (!isDemoMode()) return null;
+  const value = readDemoValue<unknown>("xin-xam-current-result-v1", null);
+  if (!value || typeof value !== "object") return null;
+  const snapshot = value as Partial<DemoXinXamSnapshot>;
+  const result = snapshot.result;
+  if (typeof snapshot.drawId !== "string" || !result || typeof result !== "object") return null;
+  const isText = (item: unknown): item is string => typeof item === "string";
+  if (!isText(result.stickNumber) || !isText(result.sealText) || !isText(result.title) || !isText(result.quote)
+    || !isText(result.regionSub) || !isText(result.topicTag) || !isText(result.insight)
+    || !isText(result.culturalAspect) || !isText(result.relatedArticleId) || !isText(result.relatedArticleTitle)
+    || !result.poem || ![result.poem.line1, result.poem.line2, result.poem.line3, result.poem.line4].every(isText)
+    || !Array.isArray(result.reflectionParagraphs) || !result.reflectionParagraphs.every(isText)
+    || !Array.isArray(result.tips) || !result.tips.every((tip) => tip && isText(tip.title) && isText(tip.desc))
+    || !result.microAction || !isText(result.microAction.title) || !isText(result.microAction.desc) || !isText(result.microAction.duration)
+    || !result.metadata || typeof result.metadata !== "object") return null;
+  if (!XIN_XAM_TOPICS.includes(result.topic)) return null;
+  return snapshot as DemoXinXamSnapshot;
+}
 
 interface XinXamScreenProps {
   onBackToExperienceHome?: () => void;
@@ -68,9 +95,10 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
   isLoggedIn = false,
   savedXamList,
 }) => {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [demoSnapshot] = useState(loadDemoXinXamSnapshot);
+  const [step, setStep] = useState<1 | 2 | 3>(demoSnapshot ? 3 : 1);
   const selectedRegion = "Toàn quốc" as const;
-  const [selectedTopic, setSelectedTopic] = useState<TopicType>("Bình an");
+  const [selectedTopic, setSelectedTopic] = useState<TopicType>(demoSnapshot?.result.topic ?? "Bình an");
 
   const [availability, setAvailability] =
     useState<XinXamAvailability | null>(null);
@@ -143,7 +171,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
   // Step 3 State
   const [isActionDone, setIsActionDone] = useState(false);
   const [currentDrawId, setCurrentDrawId] =
-    useState<string | null>(null);
+    useState<string | null>(demoSnapshot?.drawId ?? null);
   const [saveError, setSaveError] = useState("");
   const [drawNotice, setDrawNotice] = useState("");
 
@@ -165,7 +193,8 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
 
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [currentResult, setCurrentResult] = useState<XinXamResult | null>(null);
+  const [currentResult, setCurrentResult] = useState<XinXamResult | null>(demoSnapshot?.result ?? null);
+  const lastSelectedTopicRef = useRef(selectedTopic);
 
   const cancelDrawRequest = () => {
     drawRequestVersionRef.current += 1;
@@ -193,10 +222,13 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
 
   // Đổi vùng/chủ đề: hủy lượt cũ và xóa kết quả cũ.
   useEffect(() => {
+    if (lastSelectedTopicRef.current === selectedTopic) return;
+    lastSelectedTopicRef.current = selectedTopic;
     cancelDrawRequest();
 
     setCurrentResult(null);
     setCurrentDrawId(null);
+    if (isDemoMode()) writeDemoValue("xin-xam-current-result-v1", null);
     setIsRequestingDraw(false);
     setIsShaking(false);
     setDrawPhase("idle");
@@ -253,6 +285,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
     setIsRequestingDraw(true);
     setCurrentResult(null);
     setCurrentDrawId(null);
+    if (isDemoMode()) writeDemoValue("xin-xam-current-result-v1", null);
     setDrawPhase("idle");
     setIsShaking(false);
     setDrawNotice("");
@@ -448,6 +481,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
 
       setCurrentResult(chosen);
       setCurrentDrawId(nextDrawId);
+      if (isDemoMode()) writeDemoValue("xin-xam-current-result-v1", { drawId: nextDrawId, result: chosen } satisfies DemoXinXamSnapshot);
       setIsShaking(false);
       setDrawPhase("dropped");
     }, reducedMotion ? 200 : 1800);
@@ -1394,6 +1428,21 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                     {currentResult.culturalAspect}
                   </p>
                 </details>
+                )}
+
+                {isDemoMode() && currentDrawId && (
+                  <DetailedReadingUnlock
+                    key={`xam:${currentDrawId}`}
+                    kind="xam"
+                    resultId={currentDrawId}
+                    sections={[
+                      { title: "Ý nghĩa tổng quan", content: currentResult.reflectionParagraphs[0] || currentResult.insight },
+                      { title: "Biểu tượng của kết quả", content: `Kết quả hiện tại là thẻ số ${currentResult.stickNumber}, với nhãn “${currentResult.sealText}”. Phần này chỉ mở rộng cách tự suy ngẫm về thông điệp đang thấy; không khẳng định kết quả sẽ xảy ra trong đời thực.` },
+                      { title: `Góc nhìn về ${currentResult.topic.toLocaleLowerCase("vi-VN")}`, content: `Bạn đã chọn phương diện ${currentResult.topic.toLocaleLowerCase("vi-VN")}. Hãy xem thông điệp như một câu hỏi gợi mở, rồi đối chiếu với dữ kiện và hoàn cảnh cụ thể của mình.` },
+                      { title: "Lời khuyên thực tế", content: [currentResult.tips[0]?.desc, currentResult.microAction.desc].filter(Boolean).join(" ") },
+                      { title: "Gợi ý suy ngẫm", content: "Điều nào trong tình huống này nằm trong khả năng chủ động của bạn, và bước nhỏ nào có thể kiểm chứng được hôm nay?" },
+                    ]}
+                  />
                 )}
 
                 <div className="space-y-3 border-t border-line pt-5">

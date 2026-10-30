@@ -2,6 +2,8 @@ import React from "react";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { Badge } from "@/src/components/ui/badge";
 import { Card } from "@/src/components/ui/card";
+import { isDemoMode } from "../data/demoMode";
+import { DemoAstrologyScreen } from "./DemoAstrologyScreen";
 
 interface AstrologyHubScreenProps {
   onBackToExperience: () => void;
@@ -11,6 +13,8 @@ interface AstrologyHubScreenProps {
 export const AstrologyHubScreen: React.FC<AstrologyHubScreenProps> = ({
   onBackToExperience,
 }) => {
+
+  if (isDemoMode()) return <DemoAstrologyScreen onBackToExperience={onBackToExperience} />;
 
   return (
     <div className="screen-shell">
