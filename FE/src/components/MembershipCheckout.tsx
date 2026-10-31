@@ -45,6 +45,7 @@ export interface Status {
     term: "monthly" | "yearly";
     name: string;
     price: number;
+    originalPrice?: number;
     months: number;
   }>;
   currency: string;
@@ -118,8 +119,8 @@ export function MembershipCheckout({
       const demoStatus: Status = {
         price: 49000,
         plans: [
-          { term: "monthly", name: "1 tháng", price: 49000, months: 1 },
-          { term: "yearly", name: "12 tháng", price: 490000, months: 12 },
+          { term: "monthly", name: "1 tháng", price: 49000, originalPrice: 49000, months: 1 },
+          { term: "yearly", name: "1 năm (12 tháng)", price: 499000, originalPrice: 588000, months: 12 },
         ],
         currency: "VND",
         paymentEnvironment: "sandbox",
@@ -503,33 +504,75 @@ export function MembershipCheckout({
                   Chọn thời hạn
                 </legend>
 
-                {status.plans.map((plan) => (
-                  <label
-                    key={plan.term}
-                    className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-line px-4 py-3 text-sm"
-                  >
-                    <input
-                      type="radio"
-                      name="membership-term"
-                      checked={term === plan.term}
-                      onChange={() => setTerm(plan.term)}
-                    />
+                {status.plans.map((plan) => {
+                  const isYearly = plan.term === "yearly";
+                  const originalPrice = isYearly ? (plan.originalPrice || 588000) : undefined;
+                  const discountAmount = originalPrice ? originalPrice - plan.price : 0;
+                  const isSelected = term === plan.term;
 
-                    {plan.name} ·{" "}
-                    {new Intl.NumberFormat("vi-VN").format(plan.price)}đ
-                  </label>
-                ))}
+                  return (
+                    <label
+                      key={plan.term}
+                      className={`flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-2xl border p-3.5 sm:px-4 sm:py-3.5 text-sm transition-all ${
+                        isSelected
+                          ? "border-amber-600/70 bg-amber-500/10 shadow-xs ring-1 ring-amber-500/30 font-medium"
+                          : "border-line bg-surface hover:bg-surface-soft text-ink"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <input
+                          type="radio"
+                          name="membership-term"
+                          checked={isSelected}
+                          onChange={() => setTerm(plan.term)}
+                          className="accent-amber-600 h-4 w-4 shrink-0"
+                        />
+                        <span className="font-semibold text-ink">{plan.name}</span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 text-right">
+                        {originalPrice && (
+                          <span className="line-through text-stone-400 dark:text-stone-500 text-xs sm:text-sm">
+                            {new Intl.NumberFormat("vi-VN").format(originalPrice)}đ
+                          </span>
+                        )}
+                        <span className="font-bold text-accent text-sm sm:text-base">
+                          {new Intl.NumberFormat("vi-VN").format(plan.price)}đ
+                        </span>
+                        {isYearly && discountAmount > 0 && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                            Tiết kiệm {new Intl.NumberFormat("vi-VN").format(discountAmount)}đ
+                          </span>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
               </fieldset>
 
-              <p className="mt-3 text-sm text-ink">
-                {formattedPrice}đ/
-                {term === "yearly" ? "12 tháng" : "tháng"}.
-                Gia hạn thủ công, không tự động trừ tiền.
-                Cả hai gói có quyền diễn giải AI theo năm và đọc các bài
-                đã phát hành trong thư viện hội viên. Gói năm được tặng
-                thêm một lượt đèn hoa đăng trang trí và quyền sở hữu bình
-                sen ngọc.
-              </p>
+              <div className="mt-4 p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-sm">
+                <div className="flex items-baseline gap-2 flex-wrap mb-1.5">
+                  <span className="font-semibold text-ink">
+                    Chi phí:
+                  </span>
+                  {term === "yearly" && (
+                    <span className="line-through text-stone-400 dark:text-stone-500 text-sm">
+                      588.000đ
+                    </span>
+                  )}
+                  <span className="font-bold text-accent text-base">
+                    {formattedPrice}đ/{term === "yearly" ? "1 năm (12 tháng)" : "tháng"}
+                  </span>
+                  {term === "yearly" && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                      Ưu đãi khuyến mãi · Tiết kiệm 89.000đ
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted leading-relaxed">
+                  Gia hạn thủ công, không tự động trừ tiền. Cả hai gói đều có quyền diễn giải AI theo năm và đọc bài trong thư viện hội viên. Gói 1 năm được tặng kèm một lượt đèn hoa đăng trang trí và quyền sở hữu bình sen ngọc.
+                </p>
+              </div>
 
               {status.checkoutAvailable && (
                 <>

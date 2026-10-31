@@ -82,12 +82,15 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
 
   const membershipPriceLabel = membershipStatus
     ? membershipStatus.plans
-        .map(
-          (plan) =>
-            `${plan.name}: ${plan.price.toLocaleString("vi-VN")}đ`
-        )
+        .map((plan) => {
+          if (plan.term === "yearly") {
+            const orig = plan.originalPrice || 588000;
+            return `${plan.name}: ${plan.price.toLocaleString("vi-VN")}đ (giá gốc: ${orig.toLocaleString("vi-VN")}đ)`;
+          }
+          return `${plan.name}: ${plan.price.toLocaleString("vi-VN")}đ`;
+        })
         .join(" · ")
-    : "Giá và trạng thái được tải từ máy chủ";
+    : "1 tháng: 49.000đ · 1 năm: 499.000đ (giá gốc: 588.000đ)";
 
   const featureMatrix = membershipStatus?.benefits ?? [];
 
@@ -604,49 +607,74 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
             </Button>
           </Card>
 
-          {/* Card 2: Planned membership offer; checkout is not active */}
-          <Card className="p-6 sm:p-8 rounded-3xl bg-surface border-2 border-amber-500/40 shadow-md">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-              HỘI VIÊN TÂM AN
-            </p>
+          {/* Card 2: Planned membership offer */}
+          <Card className="p-6 sm:p-8 rounded-3xl bg-surface border-2 border-amber-500/40 shadow-md flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-accent">
+                  HỘI VIÊN TÂM AN
+                </span>
+                <Badge variant="outline" className="text-xs border-amber-500/40 text-amber-800 dark:text-amber-300 bg-amber-500/10 font-semibold">
+                  Ưu đãi thành viên
+                </Badge>
+              </div>
 
-            <h2 className="mt-2 font-display text-2xl font-bold text-ink">
-              Đồng hành cùng nếp sống văn hóa
-            </h2>
+              <h2 className="font-display font-bold text-2xl text-ink mb-1">
+                Đồng hành cùng nếp sống văn hóa
+              </h2>
+              <p className="text-xs text-muted mb-4">
+                {membershipAvailability}
+              </p>
 
-            <p className="mt-3 text-sm font-semibold text-ink">
-              {membershipPriceLabel}
-            </p>
+              {/* Pricing options showcase */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                {/* Gói 1 tháng */}
+                <div className="p-3.5 rounded-2xl bg-surface-soft border border-line flex flex-col justify-between">
+                  <div className="text-xs font-semibold text-muted">Gói 1 tháng</div>
+                  <div className="mt-1.5 flex items-baseline gap-1">
+                    <span className="text-xl font-bold text-ink">49.000đ</span>
+                    <span className="text-xs text-muted">/tháng</span>
+                  </div>
+                  <div className="text-[11px] text-muted mt-1">Trải nghiệm linh hoạt từng tháng</div>
+                </div>
 
-            <p className="mt-2 text-sm text-muted">
-              {membershipAvailability}
-            </p>
+                {/* Gói 1 năm */}
+                <div className="p-3.5 rounded-2xl bg-amber-500/10 border-2 border-amber-500/40 relative overflow-hidden flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-800 dark:text-amber-300">Gói 1 năm (12 tháng)</span>
+                    <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-rose-500 text-white shadow-2xs">
+                      Tiết kiệm 89k
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex items-baseline gap-1.5 flex-wrap">
+                    <span className="line-through text-stone-400 dark:text-stone-500 text-xs">
+                      588.000đ
+                    </span>
+                    <span className="text-xl font-bold text-accent">499.000đ</span>
+                    <span className="text-xs text-muted">/năm</span>
+                  </div>
+                  <div className="text-[11px] text-amber-800 dark:text-amber-300 font-medium mt-1">
+                    Khuyến mãi ~15% · Tặng hoa đăng & sen ngọc
+                  </div>
+                </div>
+              </div>
 
-            <ul className="mt-5 list-disc space-y-3 pl-5 text-sm text-ink">
-              <li>
-                Diễn giải AI theo năm để tự suy ngẫm về công việc,
-                quan hệ và chăm sóc bản thân.
-              </li>
-              <li>
-                Đọc các bài đã phát hành trong thư viện hội viên.
-                Danh sách bài hiện có được hiển thị bên dưới.
-              </li>
-              <li>
-                Gói năm tặng một lượt đèn hoa đăng trang trí và
-                bình sen ngọc dùng trong cảnh tưởng niệm.
-              </li>
-            </ul>
+              <ul className="list-disc space-y-2.5 pl-5 text-xs text-ink mb-5">
+                <li>
+                  Diễn giải AI theo năm để tự suy ngẫm về công việc, quan hệ và chăm sóc bản thân.
+                </li>
+                <li>
+                  Đọc các bài đã phát hành trong thư viện hội viên văn hóa.
+                </li>
+                <li>
+                  Gói năm tặng một lượt đèn hoa đăng trang trí và bình sen ngọc dùng trong cảnh tưởng niệm.
+                </li>
+              </ul>
+            </div>
 
-            <p className="mt-5 text-sm text-muted">
-              Gia hạn thủ công, không tự động trừ tiền. Quyền lợi
-              chỉ được kích hoạt sau khi máy chủ xác nhận thanh toán.
-              Vật phẩm trang trí không làm lời nguyện có hiệu lực hơn.
-            </p>
-
-            <p className="mt-3 text-sm text-muted">
-              Xem hạn hội viên, giới hạn AI và thao tác đăng ký
-              trong phần trạng thái hội viên bên dưới.
-            </p>
+            <div className="p-3 rounded-xl bg-surface-soft/60 border border-line text-[11px] text-muted leading-relaxed">
+              Gia hạn thủ công, không tự động trừ tiền. Quyền lợi chỉ được kích hoạt sau khi xác nhận thanh toán.
+            </div>
           </Card>
         </div>
 

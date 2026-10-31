@@ -33,7 +33,7 @@ function notification(amount) {
 
 function setup(options = {}) {
   const yearly = options.yearly ?? false;
-  const amount = yearly ? 199000 : 29000;
+  const amount = yearly ? 499000 : 49000;
 
   const state = {
     order: {

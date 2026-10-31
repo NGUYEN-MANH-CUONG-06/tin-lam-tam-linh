@@ -20,13 +20,15 @@ const PLANS = {
   monthly: {
     code: "TAM_AN_MONTHLY",
     name: "Tâm An tháng",
-    price: 29000,
+    price: 49000,
+    originalPrice: 49000,
     months: 1,
   },
   yearly: {
     code: "TAM_AN_YEARLY",
     name: "Tâm An năm",
-    price: 199000,
+    price: 499000,
+    originalPrice: 588000,
     months: 12,
   },
 };
@@ -64,6 +66,7 @@ async function getMembership(userId) {
       term,
       name: plan.name,
       price: plan.price,
+      originalPrice: plan.originalPrice,
       months: plan.months,
     })),
     currency: "VND",
