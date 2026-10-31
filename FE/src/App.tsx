@@ -25,7 +25,6 @@ import { DemoPremiumPurchaseDialogHost } from "./components/DemoPremiumPurchaseD
 import { useTheme } from "./hooks/useTheme";
 import type { CultureRegionSlug } from "./screens/CulturalMapScreen";
 import type { RegionalExperienceKind } from "./screens/RegionalExperienceScreen";
-import { GuestScreen } from "./screens/GuestScreen";
 import { TodayScreen } from "./screens/TodayScreen";
 import type { WishTopic } from "./screens/WishScreen";
 import type { SavedSignalItem, SavedXinXamItem, SavedWishItem } from "./screens/AccountScreen";
@@ -535,11 +534,13 @@ export default function App() {
     }
 
     if (path === "saved") {
-      return initialSession.checkedIn ? "today" : "guest";
+      return "today";
+    }
+    if (path === "guest") {
+      return "today";
     }
     if (
       [
-        "guest",
         "today",
         "mood",
         "result",
@@ -579,7 +580,7 @@ export default function App() {
     ) {
       return path as NavScreen;
     }
-    return "guest";
+    return "today";
   };
 
   // Check URL signalId first
@@ -1178,11 +1179,12 @@ export default function App() {
         // Direct hit or back to loading: do not trap in loading spinner
         setScreen(isCheckedIn ? "today" : "mood");
       } else if (path === "saved") {
-        // Direct hit or back to saved without completed flow: route to today or guest
-        setScreen(isCheckedIn ? "today" : "guest");
+        // Direct hit or back to saved without completed flow: route to today
+        setScreen("today");
+      } else if (path === "guest") {
+        setScreen("today");
       } else if (
         [
-          "guest",
           "today",
           "mood",
           "result",
@@ -1221,7 +1223,7 @@ export default function App() {
       ) {
         setScreen(path as NavScreen);
       } else {
-        setScreen("guest");
+        setScreen("today");
       }
     };
 
@@ -1266,7 +1268,7 @@ export default function App() {
     if (["login", "register"].includes(targetScreen) && !["login", "register", "forgot"].includes(screen)) {
       returnScreenRef.current = screen;
     }
-    let url = targetScreen === "guest" ? "/" : `/${targetScreen}`;
+    let url = targetScreen === "today" ? "/" : `/${targetScreen}`;
     let resolvedSignalId = undefined;
     let resolvedArticleId = undefined;
     let resolvedRitualId = undefined;
@@ -1284,7 +1286,7 @@ export default function App() {
       }
     }
     setScreen(targetScreen);
-    url = targetScreen === "guest" ? "/" : `/${targetScreen}`;
+    url = targetScreen === "today" ? "/" : `/${targetScreen}`;
     if (targetScreen === "result") {
       url = savedRecordId && !resolvedSignalId
         ? `/result?savedId=${encodeURIComponent(savedRecordId)}`
@@ -2042,7 +2044,7 @@ export default function App() {
         "Chưa xác nhận được việc ngừng thông báo trên trình duyệt này. Nếu dùng thiết bị chung, hãy chặn quyền thông báo của trang trong cài đặt trình duyệt."
       );
     }
-    navigateTo("guest", undefined, null);
+    navigateTo("today", undefined, null);
   };
 
   const handleUpdateProfile = async (
@@ -2753,14 +2755,6 @@ export default function App() {
           }
         >
           <ScreenFocus key={screen}>
-        {screen === "guest" && (
-          <GuestScreen
-            onSelectMood={() => navigateTo("mood")}
-            onGoToCulture={() => navigateTo("culture")}
-            onGoToRituals={() => navigateTo("rituals")}
-          />
-        )}
-
         {screen === "about" && <AboutScreen onNavigate={navigateTo} />}
 
         {screen === "today" && (
@@ -3156,7 +3150,7 @@ export default function App() {
               } else {
                 const backTarget = returnScreenRef.current && !["login", "register", "forgot"].includes(returnScreenRef.current)
                   ? returnScreenRef.current
-                  : (currentUser ? "today" : "guest");
+                  : "today";
                 returnScreenRef.current = null;
                 navigateTo(backTarget);
               }
