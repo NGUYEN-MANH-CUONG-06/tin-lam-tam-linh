@@ -20,12 +20,13 @@ export function DemoPremiumPurchaseDialogHost() {
 
 function DemoPremiumPurchaseDialog({ onClose }: { onClose: () => void }) {
   const [state, setState] = useState<DemoCommerceState>(loadDemoCommerceState);
+  const [selectedTerm, setSelectedTerm] = useState<"monthly" | "yearly">("yearly");
   const [confirming, setConfirming] = useState(false);
   const [message, setMessage] = useState("");
   const requestId = useRef<string | null>(null);
   const busy = useRef(false);
   const quote = quoteDemoCheckout("PREMIUM_BENEFITS", 1, state);
-  const price = quote.totalVnd.toLocaleString("vi-VN");
+  const price = selectedTerm === "yearly" ? "499.000" : "49.000";
 
   const finish = (outcome: "succeeded" | "failed" | "cancelled") => {
     if (busy.current || !requestId.current) return;
@@ -77,9 +78,58 @@ function DemoPremiumPurchaseDialog({ onClose }: { onClose: () => void }) {
       </div>
 
       <div className="px-5 pb-4 pt-5 sm:px-7">
-        <div className="rounded-2xl border border-gold/35 bg-accent-soft/40 px-4 py-3.5 text-center">
-          <p className="font-display text-4xl font-bold tracking-tight text-accent">{price}đ</p>
-          <p className="mt-1 text-xs font-medium text-muted">Mua một lần · Không tự động gia hạn</p>
+        {/* Term selector */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <button
+            type="button"
+            onClick={() => setSelectedTerm("monthly")}
+            className={`rounded-xl border p-2.5 text-left transition-all ${
+              selectedTerm === "monthly"
+                ? "border-amber-600/80 bg-amber-500/10 shadow-xs ring-1 ring-amber-500/30"
+                : "border-line bg-surface-soft hover:bg-surface"
+            }`}
+          >
+            <div className="text-[11px] font-semibold text-muted">Gói 1 tháng</div>
+            <div className="font-display text-lg font-bold text-ink mt-0.5">49.000đ</div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSelectedTerm("yearly")}
+            className={`rounded-xl border p-2.5 text-left transition-all relative overflow-hidden ${
+              selectedTerm === "yearly"
+                ? "border-amber-600/80 bg-amber-500/10 shadow-xs ring-1 ring-amber-500/30"
+                : "border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-amber-800 dark:text-amber-300">Gói 1 năm</span>
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-rose-500 text-white">
+                -89k
+              </span>
+            </div>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="line-through text-stone-400 text-xs">588.000đ</span>
+              <span className="font-display text-lg font-bold text-accent">499.000đ</span>
+            </div>
+          </button>
+        </div>
+
+        <div className="rounded-2xl border border-gold/35 bg-accent-soft/40 px-4 py-3 text-center">
+          <div className="flex items-baseline justify-center gap-2">
+            {selectedTerm === "yearly" && (
+              <span className="line-through text-stone-400 dark:text-stone-500 text-lg">
+                588.000đ
+              </span>
+            )}
+            <p className="font-display text-3xl font-bold tracking-tight text-accent">{price}đ</p>
+            <span className="text-xs text-muted">/{selectedTerm === "yearly" ? "1 năm" : "tháng"}</span>
+          </div>
+          <p className="mt-1 text-xs font-medium text-muted">
+            {selectedTerm === "yearly"
+              ? "Tiết kiệm 89.000đ · Mua một lần · Không tự động gia hạn"
+              : "Linh hoạt từng tháng · Mua một lần · Không tự động gia hạn"}
+          </p>
         </div>
 
         {state.entitlements.premiumOwned && (
@@ -106,7 +156,7 @@ function DemoPremiumPurchaseDialog({ onClose }: { onClose: () => void }) {
             className="mt-4 w-full font-semibold"
             onClick={() => { requestId.current = `premium:${crypto.randomUUID()}`; setMessage(""); setConfirming(true); }}
           >
-            Nâng cấp Premium · {price}đ
+            Kích hoạt {selectedTerm === "yearly" ? "Gói 1 năm · 499.000đ" : "Gói 1 tháng · 49.000đ"}
           </Button>
         ) : (
           <div className="mt-4 rounded-2xl border border-line bg-surface-soft/60 p-3">

@@ -63,6 +63,7 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
     useState<MembershipStatus | null>(null);
   const [demoCommerce, setDemoCommerce] = useState<DemoCommerceState>(loadDemoCommerceState);
   const [resetDemoOpen, setResetDemoOpen] = useState(false);
+  const [demoSelectedTerm, setDemoSelectedTerm] = useState<"monthly" | "yearly">("yearly");
   useEffect(() => {
     if (!isDemoMode()) return;
     const refreshDemoCommerce = () => setDemoCommerce(loadDemoCommerceState());
@@ -159,14 +160,65 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
                     : "Mở rộng hành trình trải nghiệm văn hóa truyền thống với các đặc quyền luận giải sâu sắc và lễ vật trang nghiêm dành riêng cho bạn."}
                 </p>
 
-                <div className="mt-4 flex flex-wrap items-baseline gap-2">
-                  <span className="font-display text-3xl font-bold text-accent">
-                    {premiumPrice.toLocaleString("vi-VN")}đ
-                  </span>
-                  <span className="text-xs text-muted">/ gói trọn bộ</span>
-                  <span className="text-xs text-muted ml-2 border-l border-line/80 pl-2">
-                    Mua một lần — Không tự động gia hạn
-                  </span>
+                {/* 2 gói lựa chọn: 1 tháng & 1 năm */}
+                <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+                  {/* Option 1: Gói 1 tháng */}
+                  <div
+                    onClick={() => setDemoSelectedTerm("monthly")}
+                    className={`cursor-pointer rounded-2xl border p-3.5 transition-all flex flex-col justify-between ${
+                      demoSelectedTerm === "monthly"
+                        ? "border-amber-600/80 bg-amber-500/10 shadow-xs ring-1 ring-amber-500/30"
+                        : "border-line bg-surface/70 hover:bg-surface-soft"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-ink">Gói 1 tháng</span>
+                      <span className="h-4 w-4 rounded-full border border-line flex items-center justify-center">
+                        {demoSelectedTerm === "monthly" && (
+                          <span className="h-2 w-2 rounded-full bg-accent" />
+                        )}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex items-baseline gap-1">
+                      <span className="font-display text-2xl font-bold text-ink">49.000đ</span>
+                      <span className="text-xs text-muted">/tháng</span>
+                    </div>
+                    <p className="text-[11px] text-muted mt-1">Linh hoạt trải nghiệm từng tháng</p>
+                  </div>
+
+                  {/* Option 2: Gói 1 năm */}
+                  <div
+                    onClick={() => setDemoSelectedTerm("yearly")}
+                    className={`cursor-pointer rounded-2xl border p-3.5 transition-all relative overflow-hidden flex flex-col justify-between ${
+                      demoSelectedTerm === "yearly"
+                        ? "border-amber-600/80 bg-amber-500/10 shadow-xs ring-1 ring-amber-500/30"
+                        : "border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-amber-800 dark:text-amber-300">Gói 1 năm (12 tháng)</span>
+                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white shadow-2xs">
+                          Tiết kiệm 89k
+                        </span>
+                      </div>
+                      <span className="h-4 w-4 rounded-full border border-line flex items-center justify-center">
+                        {demoSelectedTerm === "yearly" && (
+                          <span className="h-2 w-2 rounded-full bg-accent" />
+                        )}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex items-baseline gap-1.5 flex-wrap">
+                      <span className="line-through text-stone-400 dark:text-stone-500 text-sm">
+                        588.000đ
+                      </span>
+                      <span className="font-display text-2xl font-bold text-accent">499.000đ</span>
+                      <span className="text-xs text-muted">/năm</span>
+                    </div>
+                    <p className="text-[11px] text-amber-800 dark:text-amber-300 font-medium mt-1">
+                      Khuyến mãi ~15% · Tặng quà tri ân
+                    </p>
+                  </div>
                 </div>
 
                 <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -178,15 +230,18 @@ export const MembershipScreen: React.FC<MembershipScreenProps> = ({
                     {demoCommerce.entitlements.premiumOwned ? (
                       <>
                         <Sparkles className="mr-2 h-4 w-4" />
-                        <span>Nạp thêm gói quyền lợi ({premiumPrice.toLocaleString("vi-VN")}đ)</span>
+                        <span>Nạp thêm gói ({demoSelectedTerm === "yearly" ? "499.000đ" : "49.000đ"})</span>
                       </>
                     ) : (
                       <>
                         <Crown className="mr-2 h-4 w-4" />
-                        <span>Kích hoạt đặc quyền Hội viên</span>
+                        <span>Kích hoạt {demoSelectedTerm === "yearly" ? "gói 1 năm (499.000đ)" : "gói 1 tháng (49.000đ)"}</span>
                       </>
                     )}
                   </Button>
+                  <span className="text-xs text-muted">
+                    Mua một lần — Không tự động gia hạn
+                  </span>
                 </div>
               </div>
 
