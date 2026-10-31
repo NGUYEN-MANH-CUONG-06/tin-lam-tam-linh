@@ -38,7 +38,7 @@ interface DetailedReadingUnlockProps {
 }
 
 const DEMO_READING_NOTICE =
-  "Nội dung luận giải mang tính biểu tượng chiêm nghiệm và định hướng tâm an, phục vụ trải nghiệm demo; không phải dự đoán tương lai mang tính áp đặt.";
+  "Nội dung luận giải mang tính biểu tượng chiêm nghiệm văn hóa và định hướng tâm an; không mang tính dự đoán tương lai hay áp đặt cuộc sống.";
 
 export function DetailedReadingUnlock({
   kind,
