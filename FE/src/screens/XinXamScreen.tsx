@@ -1259,8 +1259,8 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
             </div>
 
             {/* Two Column Layout: Sacred Bamboo Slip & Literary Essay */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 mb-8 items-start">
-              {/* Left Column (5 columns): The Sacred Parchment Bamboo Slip (Sticky on desktop) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 items-start">
+              {/* Left Column (5 columns): The Sacred Parchment Bamboo Slip + Quick Actions (Sticky on desktop) */}
               <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-24 self-start">
                 <div className="rounded-2xl p-5 sm:p-6 bg-surface border border-line shadow-sm relative overflow-hidden text-center flex flex-col justify-between min-h-[480px]">
                   {/* Subtle inner paper glow */}
@@ -1322,210 +1322,9 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                   </div>
                 </div>
 
-                <p className="px-2 text-xs text-muted italic text-center">
-                  Di sản xăm tre văn hóa dân gian
-                </p>
-              </div>
-
-              {/* Right Column (7 columns): Seamless Literary Essay (No 4 box cards) */}
-              <div className="lg:col-span-7 space-y-8 text-ink">
-                {/* Lời gợi mở chính */}
-                <section aria-labelledby="xam-reflection-title" className="space-y-4">
-                  <h2
-                    id="xam-reflection-title"
-                    className="font-display text-xl sm:text-2xl font-semibold text-ink"
-                  >
-                    Một điều để ngẫm
-                  </h2>
-
-                  {currentResult.quote && (
-                    <blockquote className="border-l-2 border-accent pl-4 py-2 font-serif italic text-sm sm:text-base text-ink/90 bg-accent-soft/20 rounded-r-lg">
-                      “{currentResult.quote}”
-                    </blockquote>
-                  )}
-
-                  {currentResult.reflectionParagraphs[0] && (
-                    <p className="text-base text-ink leading-relaxed">
-                      {currentResult.reflectionParagraphs[0]}
-                    </p>
-                  )}
-
-                  {(currentResult.reflectionParagraphs.length > 1 ||
-                    currentResult.tips.length > 0) && (
-                    <details className="group rounded-card border border-line bg-surface p-4">
-                      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-control text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent [&::-webkit-details-marker]:hidden">
-                        <span>Đọc thêm lời chiêm nghiệm</span>
-
-                        <ChevronDown
-                          aria-hidden="true"
-                          className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180 motion-reduce:transition-none"
-                        />
-                      </summary>
-
-                      <div className="mt-4 space-y-4">
-                        {currentResult.reflectionParagraphs
-                          .slice(1)
-                          .map((paragraph, index) => (
-                            <p
-                              key={index}
-                              className="text-sm sm:text-base text-ink leading-relaxed"
-                            >
-                              {paragraph}
-                            </p>
-                          ))}
-
-                        {currentResult.tips.map((tip, index) => (
-                          <div
-                            key={index}
-                            className="border-t border-line pt-4"
-                          >
-                            <h3 className="mb-2 text-sm font-semibold text-accent">
-                              {tip.title}
-                            </h3>
-
-                            <p className="text-sm text-muted leading-relaxed">
-                              {tip.desc}
-                            </p>
-                            {tip.title === "Gợi ý do AI tạo" && currentResult.aiExplanation?.metadata.editorialNote && (
-                              <p className="mt-2 text-xs text-muted">
-                                {currentResult.aiExplanation.metadata.editorialNote}
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </details>
-                  )}
-                </section>
-
-                <div className="w-full h-px bg-line/60" />
-
-                {/* Essay Section 2: Thực hành an yên & Nuôi dưỡng tâm lành */}
-                {currentResult.microAction.title && currentResult.microAction.desc && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-1.5">
-                      <Flower2 className="w-3.5 h-3.5" />
-                      <span>Thực hành an yên hôm nay</span>
-                    </div>
-                    <span className="text-xs text-muted font-medium">
-                      {currentResult.microAction.duration}
-                    </span>
-                  </div>
-
-                  <div className="p-5 rounded-xl bg-surface/80 border border-line flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                      <h4 className="font-display font-semibold text-base text-ink mb-1">
-                        {currentResult.microAction.title}
-                      </h4>
-                      <p className="text-xs sm:text-sm text-muted leading-relaxed">
-                        {currentResult.microAction.desc}
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      aria-pressed={isActionDone}
-                      onClick={() => setIsActionDone((value) => !value)}
-                      className={`min-h-11 px-4 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer ${
-                        isActionDone
-                          ? "bg-success-soft text-success shadow-2xs"
-                          : "bg-surface border border-line text-accent hover:bg-surface-soft"
-                      }`}
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>
-                        {isActionDone ? "Đã thực hiện xong" : "Đánh dấu đã thực hiện"}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-                )}
-
-                <div className="w-full h-px bg-line/60" />
-
-                {/* Góc nhìn văn hóa chỉ hiện khi được biên tập trong dữ liệu phát hành. */}
-                {currentResult.culturalAspect && (
-                <details className="group rounded-card border border-line bg-surface p-4">
-                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-control text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent [&::-webkit-details-marker]:hidden">
-                    <span className="inline-flex items-center gap-2">
-                      <BookOpen aria-hidden="true" className="h-4 w-4 text-accent" />
-                      Góc nhìn văn hóa
-                    </span>
-
-                    <ChevronDown
-                      aria-hidden="true"
-                      className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180 motion-reduce:transition-none"
-                    />
-                  </summary>
-
-                  <p className="mt-4 text-sm sm:text-base text-muted leading-relaxed">
-                    {currentResult.culturalAspect}
-                  </p>
-                </details>
-                )}
-
-                {isDemoMode() && currentDrawId && (
-                  <DetailedReadingUnlock
-                    key={`xam:${currentDrawId}`}
-                    kind="xam"
-                    resultId={currentDrawId}
-                    sections={[
-                      {
-                        title: "Ý nghĩa sâu sắc",
-                        content:
-                          currentResult.reflectionParagraphs.length > 1
-                            ? currentResult.reflectionParagraphs.slice(1).join(" ")
-                            : `${currentResult.insight} — Giữ nội lực an định, điềm nhiên trước mọi thăng trầm để đón nhận bài học cuộc đời bằng tâm thế thong dong.`
-                      },
-                      {
-                        title: "Biểu tượng của kết quả",
-                        content: `Thẻ số ${currentResult.stickNumber} mang thông điệp “${currentResult.sealText}”, biểu trưng cho sự thanh lương, an hòa và bền bỉ. Lời xăm không mang tính định đoạt tương lai, mà gợi mở cho bạn thêm một góc nhìn tỉnh thức để tự soi chiếu những băn khoăn đời thường.`
-                      },
-                      {
-                        title: `Góc nhìn về ${currentResult.topic.toLocaleLowerCase("vi-VN")}`,
-                        content: `Đối với phương diện ${currentResult.topic.toLocaleLowerCase("vi-VN")}, quẻ xăm nhắc nhở bạn khởi đầu từ sự an định bên trong trước khi tìm cầu đáp án bên ngoài. Khi tâm trong sáng và vững chãi, những khúc mắc trong cuộc sống sẽ dần tìm thấy lối mở thuận hòa.`
-                      },
-                      {
-                        title: "Lời khuyên thực tế",
-                        content: [currentResult.tips.map((t) => `${t.title}: ${t.desc}`).join(" | "), currentResult.microAction.desc].filter(Boolean).join(". ")
-                      },
-                      {
-                        title: "Gợi ý suy ngẫm",
-                        content: "Điều gì đang khiến tâm bạn xao động nhất hôm nay, và một hành động nhỏ nào bạn có thể chủ động thực hiện ngay để nuôi dưỡng sự tĩnh lặng trong mình?"
-                      },
-                    ]}
-                  />
-                )}
-
-                <div className="space-y-4 border-t border-line pt-6">
-                  {/* Tiếp nối nghi thức: Nối quẻ với xin keo */}
-                  {onGoToXinKeo && (
-                    <div className="p-4 rounded-xl bg-gradient-to-r from-accent/8 via-surface to-accent/5 border border-accent/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                      <div className="flex items-start gap-2.5">
-                        <Waves className="h-5 w-5 text-accent shrink-0 mt-0.5" />
-                        <div>
-                          <div className="text-xs font-bold text-accent uppercase tracking-wider">
-                            Tiếp nối nghi thức dân gian
-                          </div>
-                          <p className="text-xs text-muted mt-0.5 leading-relaxed">
-                            Gieo quẻ âm dương để cầu chứng sự tương hợp với thông điệp thẻ xăm vừa nhận.
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => onGoToXinKeo(currentDrawId || "")}
-                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full bg-accent text-white hover:bg-accent/90 text-xs font-semibold shrink-0 transition-all shadow-xs cursor-pointer"
-                      >
-                        <span>Gieo keo cầu chứng</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Primary & Secondary Actions */}
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {/* Left Column Action Buttons */}
+                <div className="space-y-2.5 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2.5">
                     <Button
                       variant="default"
                       size="lg"
@@ -1550,26 +1349,208 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                         setStep(1);
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
-                      className="w-full min-w-0 whitespace-nowrap px-4 text-ink"
+                      className="w-full min-w-0 whitespace-nowrap px-4 text-ink hover:bg-surface-soft"
                     >
                       <RotateCcw className="h-4 w-4" aria-hidden="true" />
                       <span>Chọn lại chủ đề</span>
                     </Button>
                   </div>
 
-                  {onGoToExplore && (
-                    <div className="flex items-center justify-end pt-1">
-                      <button
-                        type="button"
-                        onClick={onGoToExplore}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted hover:text-accent transition-colors cursor-pointer"
-                      >
-                        <span>Khám phá thêm nét đẹp văn hóa</span>
-                        <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                      </button>
-                    </div>
+                  {/* Nối quẻ với Xin Keo ở cột trái */}
+                  {onGoToXinKeo && (
+                    <button
+                      type="button"
+                      onClick={() => onGoToXinKeo(currentDrawId || "")}
+                      className="w-full p-3.5 rounded-xl bg-gradient-to-r from-accent/8 via-surface to-accent/5 border border-accent/25 hover:border-accent/40 flex items-center justify-between text-left transition-all group cursor-pointer shadow-2xs"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Waves className="h-4 w-4 text-accent shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-accent">Nối quẻ với Xin keo</div>
+                          <div className="text-[11px] text-muted truncate">Gieo quẻ âm dương cầu chứng</div>
+                        </div>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-accent transition-transform group-hover:translate-x-0.5 shrink-0" />
+                    </button>
                   )}
                 </div>
+
+                <p className="px-2 text-xs text-muted italic text-center">
+                  Di sản xăm tre văn hóa dân gian
+                </p>
+              </div>
+
+              {/* Right Column (7 columns): Full Open Literary Reading (No hidden accordions) */}
+              <div className="lg:col-span-7 space-y-7 text-ink">
+                {/* 1. Một điều để ngẫm - MỞ HOÀN TOÀN */}
+                <section aria-labelledby="xam-reflection-title" className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-accent inline-block" />
+                    <h2
+                      id="xam-reflection-title"
+                      className="font-display text-xl sm:text-2xl font-semibold text-ink"
+                    >
+                      Một điều để ngẫm
+                    </h2>
+                  </div>
+
+                  {currentResult.quote && (
+                    <blockquote className="border-l-3 border-accent pl-4 py-2.5 font-serif italic text-sm sm:text-base text-ink/90 bg-accent-soft/20 rounded-r-xl leading-relaxed">
+                      “{currentResult.quote}”
+                    </blockquote>
+                  )}
+
+                  <div className="space-y-3.5 text-base text-ink leading-relaxed">
+                    {currentResult.reflectionParagraphs.map((paragraph, index) => (
+                      <p key={index}>{paragraph}</p>
+                    ))}
+                  </div>
+                </section>
+
+                <div className="w-full h-px bg-line/60" />
+
+                {/* 2. Soi chiếu biểu tượng & Góc nhìn phương diện - MỞ HOÀN TOÀN */}
+                <section className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-accent inline-block" />
+                    <h3 className="font-display text-lg sm:text-xl font-semibold text-ink">
+                      Soi chiếu biểu tượng & Góc nhìn {currentResult.topic.toLowerCase()}
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3.5">
+                    <div className="p-4 sm:p-5 rounded-xl bg-surface border border-line/80 shadow-2xs space-y-1.5">
+                      <div className="text-xs font-bold uppercase tracking-wider text-accent">
+                        Biểu tượng quẻ số {currentResult.stickNumber} — {currentResult.sealText}
+                      </div>
+                      <p className="text-sm text-muted leading-relaxed">
+                        Thẻ số {currentResult.stickNumber} mang phong vị “{currentResult.sealText}”, biểu trưng cho sự thanh lương, an hòa và bền bỉ. Lời xăm không định đoạt tương lai, mà gợi mở cho bạn một góc nhìn tỉnh thức để tự soi chiếu những băn khoăn trong đời sống.
+                      </p>
+                    </div>
+
+                    <div className="p-4 sm:p-5 rounded-xl bg-surface border border-line/80 shadow-2xs space-y-1.5">
+                      <div className="text-xs font-bold uppercase tracking-wider text-accent">
+                        Góc nhìn về phương diện {currentResult.topic.toLowerCase()}
+                      </div>
+                      <p className="text-sm text-muted leading-relaxed">
+                        Đối với phương diện {currentResult.topic.toLowerCase()}, quẻ xăm nhắc nhở bạn khởi đầu từ sự an định bên trong trước khi tìm cầu đáp án bên ngoài. Khi tâm trong sáng và vững chãi, những khúc mắc trong cuộc sống sẽ dần tìm thấy lối mở thuận hòa.
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                <div className="w-full h-px bg-line/60" />
+
+                {/* 3. Bài học cuộc sống (Tips) - MỞ HOÀN TOÀN */}
+                {currentResult.tips.length > 0 && (
+                  <section className="space-y-3.5">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-accent inline-block" />
+                      <h3 className="font-display text-lg sm:text-xl font-semibold text-ink">
+                        Bài học chiêm nghiệm
+                      </h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {currentResult.tips.map((tip, index) => (
+                        <div
+                          key={index}
+                          className="p-4 rounded-xl bg-surface border border-line/80 shadow-2xs space-y-1.5"
+                        >
+                          <h4 className="font-semibold text-sm text-ink">
+                            {tip.title}
+                          </h4>
+                          <p className="text-xs sm:text-sm text-muted leading-relaxed">
+                            {tip.desc}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* 4. Thực hành an yên hôm nay */}
+                {currentResult.microAction.title && currentResult.microAction.desc && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-1.5">
+                        <Flower2 className="w-3.5 h-3.5" />
+                        <span>Thực hành an yên hôm nay</span>
+                      </div>
+                      <span className="text-xs text-muted font-medium">
+                        {currentResult.microAction.duration}
+                      </span>
+                    </div>
+
+                    <div className="p-5 rounded-xl bg-surface/80 border border-line flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <h4 className="font-display font-semibold text-base text-ink mb-1">
+                          {currentResult.microAction.title}
+                        </h4>
+                        <p className="text-xs sm:text-sm text-muted leading-relaxed">
+                          {currentResult.microAction.desc}
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        aria-pressed={isActionDone}
+                        onClick={() => setIsActionDone((value) => !value)}
+                        className={`min-h-11 px-4 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer ${
+                          isActionDone
+                            ? "bg-success-soft text-success shadow-2xs"
+                            : "bg-surface border border-line text-accent hover:bg-surface-soft"
+                        }`}
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>
+                          {isActionDone ? "Đã thực hiện xong" : "Đánh dấu đã thực hiện"}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="w-full h-px bg-line/60" />
+
+                {/* 5. Góc nhìn văn hóa dân gian - MỞ HOÀN TOÀN */}
+                {currentResult.culturalAspect && (
+                  <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500/[0.05] via-surface to-amber-500/[0.02] border border-amber-900/15 dark:border-amber-500/20 shadow-2xs space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent">
+                      <BookOpen className="h-4 w-4" />
+                      <span>Góc nhìn văn hóa dân gian</span>
+                    </div>
+                    <p className="text-sm text-muted leading-relaxed">
+                      {currentResult.culturalAspect}
+                    </p>
+                  </div>
+                )}
+
+                {/* 6. Gợi ý suy ngẫm cuối quẻ */}
+                <div className="p-4 rounded-xl bg-surface border border-line/80 shadow-2xs flex items-start gap-3">
+                  <Sparkles className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-xs font-bold text-ink uppercase tracking-wider mb-1">
+                      Gợi ý suy ngẫm
+                    </div>
+                    <p className="text-xs sm:text-sm text-muted leading-relaxed">
+                      Điều gì đang khiến tâm bạn xao động nhất hôm nay, và một bước nhỏ nào bạn có thể chủ động thực hiện ngay để nuôi dưỡng sự tĩnh lặng trong mình?
+                    </p>
+                  </div>
+                </div>
+
+                {onGoToExplore && (
+                  <div className="flex items-center justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={onGoToExplore}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted hover:text-accent transition-colors cursor-pointer"
+                    >
+                      <span>Khám phá thêm nét đẹp văn hóa</span>
+                      <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
