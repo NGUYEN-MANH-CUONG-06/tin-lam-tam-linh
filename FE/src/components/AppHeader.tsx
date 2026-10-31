@@ -168,7 +168,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="site-header__inner">
         <button
           type="button"
-          onClick={() => goTo("guest")}
+          onClick={() => goTo("today")}
           className="brand-link"
           aria-label="Tin Lắm Tâm Linh — về trang chủ"
         >
