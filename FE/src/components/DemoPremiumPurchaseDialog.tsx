@@ -6,6 +6,7 @@ import { isDemoMode } from "../data/demoMode";
 import { DEMO_COMMERCE_CONFIG, DEMO_PREMIUM_BENEFITS } from "../data/demoCommerceCatalog";
 import { DEMO_COMMERCE_CHANGED_EVENT, OPEN_DEMO_PREMIUM_EVENT } from "../data/demoPremiumEvents";
 import { completeDemoCheckout, loadDemoCommerceState, quoteDemoCheckout, type DemoCommerceState } from "../data/demoCommerceService";
+import { toast } from "./ui/Toast";
 
 export function DemoPremiumPurchaseDialogHost() {
   const [open, setOpen] = useState(false);
@@ -38,7 +39,12 @@ function DemoPremiumPurchaseDialog({ onClose }: { onClose: () => void }) {
       setConfirming(false);
       if (outcome === "succeeded" && result.transaction.status === "succeeded") {
         window.dispatchEvent(new Event(DEMO_COMMERCE_CHANGED_EVENT));
-        setMessage("Premium demo đã được kích hoạt. Quyền lợi đã cộng vào số dư.");
+        toast.success(
+          "Gói Premium đã được kích hoạt. Quyền lợi đã cộng vào kho trải nghiệm của bạn.",
+          "Mở khóa hành trình an lành",
+          5200,
+        );
+        onClose();
       } else if (outcome === "failed") {
         setMessage("Thanh toán mô phỏng thất bại. Số dư không thay đổi.");
       } else {
