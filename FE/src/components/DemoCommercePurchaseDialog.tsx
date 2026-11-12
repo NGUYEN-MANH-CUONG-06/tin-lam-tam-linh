@@ -91,7 +91,7 @@ export function DemoCommercePurchaseDialog({ sku, onClose, onPurchaseComplete }:
       </label>
 
       <dl className="mt-4 space-y-1 rounded-xl border border-line bg-surface-soft p-4 text-sm">
-        <div className="flex justify-between gap-3"><dt>Đơn giá</dt><dd>{quote.unitPriceVnd.toLocaleString("vi-VN")}đ / {product.unitLabel}</dd></div>
+        <div className="flex justify-between gap-3"><dt>Đơn giá</dt><dd>{product.unitPriceVnd.toLocaleString("vi-VN")}đ / {product.unitLabel}</dd></div>
         {quote.discountVnd > 0 && <div className="flex justify-between gap-3 text-success"><dt>Ưu đãi Premium</dt><dd>−{quote.discountVnd.toLocaleString("vi-VN")}đ</dd></div>}
         <div className="flex justify-between gap-3 border-t border-line pt-2 font-bold"><dt>Tổng cộng</dt><dd>{quote.totalVnd.toLocaleString("vi-VN")}đ</dd></div>
       </dl>
