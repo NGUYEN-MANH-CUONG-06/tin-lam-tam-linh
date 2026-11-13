@@ -6,16 +6,27 @@ require("./test-env");
 
 const app = require("../src/app");
 const prisma = require("../src/config/prisma");
-const {
-  castPieces,
-} = require("../src/services/xin-keo.service");
+const { castPieces } = require("../src/services/xin-keo-algorithm");
 
 test("xin keo maps physical sides to three outcomes", () => {
   const cast = (values) => castPieces(() => values.shift());
 
   assert.equal(cast([0.1, 0.9]).result, "YES");
+  assert.equal(cast([0.9, 0.1]).result, "YES");
   assert.equal(cast([0.1, 0.2]).result, "NO");
   assert.equal(cast([0.8, 0.9]).result, "UNCLEAR");
+});
+
+test("xin keo samples each side independently and never retries a result", () => {
+  const values = [0.1, 0.1, 0.1, 0.9];
+  const calls = [];
+  const outcomes = [
+    castPieces(() => { calls.push(values.shift()); return calls.at(-1); }),
+    castPieces(() => { calls.push(values.shift()); return calls.at(-1); }),
+  ];
+
+  assert.equal(calls.length, 4);
+  assert.deepEqual(outcomes.map(({ result }) => result), ["NO", "YES"]);
 });
 
 test(

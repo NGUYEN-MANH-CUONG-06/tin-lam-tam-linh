@@ -14,6 +14,16 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "prisma db seed",
     "prisma:pull": "prisma db pull",
+    "data:wts:validate": "node scripts/validate-wong-tai-sin.js",
+    "data:wts:import:dry-run": "node scripts/import-wong-tai-sin.js",
+    "test:wts:offline": "node --test --test-concurrency=1 tests/wong-tai-sin-catalog.unit.test.js",
+    "data:guanyin:validate": "node scripts/validate-wong-tai-sin.js --manifest=guanyin-100-hk-ctc.json",
+    "data:guanyin:import:dry-run": "node scripts/import-wong-tai-sin.js --manifest=guanyin-100-hk-ctc.json",
+    "data:original-xam:build": "node scripts/build-original-xam-dataset.js",
+    "data:original-xam:validate": "node scripts/validate-original-xam.js",
+    "data:original-xam:import:dry-run": "node scripts/import-original-xam.js",
+    "data:original-xam:report": "node scripts/build-original-xam-review-report.js",
+    "test:original-xam:offline": "node --test --test-concurrency=1 tests/original-xam-catalog.unit.test.js tests/original-xam-gemini.unit.test.js tests/original-xam-publication.unit.test.js tests/original-xam-routing.unit.test.js",
     "data:backfill-private": "node scripts/backfill-private-data.js"
   },
   "keywords": [
@@ -26,6 +36,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google/genai": "2.24.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "bcrypt": "^6.0.0",

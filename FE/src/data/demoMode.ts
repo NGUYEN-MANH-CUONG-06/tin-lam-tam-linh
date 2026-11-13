@@ -11,7 +11,7 @@ export function isDemoMode(): boolean {
   catch { return requested; }
 }
 
-export const DEMO_MODE_LABEL = "Chế độ demo · dữ liệu cục bộ, không ghi lên BE";
+export const DEMO_MODE_LABEL = "Demo giao dịch · lượt mua lưu cục bộ; Xin keo/Xin xăm dùng BE";
 
 export function exitDemoMode(): void {
   if (typeof window === "undefined") return;

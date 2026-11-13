@@ -33,11 +33,12 @@ import {
 } from "../data/xinXamData";
 import {
   drawXinXam,
+  interpretDemoXinXam,
   loadXinXamAvailability,
   type XinXamAvailability,
 } from "../data/reflectionService";
 import { ApiError } from "../lib/api";
-import { hasCompleteXamPoem, isPublishableXamCard, normalizeXamPoemLines } from "../../../shared/xin-xam-publication.mjs";
+import { isPublishableXamCard, normalizeXamPoemLines } from "../../../shared/xin-xam-publication.mjs";
 import { enterDemoMode, isDemoMode } from "../data/demoMode";
 import { readDemoValue, writeDemoValue } from "../data/demoStorage";
 import { DetailedReadingUnlock } from "../components/DetailedReadingUnlock";
@@ -347,9 +348,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
 
     const poemLines = normalizeXamPoemLines(remote.poem || "");
 
-    const publishable = isDemoMode()
-      ? Boolean(remote.source && hasCompleteXamPoem(remote.poem || "") && remote.meaning.trim() && remote.advice.trim())
-      : isPublishableXamCard({
+    const publishable = isPublishableXamCard({
       active: remote.active,
       verified: remote.verified,
       xam_type: remote.xamType,
@@ -1382,6 +1381,26 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
 
               {/* Right Column (7 columns): Full Open Literary Reading (No hidden accordions) */}
               <div className="lg:col-span-7 space-y-7 text-ink">
+                {isDemoMode() && currentDrawId && (
+                  <DetailedReadingUnlock
+                    key={`xam:${currentDrawId}`}
+                    kind="xam"
+                    resultId={currentDrawId}
+                    sections={[]}
+                    onInterpretation={async () => {
+                      if (!currentResult.resultToken) throw new Error("Thiếu mã lượt Xin xăm do máy chủ ký.");
+                      const result = await interpretDemoXinXam(currentResult.resultToken, currentResult.topic);
+                      return [
+                        { title: "Tổng quan", content: result.summary },
+                        { title: "Ý nghĩa truyền thống", content: result.traditionalMeaning },
+                        { title: "Phân tích biểu tượng", content: result.symbolicAnalysis },
+                        { title: "Liên hệ câu hỏi", content: result.contextualInterpretation },
+                        ...result.practicalAdvice.map((content, index) => ({ title: `Gợi ý thực tế ${index + 1}`, content })),
+                        ...result.cautions.map((content, index) => ({ title: `Điều cần lưu ý ${index + 1}`, content })),
+                      ];
+                    }}
+                  />
+                )}
                 {/* 1. Một điều để ngẫm - MỞ HOÀN TOÀN */}
                 <section aria-labelledby="xam-reflection-title" className="space-y-4">
                   <div className="flex items-center gap-2">
@@ -1407,10 +1426,10 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                   </div>
                 </section>
 
-                <div className="w-full h-px bg-line/60" />
+                {!isDemoMode() && <div className="w-full h-px bg-line/60" />}
 
                 {/* 2. Soi chiếu biểu tượng & Góc nhìn phương diện - MỞ HOÀN TOÀN */}
-                <section className="space-y-4">
+                {!isDemoMode() && <section className="space-y-4">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-accent inline-block" />
                     <h3 className="font-display text-lg sm:text-xl font-semibold text-ink">
@@ -1437,12 +1456,12 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                       </p>
                     </div>
                   </div>
-                </section>
+                </section>}
 
-                <div className="w-full h-px bg-line/60" />
+                {!isDemoMode() && <div className="w-full h-px bg-line/60" />}
 
                 {/* 3. Bài học cuộc sống (Tips) - MỞ HOÀN TOÀN */}
-                {currentResult.tips.length > 0 && (
+                {!isDemoMode() && currentResult.tips.length > 0 && (
                   <section className="space-y-3.5">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-accent inline-block" />

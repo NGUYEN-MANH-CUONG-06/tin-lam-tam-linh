@@ -1,8 +1,9 @@
 const repository = require("../repositories/xin-keo.repository");
 const xinXamRepository = require("../repositories/xin-xam.repository");
 const ApiError = require("../utils/api-error");
-const { pickVerifiedProverb, toProverbDto } = require("./proverb.service");
-const { randomInt } = require("node:crypto");
+const { toProverbDto } = require("./proverb.service");
+const { castPieces } = require("./xin-keo-algorithm");
+const fortuneInterpretationService = require("./fortune-interpretation.service");
 
 const OUTCOMES = {
   YES: { type: "nhat-am-nhat-duong", title: "Nhất Âm Nhất Dương", statusLabel: "Một âm · Một dương", meaning: "Lượt gieo này cho kết quả một mặt âm và một mặt dương.", guidance: "Hãy xem đây là lời nhắc để cân nhắc câu hỏi từ nhiều phía. Kết quả gieo ngẫu nhiên không xác nhận quyết định nào là đúng; hãy dựa vào thông tin thực tế và trao đổi với người bạn tin cậy." },
@@ -10,25 +11,24 @@ const OUTCOMES = {
   NO: { type: "nhi-am", title: "Nhị Âm", statusLabel: "Hai mặt âm", meaning: "Lượt gieo này cho kết quả hai mặt âm.", guidance: "Kết quả này không dự báo điều xấu. Hãy xem lại điều mình biết, điều còn chưa rõ và người có thể giúp bạn đánh giá tình huống." },
 };
 
-const PROVERB_CATEGORIES = {
-  YES: ["Đức tính", "Tình cảm"],
-  UNCLEAR: ["Bài học cuộc sống"],
-  NO: ["Bài học cuộc sống"],
-};
-
-function castPieces(random = () => randomInt(2)) {
-  const left = random() < 0.5 ? "am" : "duong";
-  const right = random() < 0.5 ? "am" : "duong";
-  const result = left !== right ? "YES" : left === "duong" ? "UNCLEAR" : "NO";
-  return { left, right, result };
+function parseInterpretations(value) {
+  try {
+    const parsed = JSON.parse(value || "{}");
+    return parsed?.version === 1 && parsed.interpretations ? parsed.interpretations : {};
+  } catch {
+    return {};
+  }
 }
 
-function toPublicThrow(item) {
-  return { id: item.id, throwNumber: item.throw_number, piece1: item.left_side, piece2: item.right_side, result: item.result, ...OUTCOMES[item.result], proverb: toProverbDto(item.proverbs), disclaimer: "Kết quả chỉ dùng để chiêm nghiệm văn hóa, không phải dự đoán hay quyết định thay bạn." };
+function toPublicThrow(item, interpretation) {
+  let aiExplanation = null;
+  try { aiExplanation = interpretation ? JSON.parse(interpretation).interpretation || null : null; } catch { /* Ignore legacy cached text. */ }
+  return { id: item.id, throwNumber: item.throw_number, piece1: item.left_side, piece2: item.right_side, result: item.result, ...OUTCOMES[item.result], proverb: toProverbDto(item.proverbs), aiExplanation, disclaimer: "Kết quả chỉ dùng để chiêm nghiệm văn hóa, không phải dự đoán hay quyết định thay bạn." };
 }
 
 function toPublicSession(session) {
-  return { id: session.id, question: session.question, drawId: session.draw_id || null, finalResult: session.final_result, createdAt: session.created_at, throws: session.xin_keo_throws.map(toPublicThrow) };
+  const interpretations = parseInterpretations(session.ai_explanation);
+  return { id: session.id, question: session.question, drawId: session.draw_id || null, finalResult: session.final_result, createdAt: session.created_at, throws: session.xin_keo_throws.map((item) => toPublicThrow(item, interpretations[item.id])) };
 }
 
 async function createSession(userId, question, drawId) {
@@ -68,13 +68,6 @@ async function throwKeo(userId, sessionId, requestId) {
 
   const cast = castPieces();
 
-  const proverb = await pickVerifiedProverb({
-    categories: PROVERB_CATEGORIES[cast.result],
-    excludeIds: session.xin_keo_throws
-      .map((item) => item.proverb_id)
-      .filter(Boolean),
-  });
-
   try {
     const item =
       await repository.createThrowAndUpdateSession(
@@ -85,7 +78,7 @@ async function throwKeo(userId, sessionId, requestId) {
           left_side: cast.left,
           right_side: cast.right,
           result: cast.result,
-          proverb_id: proverb?.id || null,
+          proverb_id: null,
         }
       );
 
@@ -130,4 +123,28 @@ async function getSession(userId, sessionId) {
 
 async function listSessions(userId) { return (await repository.listSessions(userId)).map(toPublicSession); }
 
-module.exports = { OUTCOMES, castPieces, createSession, throwKeo, getSession, listSessions };
+async function interpretThrow(userId, sessionId, throwId, input = {}) {
+  const session = await repository.findSession(sessionId, userId);
+  if (!session) throw new ApiError(404, "Xin keo session not found");
+  const item = session.xin_keo_throws.find((throwItem) => throwItem.id === throwId);
+  if (!item) throw new ApiError(404, "Xin keo result not found");
+  try {
+    return await fortuneInterpretationService.interpretKeo({
+      userId,
+      requestId: throwId,
+      question: session.question,
+      outcome: item.result,
+      leftSide: item.left_side,
+      rightSide: item.right_side,
+      cacheValue: () => repository.findInterpretation(sessionId, userId, throwId),
+      saveValue: (value) => repository.saveInterpretation(sessionId, userId, throwId, value),
+    });
+  } catch (error) {
+    if (error.code === "INVALID_INTERPRETATION_INPUT" || error.code === "INVALID_INTERPRETATION_RESULT") throw new ApiError(400, error.message);
+    if (error.code === "INTERPRETATION_RATE_LIMITED") throw new ApiError(429, error.message);
+    if (error.code === "AI_ENTITLEMENT_UNAVAILABLE") throw new ApiError(503, error.message);
+    throw new ApiError(error.code === "GEMINI_TIMEOUT" ? 504 : 502, error.message, [{ code: error.code }]);
+  }
+}
+
+module.exports = { OUTCOMES, createSession, throwKeo, getSession, listSessions, interpretThrow };

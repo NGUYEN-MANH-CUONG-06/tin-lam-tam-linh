@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Sparkles,
   Crown,
@@ -16,6 +16,7 @@ import { Button } from "./ui/button";
 import { isDemoMode } from "../data/demoMode";
 import { DEMO_COMMERCE_CATALOG } from "../data/demoCommerceCatalog";
 import { openDemoPremiumPurchase } from "../data/demoPremiumEvents";
+import { readDemoValue, writeDemoValue } from "../data/demoStorage";
 import {
   completeDemoReadingCheckout,
   consumeDemoReadingEntitlement,
@@ -35,15 +36,17 @@ interface DetailedReadingUnlockProps {
   kind: "xam" | "keo";
   resultId: string;
   sections: DetailedReadingSection[];
+  onInterpretation?: () => Promise<DetailedReadingSection[]>;
 }
 
 const DEMO_READING_NOTICE =
-  "Nội dung luận giải mang tính biểu tượng chiêm nghiệm văn hóa và định hướng tâm an; không mang tính dự đoán tương lai hay áp đặt cuộc sống.";
+  "Lời luận giải được máy chủ tạo từ kết quả và chủ đề của lượt này qua Gemini. Nội dung mang tính chiêm nghiệm văn hóa, không dự đoán chắc chắn tương lai hay thay thế quyết định chuyên môn.";
 
 export function DetailedReadingUnlock({
   kind,
   resultId,
   sections,
+  onInterpretation,
 }: DetailedReadingUnlockProps) {
   const sku =
     kind === "xam" ? "XAM_DETAILED_READING" : "KEO_DETAILED_READING";
@@ -61,6 +64,35 @@ export function DetailedReadingUnlock({
   const [message, setMessage] = useState("");
   const busyRef = useRef(false);
   const requestIdRef = useRef<string | null>(null);
+  const interpretationStartedRef = useRef(false);
+  const interpretationStorageKey = `ai-reading:${kind}:${resultId}`;
+  const [generatedSections, setGeneratedSections] = useState<DetailedReadingSection[] | null>(
+    () => readDemoValue<DetailedReadingSection[] | null>(interpretationStorageKey, null),
+  );
+  const [interpretationError, setInterpretationError] = useState("");
+  const [interpretationLoading, setInterpretationLoading] = useState(false);
+
+  const loadInterpretation = async () => {
+    if (!onInterpretation || interpretationLoading) return;
+    interpretationStartedRef.current = true;
+    setInterpretationLoading(true);
+    setInterpretationError("");
+    try {
+      const result = await onInterpretation();
+      setGeneratedSections(result);
+      writeDemoValue(interpretationStorageKey, result);
+    } catch {
+      setInterpretationError("Chưa lấy được lời luận giải từ máy chủ. Kết quả gieo vẫn được giữ nguyên; bạn có thể thử lại.");
+    } finally {
+      setInterpretationLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (unlocked && onInterpretation && !generatedSections && !interpretationStartedRef.current) {
+      void loadInterpretation();
+    }
+  }, [unlocked, onInterpretation, generatedSections]);
 
   if (!isDemoMode() || !resultId) return null;
 
@@ -228,7 +260,7 @@ export function DetailedReadingUnlock({
       {/* Expanded Reading Content */}
       {unlocked && expanded && (
         <div className="mt-6 space-y-3.5 border-t border-line/70 pt-6">
-          {sections.map((section) => (
+          {(onInterpretation ? generatedSections || [] : sections).map((section) => (
             <article
               key={section.title}
               className="p-4 rounded-xl bg-surface border border-line/80 shadow-2xs"
@@ -242,6 +274,12 @@ export function DetailedReadingUnlock({
               </p>
             </article>
           ))}
+          {onInterpretation && !generatedSections && (
+            <div role="status" className="rounded-xl border border-line bg-surface/70 p-3.5 text-sm text-muted">
+              {interpretationLoading ? "Đang lấy lời luận giải từ máy chủ…" : interpretationError || "Lời luận giải AI chưa được tạo."}
+              {!interpretationLoading && <button type="button" className="ml-2 underline" onClick={() => void loadInterpretation()}>Thử lại</button>}
+            </div>
+          )}
           <div className="rounded-xl border border-line bg-surface/70 p-3.5 text-xs leading-relaxed text-muted flex items-start gap-2.5">
             <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
             <span>{DEMO_READING_NOTICE}</span>

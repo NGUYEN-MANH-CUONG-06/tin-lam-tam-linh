@@ -97,10 +97,13 @@ const schemas = {
     const maxDay = value.calendar === "LUNAR" ? 30 : [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][value.month - 1];
     if (value.day > maxDay) ctx.addIssue({ code: "custom", path: ["day"], message: "Ngày không hợp lệ với tháng và hệ lịch đã chọn." });
   }),
-  xam: requireForReview(z.object({ ...common, editorialStatus: workflowStatus, stick_number: z.number().int().min(1).max(100), xam_type: text.min(1).max(100), category: text.max(100), name: text.max(255), fortune_level: z.enum(["Thượng Cát", "Trung Cát", "Hạ Bình", "Bình"]), poem: text.max(10000).transform((value) => normalizeXamPoemLines(value).join("\n")), meaning: text.max(20000), advice: text.max(10000) }).strict(), (value, ctx) => {
+  xam: requireForReview(z.object({ ...common, editorialStatus: workflowStatus, stick_number: z.number().int().min(1).max(100), xam_type: text.min(1).max(100), category: text.max(100), name: text.max(255), fortune_level: text.max(80), poem: text.max(10000).transform((value) => normalizeXamPoemLines(value).join("\n")), meaning: text.max(20000), advice: text.max(10000) }).strict(), (value, ctx) => {
+    const original = value.xam_type.startsWith("TLTL_ORIGINAL_100_V1:");
+    const allowedGrades = original ? ["THUẬN", "BÌNH", "CẨN TRỌNG"] : ["Thượng Cát", "Trung Cát", "Hạ Bình", "Bình"];
+    if (!allowedGrades.includes(value.fortune_level)) ctx.addIssue({ code: "custom", path: ["fortune_level"], message: "Phẩm cấp không phù hợp với hệ thống xăm." });
     if (!hasCompleteXamPoem(value.poem)) ctx.addIssue({ code: "custom", path: ["poem"], message: "Thẻ xăm cần đủ bốn dòng thơ." });
     if (!value.meaning.trim() || !value.advice.trim()) ctx.addIssue({ code: "custom", path: ["meaning"], message: "Cần có ý nghĩa và lời khuyên trước khi gửi duyệt." });
-    if (!/^https:\/\//i.test(value.source.trim())) ctx.addIssue({ code: "custom", path: ["source"], message: "Thẻ xăm cần URL nguồn HTTPS trước khi gửi duyệt." });
+    if (!original && !/^https:\/\//i.test(value.source.trim())) ctx.addIssue({ code: "custom", path: ["source"], message: "Thẻ xăm cần URL nguồn HTTPS trước khi gửi duyệt." });
   }),
   rituals: requireForReview(z.object({
     ...common,

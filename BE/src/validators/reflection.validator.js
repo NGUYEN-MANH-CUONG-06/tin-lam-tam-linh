@@ -40,10 +40,15 @@ const xinKeoSessionSchema = z.object({
 const xinKeoThrowSchema = z.object({
   requestId: z.string().uuid().optional(),
 }).strict();
+const xinKeoInterpretationSchema = z.object({}).strict();
+const xinXamInterpretationSchema = z.object({
+  question: z.string().trim().max(2000).optional(),
+  topic: z.string().trim().min(1).max(80),
+});
 const xinKeoTossSchema = z.object({
   sessionId: z.string().uuid().optional(),
   question: z.string().trim().min(1).max(2000).optional(),
   drawId: z.string().uuid().optional(),
 }).refine((value) => value.sessionId || value.question, { path: ["question"], message: "Question is required for a new session" });
 
-module.exports = { xinXamDrawSchema, xinXamRequestSchema, savedItemUpdateSchema, wishSchema, xinKeoSessionSchema, xinKeoThrowSchema, xinKeoTossSchema };
+module.exports = { xinXamDrawSchema, xinXamRequestSchema, savedItemUpdateSchema, wishSchema, xinKeoSessionSchema, xinKeoThrowSchema, xinKeoInterpretationSchema, xinXamInterpretationSchema, xinKeoTossSchema };

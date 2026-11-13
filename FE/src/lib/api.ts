@@ -56,6 +56,12 @@ export function apiRequest<T>(
   return client.apiRequest<T>(path, init);
 }
 
+/** Calls the configured backend even while the local commerce demo is active. */
+export function apiBackendRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+  if (apiConfigurationError) return Promise.reject(new ApiError(0, apiConfigurationError));
+  return client.apiRequest<T>(path, init);
+}
+
 export async function refreshAccessToken(): Promise<string | null> {
   const result = await refreshAccessTokenState();
   return result.status === "authenticated" ? result.token : null;

@@ -23,6 +23,7 @@ router.use("/mood", moodRoutes);
 router.use("/moods", moodRoutes); // Legacy alias kept during migration.
 router.use("/signals", signalRoutes);
 router.use("/reflections", reflectionRoutes);
+router.use("/demo/reflections", require("./demo-reflection.routes"));
 router.use("/memory", memoryRoutes);
 router.use("/content", contentRoutes);
 router.use("/wishes", wishRoutes);

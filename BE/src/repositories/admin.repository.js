@@ -1,5 +1,5 @@
 const prisma = require("../config/prisma");
-const { hasCompleteXamContent } = require("../../../shared/xin-xam-publication.mjs");
+const { hasCompleteXamContent, isOriginalXamMetadata, markOriginalXamApproved } = require("../../../shared/xin-xam-publication.mjs");
 const { hasUsableChecklist, isGroupAuthoredRitual, ritualApprovalIssue } = require("../services/ritual-publication");
 const { reviewAuditAction } = require("../services/content-review-metadata");
 const { stateAfterReview } = require("../services/editorial-workflow");
@@ -154,6 +154,7 @@ async function updateReview({ model, id, actorId, patch, expectedUpdatedAt, revi
     if (!before) return null;
     if (!expectedUpdatedAt || new Date(expectedUpdatedAt).getTime() !== before.updated_at.getTime()) return { versionConflict: true };
     const effectiveSource = typeof source === "string" ? source.trim() : before.source;
+    const originalXam = model === "xin_xam" && isOriginalXamMetadata(before.editorial_metadata);
     if (source !== undefined && source.trim() && !/^https:\/\/[^\s]+$/i.test(source.trim())) return { sourceInvalid: true };
     const nextWorkflow = stateAfterReview(before, patch);
     if (patch.verified === true) await ensureDifferentReviewer(tx, model, id, actorId);
@@ -175,7 +176,7 @@ async function updateReview({ model, id, actorId, patch, expectedUpdatedAt, revi
       }
     }
     const groupAuthoredRitual = model === "rituals" && isGroupAuthoredRitual(before.content_provenance);
-    if (patch.verified === true && model !== "culture_articles" && !groupAuthoredRitual && !/^https:\/\//i.test(effectiveSource || "")) return { sourceRequired: true };
+    if (patch.verified === true && model !== "culture_articles" && !groupAuthoredRitual && !originalXam && !/^https:\/\//i.test(effectiveSource || "")) return { sourceRequired: true };
     if (model === "xin_xam" && patch.verified === true && rightsConfirmed !== true) return { rightsConfirmationRequired: true };
     if (["prayers", "rituals"].includes(model) && patch.verified === true && rightsConfirmed !== true) return { rightsConfirmationRequired: true };
     if (model === "rituals" && patch.verified === true) {
@@ -198,8 +199,10 @@ async function updateReview({ model, id, actorId, patch, expectedUpdatedAt, revi
       source: before.source,
       poem: before.poem,
       interpretations: [before.meaning, before.advice],
+      editorial_metadata: before.editorial_metadata,
     })) return { xamContentRequired: true };
     const data = { ...patch };
+    if (patch.verified === true && originalXam) data.editorial_metadata = markOriginalXamApproved(before.editorial_metadata);
     // Revoking approval always removes the record from public delivery.
     if (patch.verified === false) data.active = false;
     if (source !== undefined) data.source = source.trim();

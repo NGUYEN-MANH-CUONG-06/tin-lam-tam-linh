@@ -1,15 +1,8 @@
-const { PrismaClient } = require("@prisma/client");
-const { PrismaPg } = require("@prisma/adapter-pg");
 const env = require("./env");
+const createPrismaClient = require("./create-prisma-client");
 
 const globalKey = "__tinLamTamLinhPrisma";
-
-function createClient() {
-  const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
-  return new PrismaClient({ adapter });
-}
-
-const prisma = globalThis[globalKey] || createClient();
+const prisma = globalThis[globalKey] || createPrismaClient(env.DATABASE_URL);
 
 if (env.NODE_ENV !== "production") globalThis[globalKey] = prisma;
 

@@ -66,4 +66,48 @@ function createThrowAndUpdateSession(session, throwData) {
   });
 }
 
-module.exports = { createSession, findSession, listSessions, createThrowAndUpdateSession };
+function parseInterpretations(value) {
+  if (!value) return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed?.version === 1 && parsed.interpretations && typeof parsed.interpretations === "object"
+      ? parsed.interpretations
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+async function findInterpretation(sessionId, userId, throwId, client = prisma) {
+  const session = await client.xin_keo_sessions.findFirst({
+    where: { id: sessionId, user_id: userId },
+    select: { ai_explanation: true },
+  });
+  const stored = parseInterpretations(session?.ai_explanation)[throwId];
+  if (!stored) return null;
+  try { return JSON.parse(stored).interpretation || null; } catch { return null; }
+}
+
+async function saveInterpretation(sessionId, userId, throwId, value, client = prisma) {
+  return client.$transaction(async (transaction) => {
+    await transaction.$queryRawUnsafe(
+      'SELECT "id" FROM "xin_keo_sessions" WHERE "id" = $1::uuid AND "user_id" = $2::uuid FOR UPDATE',
+      sessionId,
+      userId,
+    );
+    const session = await transaction.xin_keo_sessions.findFirst({
+      where: { id: sessionId, user_id: userId },
+      select: { ai_explanation: true },
+    });
+    if (!session) return null;
+    const interpretations = parseInterpretations(session.ai_explanation);
+    interpretations[throwId] = value;
+    await transaction.xin_keo_sessions.update({
+      where: { id: sessionId },
+      data: { ai_explanation: JSON.stringify({ version: 1, interpretations }) },
+    });
+    return value;
+  });
+}
+
+module.exports = { createSession, findSession, listSessions, createThrowAndUpdateSession, findInterpretation, saveInterpretation };

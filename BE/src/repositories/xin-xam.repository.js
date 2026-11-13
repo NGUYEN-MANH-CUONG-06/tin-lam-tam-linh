@@ -128,8 +128,12 @@ function markDrawSaved(id, userId, client = prisma) {
   return client.xin_xam_draws.updateMany({ where: { id, user_id: userId }, data: { saved_at: new Date() } });
 }
 
+function saveInterpretation(id, userId, value, client = prisma) {
+  return client.xin_xam_draws.updateMany({ where: { id, user_id: userId }, data: { ai_explanation: value } });
+}
+
 function remove(id, userId, client = prisma) {
   return client.xin_xam_draws.deleteMany({ where: { id, user_id: userId, saved_at: { not: null } } });
 }
 
-module.exports = { findCatalog, listCatalog, listUnifiedCatalog, upsertCatalog, createDraw, listDraws, findDraw, markDrawSaved, updateStar, remove };
+module.exports = { findCatalog, listCatalog, listUnifiedCatalog, upsertCatalog, createDraw, listDraws, findDraw, markDrawSaved, saveInterpretation, updateStar, remove };
