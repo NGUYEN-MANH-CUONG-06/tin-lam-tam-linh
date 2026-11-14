@@ -29,11 +29,25 @@ function isHttpsSource(value) {
   }
 }
 
-export function hasCompleteXamContent({ poem, interpretations, source }) {
+const ORIGINAL_SYSTEM_ID = "TLTL_ORIGINAL_100_V1";
+
+export function isOriginalXamMetadata(metadata) {
+  return metadata?.systemId === ORIGINAL_SYSTEM_ID
+    && metadata?.contentType === "ORIGINAL"
+    && metadata?.authoringMethod === "AI_ASSISTED_EDITORIAL_DRAFT"
+    && typeof metadata?.contentVersion === "string"
+    && metadata.contentVersion.trim().length > 0;
+}
+
+export function markOriginalXamApproved(metadata) {
+  if (!isOriginalXamMetadata(metadata)) return null;
+  return { ...metadata, reviewStatus: "APPROVED", humanApproved: true };
+}
+
+export function hasCompleteXamContent({ poem, interpretations, source, editorial_metadata }) {
+  const hasContent = hasCompleteXamPoem(poem) && hasCompleteXamInterpretation(interpretations);
   return Boolean(
-    isHttpsSource(source) &&
-    hasCompleteXamPoem(poem) &&
-    hasCompleteXamInterpretation(interpretations)
+    hasContent && (isHttpsSource(source) || isOriginalXamMetadata(editorial_metadata))
   );
 }
 
@@ -43,6 +57,8 @@ export function isPublishableXamCard(card) {
     card?.verified === true &&
     card?.editorial_status === "PUBLISHED" &&
     !String(card?.xam_type || "").startsWith("PREVIEW:") &&
+    (card?.editorial_metadata?.systemId !== ORIGINAL_SYSTEM_ID
+      || (card.editorial_metadata.reviewStatus === "APPROVED" && card.editorial_metadata.humanApproved === true)) &&
     hasCompleteXamContent(card)
   );
 }

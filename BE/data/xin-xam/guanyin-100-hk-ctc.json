@@ -1,0 +1,24 @@
+{
+  "systemId": "GUANYIN_100_HK_CTC",
+  "editionId": "CTC_HONG_KONG_CURRENT",
+  "datasetVersion": "unreleased-1",
+  "language": "zh-Hant",
+  "numbering": { "from": 1, "to": 100, "count": 100 },
+  "expectedCount": 100,
+  "records": [],
+  "research": {
+    "status": "RESEARCH_ONLY_RIGHTS_UNCLEARED_TEXT_INCOMPLETE",
+    "existingMetadataPath": "../../prisma/seed/data/ctc-guanyin-100.json",
+    "metadataCoverageClaim": "100 rows, sequential numbers 1..100, title/story title/grade/source URL; no poem text",
+    "observedGradeCountsInExistingMetadata": { "上籤": 34, "中籤": 46, "下籤": 20 },
+    "observedGradeCountsVerifiedAgainstPrimaryEdition": false,
+    "primarySource": "https://www.ctc.org.hk/chim/觀音籤-第一籤/",
+    "primarySourceAccessedSampleNumbers": [1],
+    "sourceEdition": "Chinese Temples Committee (Hong Kong) site edition; precise print/source history not established",
+    "rightsStatus": "UNKNOWN",
+    "commercialReusePermission": false,
+    "modernInterpretationsIncluded": false,
+    "taiwanTextMixedIn": false,
+    "note": "This is an unpublished research manifest. The cited CTC website requires written permission to copy/use its content. No poem text has been copied here. Do not import or publish until source edition, full text, per-record evidence, and commercial permissions are established."
+  }
+}

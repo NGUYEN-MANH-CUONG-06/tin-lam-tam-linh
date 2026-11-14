@@ -12,12 +12,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { isDemoMode } from "../data/demoMode";
+import { readDemoValue, writeDemoValue } from "../data/demoStorage";
 import { DetailedReadingUnlock } from "../components/DetailedReadingUnlock";
 import { Badge } from "@/src/components/ui/badge";
 import { Card } from "@/src/components/ui/card";
 import {
   castXinKeo,
   createXinKeoSession,
+  interpretDemoXinKeo,
   loadXinKeoSession,
 } from "../data/reflectionService";
 import type { SourcedProverb } from "../data/reflectionService";
@@ -44,6 +46,7 @@ interface KeoOutcome {
   piece1: "am" | "duong"; // am = ngua (phang), duong = up (cong)
   piece2: "am" | "duong";
   proverb?: SourcedProverb | null;
+  resultToken?: string;
 }
 
 const KEO_OUTCOMES: Record<KeoResultType, KeoOutcome> = {
@@ -411,7 +414,9 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
     const savedSessionId = new URLSearchParams(
       window.location.search,
-    ).get("keoSessionId");
+    ).get("keoSessionId") || (isDemoMode()
+      ? readDemoValue<string | null>("xin-keo-last-session-id", null)
+      : null);
 
     setSessionLoading(Boolean(isLoggedIn && savedSessionId));
     setSessionReady(!isLoggedIn || !savedSessionId);
@@ -450,6 +455,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
               piece1: last.piece1,
               piece2: last.piece2,
               proverb: last.proverb,
+              resultToken: last.resultToken,
             };
 
             setLandingResult(restored);
@@ -554,6 +560,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
           nextSessionId = session.id;
           setSessionId(session.id);
+          if (isDemoMode()) writeDemoValue("xin-keo-last-session-id", session.id);
 
           const url = new URL(window.location.href);
           url.searchParams.set("keoSessionId", session.id);
@@ -624,11 +631,18 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
         outcome = {
           ...KEO_OUTCOMES[cast.type],
+          ...(isDemoMode() && cast.title ? {
+            title: cast.title,
+            statusLabel: cast.statusLabel || KEO_OUTCOMES[cast.type].statusLabel,
+            meaning: cast.meaning || KEO_OUTCOMES[cast.type].meaning,
+            guidance: cast.guidance || KEO_OUTCOMES[cast.type].guidance,
+          } : {}),
           piece1: cast.piece1,
           piece2: cast.piece2,
           proverb: cast.proverb,
+          resultToken: cast.resultToken,
         };
-      } else {
+      } else if (!isDemoMode()) {
         const sides = new Uint8Array(2);
         crypto.getRandomValues(sides);
 
@@ -654,6 +668,8 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
         setRequestError(
           "Lượt gieo cục bộ, chưa được lưu vào tài khoản.",
         );
+      } else {
+        throw new Error("Xin keo demo must be cast by the backend.");
       }
 
       if (version !== sessionVersionRef.current) return;
@@ -1089,6 +1105,17 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                     key={`keo:${castResultId}`}
                     kind="keo"
                     resultId={castResultId}
+                    onInterpretation={async () => {
+                      if (!castResult.resultToken) throw new Error("Thiếu mã kết quả Xin keo do máy chủ ký.");
+                      const result = await interpretDemoXinKeo(castResult.resultToken);
+                      return [
+                        { title: "Tổng quan", content: result.summary },
+                        { title: "Ý nghĩa và biểu tượng", content: `${result.traditionalMeaning}\n\n${result.symbolicAnalysis}` },
+                        { title: "Liên hệ câu hỏi", content: result.contextualInterpretation },
+                        ...result.practicalAdvice.map((content, index) => ({ title: `Gợi ý thực tế ${index + 1}`, content })),
+                        ...result.cautions.map((content, index) => ({ title: `Điều cần lưu ý ${index + 1}`, content })),
+                      ];
+                    }}
                     sections={[
                       { title: "Kết quả lượt gieo", content: `${castResult.title} — ${castResult.statusLabel}. ${castResult.meaning}` },
                       { title: "Ý nghĩa biểu tượng văn hóa", content: `Hai mặt keo tạo nên thế ${castResult.piece1 === "am" ? "âm" : "dương"} — ${castResult.piece2 === "am" ? "âm" : "dương"}, biểu trưng cho sự hòa hợp và cân bằng giữa các yếu tố. Đây là hình ảnh gợi mở để tự soi chiếu lòng mình, không mang tính phán xét hay quyết định sự việc.` },

@@ -1,9 +1,12 @@
-const { randomUUID, randomInt } = require("node:crypto");
+const { randomUUID } = require("node:crypto");
+const env = require("../config/env");
 const xinXamRepository = require("../repositories/xin-xam.repository");
 const wishRepository = require("../repositories/wish.repository");
 const proverbRepository = require("../repositories/proverb.repository");
 const ApiError = require("../utils/api-error");
-const { pickVerifiedProverb, toProverbDto } = require("./proverb.service");
+const { toProverbDto } = require("./proverb.service");
+const { selectUniformXamCard } = require("./xin-xam-algorithm");
+const fortuneInterpretationService = require("./fortune-interpretation.service");
 
 const {
   contentFingerprint,
@@ -20,6 +23,23 @@ const REGION_TO_DB = {
 
 const DB_TO_REGION = { NORTH: "Bắc Bộ", CENTRAL: "Trung Bộ", SOUTH: "Nam Bộ", NATIONWIDE: "Toàn quốc" };
 
+function hasFullOriginalXamPool(cards) {
+  if (!Array.isArray(cards) || cards.length !== 100) return false;
+  const numbers = new Set(cards.map((card) => card.stick_number));
+  return numbers.size === 100 && Array.from({ length: 100 }, (_, index) => index + 1).every((number) => numbers.has(number));
+}
+
+async function listXamCatalogForRequest(input, region, configuredCatalogType = env.XIN_XAM_CATALOG_TYPE) {
+  if (input.region === "Toàn quốc" && configuredCatalogType) {
+    // A configured system pool intentionally ignores the question topic for drawing.
+    const cards = await xinXamRepository.listCatalog(configuredCatalogType, region);
+    if (configuredCatalogType.startsWith("TLTL_ORIGINAL_100_V1:") && !hasFullOriginalXamPool(cards)) return [];
+    return cards;
+  }
+  if (input.region === "Toàn quốc") return xinXamRepository.listUnifiedCatalog(input.topic);
+  return xinXamRepository.listCatalog(`${region}:${input.topic}`, region);
+}
+
 function fortuneGroup(level) {
   if (["Đại Cát", "Thượng Cát", "Trung Cát", "Tiểu Cát"].includes(level)) return "CAT";
   if (["Hung", "Đại Hung"].includes(level)) return "CAUTION";
@@ -30,12 +50,6 @@ function fortuneRank(level) {
   if (["Đại Cát", "Thượng Cát"].includes(level)) return "Thượng Xăm";
   if (["Trung Cát", "Tiểu Cát", "Bình"].includes(level)) return "Trung Xăm";
   return "Hạ Xăm";
-}
-
-function proverbCategoriesForFortune(level) {
-  if (fortuneGroup(level) === "CAT") return ["Đức tính", "Bài học cuộc sống"];
-  if (fortuneGroup(level) === "CAUTION") return ["Bài học cuộc sống"];
-  return ["Bài học cuộc sống", "Đức tính"];
 }
 
 function toXamMetadata(xam) {
@@ -82,9 +96,11 @@ function toXamItem(draw) {
     ? "Đây là lời nhắc thận trọng, không phải dự báo tai họa. Không đưa ra quyết định sức khỏe, pháp lý, tài chính hoặc an toàn chỉ dựa trên thẻ xăm."
     : "Hãy đối chiếu lời luận với hoàn cảnh thực tế và không xem kết quả là lời phán quyết.";
   const originalContentMetadata = toXamMetadata(xam);
-  const aiExplanation = draw.ai_explanation && draw.ai_explanation !== xam.advice
+  let storedInterpretation = null;
+  try { storedInterpretation = draw.ai_explanation ? JSON.parse(draw.ai_explanation).interpretation || null : null; } catch { /* Legacy free-form AI text remains untrusted. */ }
+  const aiExplanation = storedInterpretation
     ? {
-      content: draw.ai_explanation,
+      content: storedInterpretation.summary,
       metadata: {
         contentKind: "ai-generated",
         editorialStatus: "draft",
@@ -116,6 +132,7 @@ function toXamItem(draw) {
       metadata: originalContentMetadata,
     },
     aiExplanation,
+    aiInterpretation: storedInterpretation,
     interpretation: {
       summary: draw.xin_xam.meaning || "",
       recommendation: draw.xin_xam.advice || "",
@@ -146,9 +163,7 @@ function toWishItem(wish) {
 
 async function drawXam(userId, input) {
   const region = REGION_TO_DB[input.region];
-  const cards = input.region === "Toàn quốc"
-    ? await xinXamRepository.listUnifiedCatalog(input.topic)
-    : await xinXamRepository.listCatalog(`${region}:${input.topic}`, region);
+  const cards = await listXamCatalogForRequest(input, region);
 
   if (cards.length === 0) {
     throw new ApiError(
@@ -157,13 +172,7 @@ async function drawXam(userId, input) {
     );
   }
 
-  const card = cards[randomInt(cards.length)];
-
-  const proverb = await pickVerifiedProverb({
-    categories: proverbCategoriesForFortune(
-      card.fortune_level,
-    ),
-  });
+  const card = selectUniformXamCard(cards);
 
   if (!userId) {
     const drawId = randomUUID();
@@ -174,8 +183,8 @@ async function drawXam(userId, input) {
       cardId: card.id,
       xamType: card.xam_type,
       stickNumber: card.stick_number,
-      proverbId: proverb?.id || null,
-      fingerprint: contentFingerprint(card, proverb),
+      proverbId: null,
+      fingerprint: contentFingerprint(card, null),
       createdAt: createdAt.getTime(),
     });
 
@@ -183,7 +192,7 @@ async function drawXam(userId, input) {
       ...toXamItem({
         id: `guest:${drawId}`,
         xin_xam: card,
-        proverbs: proverb,
+        proverbs: null,
         created_at: createdAt,
         starred: false,
       }),
@@ -194,7 +203,7 @@ async function drawXam(userId, input) {
   const draw = await xinXamRepository.createDraw({
     user_id: userId,
     xin_xam_id: card.id,
-    proverb_id: proverb?.id || null,
+    proverb_id: null,
     question: input.question || null,
   });
 
@@ -230,6 +239,9 @@ async function saveXamDraw(userId, input) {
 
   // Khách rút trước rồi mới đăng nhập.
   const receipt = readXamResult(input.resultToken);
+  if (receipt.demo === true) {
+    throw new ApiError(403, "Kết quả Xin xăm Demo chỉ được lưu trong bộ nhớ cục bộ của phiên Demo.");
+  }
 
   // Retry cùng lượt: trả lại bản đã tạo cho tài khoản này.
   const existing = await xinXamRepository.findDraw(
@@ -417,9 +429,7 @@ async function deleteWish(userId, id) {
 
 async function getXamAvailability(input) {
   const region = REGION_TO_DB[input.region];
-  const cards = input.region === "Toàn quốc"
-    ? await xinXamRepository.listUnifiedCatalog(input.topic)
-    : await xinXamRepository.listCatalog(`${region}:${input.topic}`, region);
+  const cards = await listXamCatalogForRequest(input, region);
 
   return {
     region: input.region,
@@ -429,8 +439,38 @@ async function getXamAvailability(input) {
   };
 }
 
+async function interpretXam(userId, drawId, input) {
+  const draw = await xinXamRepository.findDraw(drawId, userId);
+  if (!draw) throw new ApiError(404, "Không tìm thấy lượt xin xăm đã xác minh.");
+  try {
+    return await fortuneInterpretationService.interpretFortune({
+      userId,
+      drawId,
+      question: input.question || draw.question || "Chiêm nghiệm kết quả xăm",
+      topic: input.topic,
+      fortune: draw.xin_xam,
+      cacheValue: async () => {
+        if (!draw.ai_explanation) return null;
+        try { return JSON.parse(draw.ai_explanation); } catch { return null; }
+      },
+      saveValue: async (value) => {
+        const updated = await xinXamRepository.saveInterpretation(drawId, userId, value);
+        if (updated.count !== 1) throw new ApiError(404, "Không tìm thấy lượt xin xăm.");
+      },
+    });
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    if (error.code === "INVALID_INTERPRETATION_INPUT") throw new ApiError(400, error.message);
+    if (error.code === "FORTUNE_NOT_VERIFIED") throw new ApiError(409, error.message);
+    if (error.code === "INTERPRETATION_RATE_LIMITED") throw new ApiError(429, error.message);
+    if (error.code === "AI_ENTITLEMENT_UNAVAILABLE") throw new ApiError(503, error.message);
+    throw new ApiError(error.code === "GEMINI_TIMEOUT" ? 504 : 502, error.message, [{ code: error.code }]);
+  }
+}
+
 module.exports = {
   getXamAvailability,
+  interpretXam,
   drawXam,
   saveXamDraw,
   listSavedXam,
@@ -440,4 +480,6 @@ module.exports = {
   createWish,
   updateWishStar,
   deleteWish,
+  listXamCatalogForRequest,
+  hasFullOriginalXamPool,
 };

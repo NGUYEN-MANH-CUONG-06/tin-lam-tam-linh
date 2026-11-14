@@ -2705,7 +2705,7 @@ export default function App() {
             </span>
             <span className="font-semibold text-amber-950 dark:text-amber-200">Chế độ trải nghiệm mẫu</span>
             <span className="hidden sm:inline text-line">•</span>
-            <span className="hidden sm:inline text-muted font-normal">Dữ liệu lưu cục bộ trên trình duyệt, không lưu lên máy chủ</span>
+            <span className="hidden sm:inline text-muted font-normal">Giao dịch demo lưu cục bộ; Xin keo/Xin xăm và yêu cầu Gemini gửi qua máy chủ</span>
           </div>
           <div className="flex items-center gap-2">
             <a

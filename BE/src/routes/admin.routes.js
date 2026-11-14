@@ -17,6 +17,7 @@ router.patch("/culture/:id/review", requireAdmin, validate(idParamsSchema, "para
 router.get("/calendar", requireContentTeam, validate(listSchema, "query"), controller.calendar);
 router.patch("/calendar/:id/review", requireAdmin, validate(idParamsSchema, "params"), validate(reviewSchema), controller.updateCalendar);
 router.get("/xam", requireContentTeam, validate(listSchema, "query"), controller.xam);
+router.post("/xam/original/publish", requireAdmin, validate(z.object({ reviewNote: z.string().trim().min(8).max(500) }).strict()), controller.publishOriginalXamCatalog);
 router.patch("/xam/:id/review", requireAdmin, validate(idParamsSchema, "params"), validate(reviewSchema), controller.updateXam);
 router.get("/rituals", requireContentTeam, validate(listSchema, "query"), controller.rituals);
 router.patch("/rituals/:id/review", requireAdmin, validate(idParamsSchema, "params"), validate(reviewSchema), controller.updateRitual);

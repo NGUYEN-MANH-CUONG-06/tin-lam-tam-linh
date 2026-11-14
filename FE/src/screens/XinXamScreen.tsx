@@ -33,11 +33,12 @@ import {
 } from "../data/xinXamData";
 import {
   drawXinXam,
+  interpretDemoXinXam,
   loadXinXamAvailability,
   type XinXamAvailability,
 } from "../data/reflectionService";
 import { ApiError } from "../lib/api";
-import { hasCompleteXamPoem, isPublishableXamCard, normalizeXamPoemLines } from "../../../shared/xin-xam-publication.mjs";
+import { isPublishableXamCard, normalizeXamPoemLines } from "../../../shared/xin-xam-publication.mjs";
 import { enterDemoMode, isDemoMode } from "../data/demoMode";
 import { readDemoValue, writeDemoValue } from "../data/demoStorage";
 import { DetailedReadingUnlock } from "../components/DetailedReadingUnlock";
@@ -59,6 +60,7 @@ function loadDemoXinXamSnapshot(): DemoXinXamSnapshot | null {
   const result = snapshot.result;
   if (typeof snapshot.drawId !== "string" || !result || typeof result !== "object") return null;
   const isText = (item: unknown): item is string => typeof item === "string";
+  if (result.reflectionQuestion !== undefined && !isText(result.reflectionQuestion)) return null;
   if (!isText(result.stickNumber) || !isText(result.sealText) || !isText(result.title) || !isText(result.quote)
     || !isText(result.regionSub) || !isText(result.topicTag) || !isText(result.insight)
     || !isText(result.culturalAspect) || !isText(result.relatedArticleId) || !isText(result.relatedArticleTitle)
@@ -100,6 +102,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
   const [step, setStep] = useState<1 | 2 | 3>(demoSnapshot ? 3 : 1);
   const selectedRegion = "Toàn quốc" as const;
   const [selectedTopic, setSelectedTopic] = useState<TopicType>(demoSnapshot?.result.topic ?? "Bình an");
+  const [reflectionQuestion, setReflectionQuestion] = useState(demoSnapshot?.result.reflectionQuestion ?? "");
 
   const [availability, setAvailability] =
     useState<XinXamAvailability | null>(null);
@@ -303,7 +306,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
       remote = await drawXinXam(
         selectedRegion,
         selectedTopic,
-        undefined,
+        reflectionQuestion.trim() || undefined,
         { signal: controller.signal },
       );
     } catch (error) {
@@ -348,7 +351,11 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
     const poemLines = normalizeXamPoemLines(remote.poem || "");
 
     const publishable = isDemoMode()
-      ? Boolean(remote.source && hasCompleteXamPoem(remote.poem || "") && remote.meaning.trim() && remote.advice.trim())
+      ? remote.demoStatus === "DEMO_ACTIVE"
+        && remote.active === true
+        && remote.verified === false
+        && poemLines.length === 4
+        && remote.xamType === "TLTL_ORIGINAL_100_V1:1.0.1-draft"
       : isPublishableXamCard({
       active: remote.active,
       verified: remote.verified,
@@ -375,6 +382,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
 
     const chosen: XinXamResult = {
       resultToken: remote.resultToken,
+      reflectionQuestion: reflectionQuestion.trim(),
       metadata: remote.originalContent.metadata,
       aiExplanation: remote.aiExplanation || undefined,
       source: remote.source || "",
@@ -725,6 +733,22 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                   })}
                 </div>
               </fieldset>
+
+              <div className="mb-6 space-y-2">
+                <label htmlFor="xin-xam-reflection-question" className="block text-xs font-bold uppercase tracking-wider text-accent">
+                  Câu hỏi muốn chiêm nghiệm <span className="font-normal normal-case tracking-normal text-muted">(không bắt buộc)</span>
+                </label>
+                <textarea
+                  id="xin-xam-reflection-question"
+                  rows={3}
+                  maxLength={2000}
+                  value={reflectionQuestion}
+                  onChange={(event) => setReflectionQuestion(event.target.value)}
+                  placeholder="Bạn đang băn khoăn điều gì trong phương diện đã chọn?"
+                  className="w-full rounded-xl border border-line bg-surface p-3 text-sm text-ink placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                />
+                <p className="text-xs text-muted">Câu hỏi được gửi đến máy chủ để tạo luận giải; vui lòng không nhập thông tin nhạy cảm.</p>
+              </div>
 
               {/* Selection Summary Callout Box */}
               <Card className="p-5 rounded-2xl bg-surface border border-line flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shadow-2xs">
@@ -1382,6 +1406,26 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
 
               {/* Right Column (7 columns): Full Open Literary Reading (No hidden accordions) */}
               <div className="lg:col-span-7 space-y-7 text-ink">
+                {isDemoMode() && currentDrawId && (
+                  <DetailedReadingUnlock
+                    key={`xam:${currentDrawId}`}
+                    kind="xam"
+                    resultId={currentDrawId}
+                    sections={[]}
+                    onInterpretation={async () => {
+                      if (!currentResult.resultToken) throw new Error("Thiếu mã lượt Xin xăm do máy chủ ký.");
+                      const result = await interpretDemoXinXam(currentResult.resultToken, currentResult.topic, currentResult.reflectionQuestion);
+                      return [
+                        { title: "Tổng quan", content: result.summary },
+                        { title: "Ý nghĩa truyền thống", content: result.traditionalMeaning },
+                        { title: "Phân tích biểu tượng", content: result.symbolicAnalysis },
+                        { title: "Liên hệ câu hỏi", content: result.contextualInterpretation },
+                        ...result.practicalAdvice.map((content, index) => ({ title: `Gợi ý thực tế ${index + 1}`, content })),
+                        ...result.cautions.map((content, index) => ({ title: `Điều cần lưu ý ${index + 1}`, content })),
+                      ];
+                    }}
+                  />
+                )}
                 {/* 1. Một điều để ngẫm - MỞ HOÀN TOÀN */}
                 <section aria-labelledby="xam-reflection-title" className="space-y-4">
                   <div className="flex items-center gap-2">
@@ -1407,10 +1451,10 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                   </div>
                 </section>
 
-                <div className="w-full h-px bg-line/60" />
+                {!isDemoMode() && <div className="w-full h-px bg-line/60" />}
 
                 {/* 2. Soi chiếu biểu tượng & Góc nhìn phương diện - MỞ HOÀN TOÀN */}
-                <section className="space-y-4">
+                {!isDemoMode() && <section className="space-y-4">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-accent inline-block" />
                     <h3 className="font-display text-lg sm:text-xl font-semibold text-ink">
@@ -1437,12 +1481,12 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                       </p>
                     </div>
                   </div>
-                </section>
+                </section>}
 
-                <div className="w-full h-px bg-line/60" />
+                {!isDemoMode() && <div className="w-full h-px bg-line/60" />}
 
                 {/* 3. Bài học cuộc sống (Tips) - MỞ HOÀN TOÀN */}
-                {currentResult.tips.length > 0 && (
+                {!isDemoMode() && currentResult.tips.length > 0 && (
                   <section className="space-y-3.5">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-accent inline-block" />

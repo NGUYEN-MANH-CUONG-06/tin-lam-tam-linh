@@ -1,0 +1,30 @@
+{
+  "systemId": "WONG_TAI_SIN_100",
+  "catalogVersion": "1.0.0-candidate",
+  "expectedCount": 100,
+  "records": [],
+  "research": {
+    "status": "DATASET_COMPLETE_CLAIMED_RIGHTS_UNRESOLVED",
+    "candidateSource": "https://www.kaucim.ai/datasets/wong-tai-sin-kau-cim-100.json",
+    "candidateReference": "https://www.kaucim.ai/en/reference/wong-tai-sin-kau-cim",
+    "primarySourceTemplate": "https://taonet.siksikyuen.org.hk/StickEnquiry/{id}/zh-TW",
+    "datasetVersionClaim": "1.0.0",
+    "datasetReleaseDateClaim": "2026-07-13",
+    "datasetRecordCountClaim": 100,
+    "datasetRecordsVisibleThrough": 100,
+    "candidateFieldsClaim": ["number", "titleZhHant", "gradeZhHant", "gradeEn", "poemZhHant", "canonicalUrlZhHant", "canonicalUrlEn"],
+    "datasetChangelogClaimsUniqueIds": "1..100",
+    "candidateGradeDistributionClaim": { "上上": 3, "上吉": 10, "中吉": 29, "中平": 40, "下下": 18 },
+    "primaryRecordsCrossChecked": [1, 2],
+    "primaryStick100Checked": false,
+    "rightsStatus": "UNRESOLVED_CONFLICT",
+    "rightsEvidence": {
+      "publisherClaim": "public domain cultural material; attribution requested; no SPDX/Creative Commons/custom commercial license identifier found",
+      "primarySourceNotice": "Sik Sik Yuen TAO-NET says all site content including text may not be copied or used without consent or authorization",
+      "commercialReuseExplicitlyGranted": false,
+      "automatedAccessConcern": "kaucim.ai terms prohibit automated scraping; use its published downloadable dataset only after clarifying rights and permitted access"
+    },
+    "historicalEvidence": ["Sik Sik Yuen anniversary artifact page describes 黃赤松大僊靈籤詳解 as completed in 1934; it does not establish author, exact text date, copyright expiry, or reuse rights."],
+    "note": "Research metadata only. No poem, translation, commentary, or production card has been copied into this repository. Candidate data is accessible and its completeness is publisher-claimed, but all 100 records have not been independently compared with the primary source and commercial rights remain unresolved."
+  }
+}

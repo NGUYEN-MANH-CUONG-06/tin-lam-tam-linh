@@ -16,6 +16,7 @@ export const XIN_XAM_TOPICS: TopicType[] = [
 
 export interface XinXamResult {
   resultToken?: string;
+  reflectionQuestion?: string;
   metadata: ContentMetadata;
   aiExplanation?: {
     content: string;

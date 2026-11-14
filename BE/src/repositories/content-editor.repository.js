@@ -1,5 +1,6 @@
 const prisma = require("../config/prisma");
 const { stateAfterEdit } = require("../services/editorial-workflow");
+const { isOriginalXamMetadata } = require("../../../shared/xin-xam-publication.mjs");
 const models = { culture: "culture_articles", calendar: "calendar_events", xam: "xin_xam", rituals: "rituals", prayers: "prayers" };
 async function ownsRecord(kind, id, actorId, client = prisma) {
   if (!actorId) return true;
@@ -53,10 +54,13 @@ async function save(kind, id, actorId, input, enforceOwnership = false) {
   return prisma.$transaction(async (tx) => {
     if (id) {
       if (enforceOwnership && !(await ownsRecord(kind, id, actorId, tx))) return null;
-      const before = await tx[models[kind]].findUnique({ where: { id }, select: { id: true, updated_at: true, editorial_status: true } });
+      const before = await tx[models[kind]].findUnique({ where: { id }, select: { id: true, updated_at: true, editorial_status: true, ...(kind === "xam" ? { editorial_metadata: true } : {}) } });
       if (!before) return null;
       if (enforceOwnership && before.editorial_status !== "DRAFT") return { workflowConflict: true };
       if (!expectedUpdatedAt || new Date(expectedUpdatedAt).getTime() !== before.updated_at.getTime()) return { versionConflict: true };
+      if (kind === "xam" && isOriginalXamMetadata(before.editorial_metadata)) {
+        data.editorial_metadata = { ...before.editorial_metadata, reviewStatus: "DRAFT", humanApproved: false };
+      }
       data.updated_at = new Date(Math.max(Date.now(), before.updated_at.getTime() + 1));
     }
     const { ritual_steps: steps, ...recordData } = data;

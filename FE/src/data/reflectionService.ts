@@ -1,8 +1,8 @@
-import { apiRequest } from "../lib/api";
+import { apiBackendRequest, apiRequest } from "../lib/api";
 import { isDemoMode } from "./demoMode";
 import { readDemoValue, writeDemoValue } from "./demoStorage";
 import { DEMO_PUBLIC_SOURCES } from "./demoContent";
-import { getXinXamResult, XIN_XAM_REGIONS, type RegionType, type TopicType } from "./xinXamData";
+import type { RegionType, TopicType } from "./xinXamData";
 import { trackProductEvent } from "./productAnalytics";
 import type { SavedWishItem, SavedXinXamItem } from "../screens/AccountScreen";
 import type { ContentMetadata } from "./contentMetadata";
@@ -54,6 +54,7 @@ export function saveXam(result: {
 
 export interface XinXamDrawResponse extends SavedXinXamItem {
   active: boolean;
+  demoStatus?: "DEMO_ACTIVE";
   xamType: string;
   classification: string;
   rank: "Thượng Xăm" | "Trung Xăm" | "Hạ Xăm";
@@ -92,14 +93,16 @@ export function loadXinXamAvailability(
   topic: string,
   options: { signal?: AbortSignal } = {},
 ): Promise<XinXamAvailability> {
-  if (isDemoMode()) return Promise.resolve({ region, topic, count: 1, available: true });
   const params = new URLSearchParams({
     region,
     topic,
   });
 
-  return apiRequest<XinXamAvailability>(
-    `/xam/availability?${params.toString()}`,
+  const demo = isDemoMode();
+  const request = demo ? apiBackendRequest : apiRequest;
+  const endpoint = demo ? "/demo/reflections/xin-xam/availability" : "/xam/availability";
+  return request<XinXamAvailability>(
+    `${endpoint}?${params.toString()}`,
     {
       signal: options.signal,
     },
@@ -112,62 +115,25 @@ export function drawXinXam(
   question?: string,
   options: { signal?: AbortSignal } = {},
 ): Promise<XinXamDrawResponse> {
-  if (isDemoMode()) {
-    const resultRegion = region === "Toàn quốc"
-      ? XIN_XAM_REGIONS[Math.floor(Math.random() * XIN_XAM_REGIONS.length)]
-      : region as RegionType;
-    const result = getXinXamResult(resultRegion as RegionType, topic as TopicType);
-    const drawId = `demo-xam-${crypto.randomUUID()}`;
-    const poem = [result.poem.line1, result.poem.line2, result.poem.line3, result.poem.line4].join("\n");
-    const source = DEMO_PUBLIC_SOURCES.xinXamPractice;
-    const metadata: ContentMetadata = {
-      contentKind: "demo",
-      editorialStatus: "draft",
-      sources: [{
-        id: "demo-xin-xam-practice",
-        title: "Ghi nhận thực hành xin xăm tại Miếu Ngũ Hành",
-        authorOrOrganization: "Báo Tuổi Trẻ",
-        url: source,
-        locator: "Bài phóng sự mô tả cách xin thẻ tại một địa điểm cụ thể; không xác minh bài thơ trong kết quả demo.",
-      }],
-      quotationVerified: false,
-      editorialNote: "Bài thơ và lời diễn giải trong phiên demo là nội dung mẫu, chưa xác minh như nguyên văn thẻ tại một cơ sở thờ tự.",
-    };
-    return Promise.resolve({
-      id: drawId,
-      drawId,
-      stickNumber: result.stickNumber,
-      fortuneType: result.fortuneType || result.sealText,
-      category: result.category || topic,
-      region: resultRegion,
-      quote: result.quote,
-      date: new Date().toISOString(),
-      source,
-      verified: false,
-      active: true,
-      xamType: `${resultRegion}:${topic}`,
-      classification: result.fortuneType || result.sealText,
-      rank: "Trung Xăm",
-      classificationGroup: "NEUTRAL",
-      poem,
-      originalContent: { poem, meaning: result.reflectionParagraphs.join("\n\n"), advice: result.tips.map((tip) => tip.desc).join(" "), metadata },
-      aiExplanation: null,
-      meaning: result.reflectionParagraphs.join("\n\n"),
-      advice: result.tips.map((tip) => tip.desc).join(" "),
-      disclaimer: "Bản demo văn hóa và chiêm nghiệm; không phải dự báo, lời khuyên chuyên môn hay bản thẻ đã được xác minh.",
-      interpretation: { summary: result.reflectionParagraphs.join("\n\n"), recommendation: result.microAction.desc, warning: "Không dùng kết quả để quyết định sức khỏe, pháp lý, tài chính hoặc an toàn." },
-      proverb: null,
-    });
-  }
-  return apiRequest<XinXamDrawResponse>("/xam/draw", {
+  const demo = isDemoMode();
+  const inputKey = JSON.stringify({ region, topic, question: question || "" });
+  const storedRequest = demo
+    ? readDemoValue<{ inputKey: string; requestId: string } | null>("xin-xam-pending-request-v1", null)
+    : null;
+  const requestId = demo && storedRequest?.inputKey === inputKey ? storedRequest.requestId : crypto.randomUUID();
+  if (demo) writeDemoValue("xin-xam-pending-request-v1", { inputKey, requestId });
+  const request = demo ? apiBackendRequest : apiRequest;
+  return request<XinXamDrawResponse>(demo ? "/demo/reflections/xin-xam/draw" : "/xam/draw", {
     method: "POST",
     body: JSON.stringify({
+      ...(demo ? { requestId } : {}),
       region,
       topic,
       question,
     }),
     signal: options.signal,
   }).then((result) => {
+    if (demo) writeDemoValue("xin-xam-pending-request-v1", null);
     trackProductEvent("xam_draw_completed");
     return result;
   });
@@ -249,6 +215,11 @@ export interface XinKeoCast {
   piece1: "am" | "duong";
   piece2: "am" | "duong";
   proverb: SourcedProverb | null;
+  resultToken?: string;
+  title?: string;
+  statusLabel?: string;
+  meaning?: string;
+  guidance?: string;
 }
 
 export interface XinKeoSession {
@@ -293,14 +264,15 @@ export function castXinKeo(
     const sessions = readDemoValue<Record<string, XinKeoSession>>("xin-keo-sessions", {});
     const session = sessions[sessionId];
     if (!session) return Promise.reject(new Error("Không tìm thấy lượt xin keo demo."));
-    const values = ["am", "duong"] as const;
-    const piece1 = values[Math.floor(Math.random() * values.length)];
-    const piece2 = values[Math.floor(Math.random() * values.length)];
-    const type: XinKeoCast["type"] = piece1 !== piece2 ? "nhat-am-nhat-duong" : piece1 === "am" ? "nhi-am" : "nhi-duong";
-    const cast: XinKeoCast = { id: crypto.randomUUID(), throwNumber: session.throws.length + 1, type, piece1, piece2, proverb: null };
-    session.throws.push(cast);
-    writeDemoValue("xin-keo-sessions", sessions);
-    return Promise.resolve(cast);
+    return apiBackendRequest<XinKeoCast>("/demo/reflections/xin-keo/throws", {
+      method: "POST",
+      body: JSON.stringify({ sessionId, requestId, question: session.question }),
+    }).then((result) => {
+      const cast: XinKeoCast = { ...result, proverb: null };
+      session.throws.push(cast);
+      writeDemoValue("xin-keo-sessions", sessions);
+      return cast;
+    });
   }
   return apiRequest<XinKeoCast>(
     `/reflections/xin-keo/sessions/${encodeURIComponent(sessionId)}/throws`,
@@ -309,6 +281,42 @@ export function castXinKeo(
       body: JSON.stringify({ requestId }),
     }
   );
+}
+
+export function interpretDemoXinKeo(resultToken: string) {
+  if (!isDemoMode()) return Promise.reject(new Error("Demo interpretation is unavailable."));
+  return apiBackendRequest<{
+    status: "SUCCESS" | "INSUFFICIENT_EVIDENCE";
+    summary: string;
+    traditionalMeaning: string;
+    symbolicAnalysis: string;
+    contextualInterpretation: string;
+    practicalAdvice: string[];
+    cautions: string[];
+    sourceRefs: string[];
+    model: string;
+  }>("/demo/reflections/xin-keo/interpretation", {
+    method: "POST",
+    body: JSON.stringify({ resultToken }),
+  });
+}
+
+export function interpretDemoXinXam(resultToken: string, topic: string, question?: string) {
+  if (!isDemoMode()) return Promise.reject(new Error("Demo interpretation is unavailable."));
+  return apiBackendRequest<{
+    status: "SUCCESS" | "INSUFFICIENT_EVIDENCE";
+    summary: string;
+    traditionalMeaning: string;
+    symbolicAnalysis: string;
+    contextualInterpretation: string;
+    practicalAdvice: string[];
+    cautions: string[];
+    sourceRefs: string[];
+    model: string;
+  }>("/demo/reflections/xin-xam/interpretation", {
+    method: "POST",
+    body: JSON.stringify({ resultToken, topic, question }),
+  });
 }
 
 export function loadReflectionProverb(context: "XAM" | "KEO"): Promise<SourcedProverb> {

@@ -24,6 +24,14 @@ async function throwKeo(req, res) {
     data: result,
   });
 }
+async function interpretKeo(req, res) {
+  const data = await xinKeoService.interpretThrow(req.user.id, req.params.id, req.params.throwId, req.body);
+  return sendSuccess(res, { message: "Xin keo interpretation retrieved", data });
+}
+async function interpretXam(req, res) {
+  const data = await reflectionService.interpretXam(req.user.id, req.params.id, req.body);
+  return sendSuccess(res, { message: "Xin xam interpretation retrieved", data });
+}
 async function listKeoSessions(req, res) { return sendSuccess(res, { message: "Xin keo sessions retrieved", data: { items: await xinKeoService.listSessions(req.user.id) } }); }
 async function tossKeo(req, res) {
   const session = req.body.sessionId
@@ -70,6 +78,8 @@ module.exports = {
   createKeoSession,
   getKeoSession,
   throwKeo,
+  interpretKeo,
+  interpretXam,
   listKeoSessions,
   tossKeo,
 };

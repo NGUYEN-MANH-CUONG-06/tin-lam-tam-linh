@@ -1,11 +1,42 @@
 const { createHash } = require("node:crypto");
 const env = require("../config/env");
 const prisma = require("../config/prisma");
+const { isDemoAutoActivationEnabled } = require("../services/demo-activation");
 
 let lastCleanupAt = 0;
+const demoBuckets = new Map();
+
+function applyDemoRateLimit(req, res, address) {
+  const now = Date.now();
+  const windowMs = env.RATE_LIMIT_WINDOW_MS;
+  const windowId = Math.floor(now / windowMs);
+  const bucketKey = `${createHash("sha256").update(address).digest("hex")}:${windowId}`;
+  const requestCount = (demoBuckets.get(bucketKey) || 0) + 1;
+  demoBuckets.set(bucketKey, requestCount);
+  if (now - lastCleanupAt > Math.max(windowMs, 60_000)) {
+    lastCleanupAt = now;
+    for (const key of demoBuckets.keys()) {
+      if (!key.endsWith(`:${windowId}`)) demoBuckets.delete(key);
+    }
+  }
+  const resetAt = (windowId + 1) * windowMs / 1000;
+  res.set("RateLimit-Limit", String(env.RATE_LIMIT_MAX));
+  res.set("RateLimit-Remaining", String(Math.max(0, env.RATE_LIMIT_MAX - requestCount)));
+  res.set("RateLimit-Reset", String(Math.ceil(resetAt)));
+  if (requestCount > env.RATE_LIMIT_MAX) {
+    res.set("Retry-After", String(Math.max(1, Math.ceil(resetAt - now / 1000))));
+    return res.status(429).json({ success: false, message: "Too many requests", errors: [] });
+  }
+  return null;
+}
 
 async function apiRateLimit(req, res, next) {
   const address = req.ip || req.socket.remoteAddress || "unknown";
+  if (isDemoAutoActivationEnabled(env)) {
+    const limited = applyDemoRateLimit(req, res, address);
+    if (limited) return limited;
+    return next();
+  }
   // Store a one-way identifier instead of retaining client IP addresses.
   const bucketKey = createHash("sha256").update(address).digest("hex");
   const windowMs = BigInt(env.RATE_LIMIT_WINDOW_MS);

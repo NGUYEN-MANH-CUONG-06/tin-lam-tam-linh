@@ -1,0 +1,3121 @@
+{
+  "systemId": "TLTL_ORIGINAL_100_V1",
+  "datasetVersion": "1.0.1-draft",
+  "language": "vi",
+  "expectedCount": 100,
+  "status": "DRAFT_NOT_APPROVED",
+  "sourcePolicy": "ORIGINAL_EDITORIAL_CONTENT_NO_TRADITIONAL_SOURCE_CLAIM",
+  "sourceReferencePolicy": "The Scribd reference was consulted only for presentation structure; no source poem, translation, grade, interpretation, or commentary is used as dataset content.",
+  "authorship": {
+    "owner": "Tin Lắm Tâm Linh",
+    "method": "AI-assisted original editorial drafting; requires human content review",
+    "humanApproved": false
+  },
+  "gradeDefinitions": {
+    "THUẬN": "Có điều kiện thuận lợi để tiến hành từng bước; không bảo đảm kết quả.",
+    "BÌNH": "Cần quan sát, trao đổi hoặc chuẩn bị; chưa nghiêng rõ về thuận hay khó.",
+    "CẨN TRỌNG": "Nên kiểm tra rủi ro, giới hạn hoặc điều kiện trước khi cam kết."
+  },
+  "records": [
+    {
+      "id": 1,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Mầm qua đất nâu",
+      "poem": "Mầm non đội đất đón mưa đầu\nRễ nhỏ âm thầm bám thật sâu\nChớ vội đòi cành vươn bóng rộng\nChăm ngày, lá biếc sẽ xanh lâu",
+      "grade": "THUẬN",
+      "centralMeaning": "Khởi đầu thuận khi người hỏi chấp nhận học từ nền tảng và chăm việc nhỏ.",
+      "symbols": [
+        "Mầm non"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Mầm non",
+          "meaning": "Năng lực mới còn mong manh nhưng có sức sống nếu được chăm đều."
+        }
+      ],
+      "topics": [
+        "khởi đầu"
+      ],
+      "interpretationGuidance": "Đọc quẻ như lời nhắc nuôi dưỡng bước đầu, không thúc ép kết quả sớm.",
+      "cautions": [
+        "Đừng xem tín hiệu ban đầu là bảo đảm thành công."
+      ],
+      "practicalAdvice": [
+        "Chọn một kỹ năng nền tảng và luyện đều trong tháng tới."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 2,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bến đợi con nước",
+      "poem": "Con nước chưa lên, thuyền nằm bến\nMái chèo hong nắng cạnh hàng dừa\nNgười biết xem dòng không trách sóng\nĐợi đúng con triều, nhẹ mái đưa",
+      "grade": "BÌNH",
+      "centralMeaning": "Thời điểm chưa thuận để tiến mạnh; quan sát điều kiện và chuẩn bị sẽ hữu ích hơn nóng vội.",
+      "symbols": [
+        "Mái chèo bên bến"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Mái chèo bên bến",
+          "meaning": "Khả năng hành động đã có, còn thời cơ cần được đánh giá."
+        }
+      ],
+      "topics": [
+        "thời điểm"
+      ],
+      "interpretationGuidance": "Nhấn vào sự chủ động trong lúc chờ và một mốc quyết định rõ ràng.",
+      "cautions": [
+        "Chờ đợi không đồng nghĩa trì hoãn vô thời hạn."
+      ],
+      "practicalAdvice": [
+        "Đặt mốc xem xét lại và liệt kê điều kiện cần trước khi khởi hành."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 3,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Lối quanh sườn núi",
+      "poem": "Đường thẳng khuất sau triền đá cao\nLối vòng đưa bước khỏi vực sâu\nChậm một khúc quanh không mất đích\nCố lao đường tắt dễ thương đau",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Lựa chọn an toàn và linh hoạt đáng giá hơn tiến độ nhanh khi rủi ro chưa rõ.",
+      "symbols": [
+        "Lối vòng qua triền đá"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Lối vòng qua triền đá",
+          "meaning": "Một đường đi dài hơn có thể tránh nguy cơ mà mắt thường chưa thấy."
+        }
+      ],
+      "topics": [
+        "lựa chọn"
+      ],
+      "interpretationGuidance": "Giúp người hỏi nhận diện chi phí của đường tắt và lợi ích của lộ trình an toàn.",
+      "cautions": [
+        "Không đánh đồng sự thận trọng với thất bại."
+      ],
+      "practicalAdvice": [
+        "Kiểm tra phương án dự phòng và hỏi người có kinh nghiệm trước khi cam kết."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 4,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Ngọn đèn bàn học",
+      "poem": "Đêm yên, trang giấy còn thơm mực\nMột nét sửa đi sáng ý dần\nTri thức không về trong chớp mắt\nMỗi ngày góp chữ hóa thành văn",
+      "grade": "THUẬN",
+      "centralMeaning": "Học tập tiến triển nhờ nỗ lực đều đặn, sửa sai và tích lũy kiến thức có hệ thống.",
+      "symbols": [
+        "Trang giấy sửa nét"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Trang giấy sửa nét",
+          "meaning": "Sai sót được nhận ra là một phần của quá trình hiểu sâu."
+        }
+      ],
+      "topics": [
+        "học tập"
+      ],
+      "interpretationGuidance": "Liên hệ kết quả với phương pháp học cụ thể thay vì may rủi.",
+      "cautions": [
+        "Đừng tự ép mình phải giỏi ngay hoặc so sánh tiến độ."
+      ],
+      "practicalAdvice": [
+        "Chia mục tiêu học thành buổi ngắn, có ôn tập và phản hồi."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 5,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Hai ghế dưới hiên",
+      "poem": "Mưa rơi, hai ghế cùng im lặng\nMột chén trà nguội giữa đôi tay\nLời thật không cần chen tiếng lớn\nNghe hết lòng nhau, ấm lại ngày",
+      "grade": "BÌNH",
+      "centralMeaning": "Quan hệ có thể dịu đi khi hai bên dành chỗ cho lắng nghe chân thành.",
+      "symbols": [
+        "Hai chiếc ghế"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Hai chiếc ghế",
+          "meaning": "Sự hiện diện bình đẳng tạo không gian để đối thoại."
+        }
+      ],
+      "topics": [
+        "tình cảm"
+      ],
+      "interpretationGuidance": "Tập trung vào khả năng đối thoại, không dự báo hòa giải chắc chắn.",
+      "cautions": [
+        "Lắng nghe không có nghĩa chấp nhận hành vi gây tổn thương."
+      ],
+      "practicalAdvice": [
+        "Hẹn một cuộc trò chuyện bình tĩnh, nói rõ nhu cầu và ranh giới."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 6,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Mái nhà đón gió",
+      "poem": "Mái tranh qua gió còn che bếp\nBàn tay chung vá lại đường xiên\nNhà ấm không nhờ tường thật kín\nMà nhờ người biết giữ bình yên",
+      "grade": "THUẬN",
+      "centralMeaning": "Gia đình vững hơn khi trách nhiệm được chia sẻ và mỗi người cùng chăm sóc không khí trong nhà.",
+      "symbols": [
+        "Mái nhà được vá"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Mái nhà được vá",
+          "meaning": "Sự bền bỉ đến từ công sức chung, không phải vẻ ngoài hoàn hảo."
+        }
+      ],
+      "topics": [
+        "gia đình"
+      ],
+      "interpretationGuidance": "Đưa lời khuyên về trách nhiệm cụ thể và sự công bằng giữa các thành viên.",
+      "cautions": [
+        "Đừng để một người gánh hết việc chăm sóc và hòa giải."
+      ],
+      "practicalAdvice": [
+        "Cùng thống nhất một việc nhà hoặc trách nhiệm cần phân chia lại."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 7,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Chiếc ví khâu chỉ",
+      "poem": "Đồng tiền nhỏ khâu đường chỉ mảnh\nRơi một lần, khó nhặt đủ tay\nSổ sách mở ra soi khoản thiếu\nGiữ phần cần thiết trước ngày mai",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Tài chính cần được nhìn bằng số liệu thật; kiểm soát khoản nhỏ giúp tránh thiếu hụt bất ngờ.",
+      "symbols": [
+        "Đường chỉ trong ví"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Đường chỉ trong ví",
+          "meaning": "Ranh giới chi tiêu giữ nguồn lực khỏi rò rỉ từng chút."
+        }
+      ],
+      "topics": [
+        "tài chính"
+      ],
+      "interpretationGuidance": "Khuyến khích quyết định dựa trên ngân sách, không xem quẻ là tư vấn đầu tư.",
+      "cautions": [
+        "Không vay hoặc đầu tư chỉ vì lời hứa lợi nhuận nhanh."
+      ],
+      "practicalAdvice": [
+        "Ghi thu chi một tháng và xác định khoản dự phòng tối thiểu."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 8,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bậc đá sau mưa",
+      "poem": "Bậc rêu trơn, chân người còn vững\nTay vịn đưa qua dốc ngắn thôi\nVết ngã hôm qua thành lời nhắc\nBiết nhìn bàn chân, bước xa rồi",
+      "grade": "THUẬN",
+      "centralMeaning": "Khó khăn cũ có thể trở thành kinh nghiệm thực tế nếu người hỏi rút ra điều chỉnh phù hợp.",
+      "symbols": [
+        "Tay vịn trên bậc đá"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Tay vịn trên bậc đá",
+          "meaning": "Hỗ trợ đáng tin giúp vượt đoạn khó mà không xóa đi nỗ lực cá nhân."
+        }
+      ],
+      "topics": [
+        "nghị lực"
+      ],
+      "interpretationGuidance": "Gợi khả năng phục hồi cùng sự trợ giúp, không tô hồng nỗi đau.",
+      "cautions": [
+        "Đừng cố chứng minh mình mạnh bằng cách từ chối trợ giúp."
+      ],
+      "practicalAdvice": [
+        "Nhờ một người đáng tin hỗ trợ đúng phần đang vướng."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 9,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Cây cầu gỗ nhỏ",
+      "poem": "Bờ bên kia chưa thành gần gũi\nCây cầu còn thiếu một nhịp ngang\nNgười qua trước hãy dò từng ván\nTin nhau cần thử bước đàng hoàng",
+      "grade": "BÌNH",
+      "centralMeaning": "Quan hệ hợp tác cần được xây bằng những cam kết nhỏ có thể kiểm chứng.",
+      "symbols": [
+        "Tấm ván cầu"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Tấm ván cầu",
+          "meaning": "Niềm tin hình thành qua trải nghiệm lặp lại, không chỉ qua lời nói."
+        }
+      ],
+      "topics": [
+        "quan hệ xã hội"
+      ],
+      "interpretationGuidance": "Nhấn vào kiểm chứng và sự tương hỗ trong hợp tác.",
+      "cautions": [
+        "Không trao quyền hoặc dữ liệu quan trọng khi chưa rõ trách nhiệm."
+      ],
+      "practicalAdvice": [
+        "Thử hợp tác ở phạm vi nhỏ, ghi rõ vai trò và thời hạn."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 10,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Cửa sổ mở nửa",
+      "poem": "Cửa khép lâu nay vừa hé sáng\nGió mới chạm rèm, bụi cũng bay\nCơ hội thường đi cùng xáo trộn\nChọn điều cần giữ, mở bàn tay",
+      "grade": "THUẬN",
+      "centralMeaning": "Một thay đổi mới có triển vọng nhưng đòi hỏi người hỏi phân biệt điều nên giữ với điều nên đổi.",
+      "symbols": [
+        "Cánh cửa hé"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Cánh cửa hé",
+          "meaning": "Cơ hội mở ra cùng những xáo động ban đầu."
+        }
+      ],
+      "topics": [
+        "thay đổi"
+      ],
+      "interpretationGuidance": "Cân bằng sự cởi mở với tiêu chí và ranh giới cá nhân.",
+      "cautions": [
+        "Đừng nhận mọi thay đổi chỉ vì nó mới mẻ."
+      ],
+      "practicalAdvice": [
+        "Nêu rõ điều kiện chấp nhận và điều không thể đánh đổi."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 11,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Hạt muối trong chum",
+      "poem": "Chum muối đầy, miệng chum chưa đậy\nMột mùa ẩm tới hóa vơi nhanh\nCủa dành cần nắp che mưa gió\nBiết giữ hôm nay, vững tháng quanh",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Nguồn lực hiện có cần được bảo vệ trước rủi ro có thể dự liệu.",
+      "symbols": [
+        "Chum muối không nắp"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Chum muối không nắp",
+          "meaning": "Tài sản tích lũy vẫn dễ hao hụt nếu thiếu biện pháp bảo vệ."
+        }
+      ],
+      "topics": [
+        "tài chính"
+      ],
+      "interpretationGuidance": "Định hướng phòng ngừa rủi ro cụ thể, tránh dự đoán biến cố.",
+      "cautions": [
+        "Đừng chủ quan vì hiện tại đang dư dả."
+      ],
+      "practicalAdvice": [
+        "Rà lại bảo hiểm, khoản dự phòng và các nghĩa vụ sắp đến."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 12,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Mặt gương lau bụi",
+      "poem": "Gương mờ không làm trời thôi sáng\nKhăn mềm lau nhẹ, nét quen về\nNhìn lỗi của mình không tự trách\nSửa một điều thôi, lòng nhẹ ghê",
+      "grade": "THUẬN",
+      "centralMeaning": "Tự nhìn lại với lòng tử tế giúp người hỏi thay đổi điều có thể kiểm soát.",
+      "symbols": [
+        "Mặt gương sáng dần"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Mặt gương sáng dần",
+          "meaning": "Nhận thức rõ hơn xuất hiện qua quan sát kiên nhẫn."
+        }
+      ],
+      "topics": [
+        "trưởng thành"
+      ],
+      "interpretationGuidance": "Khuyến khích tự phản tỉnh có giới hạn và lòng tự trọng.",
+      "cautions": [
+        "Đừng biến tự kiểm điểm thành tự kết án."
+      ],
+      "practicalAdvice": [
+        "Viết một điều muốn sửa và một điểm mạnh sẽ dùng để sửa nó."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 13,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bát cơm chia đôi",
+      "poem": "Bát cơm thơm đặt giữa hai người\nPhần ít vẫn ngon nếu thật lòng\nCho đi vừa sức, đừng quên mình\nLòng cho đi vẫn chừa phần mình",
+      "grade": "BÌNH",
+      "centralMeaning": "Sự sẻ chia có ý nghĩa khi đi cùng giới hạn lành mạnh và sự tôn trọng lẫn nhau.",
+      "symbols": [
+        "Bát cơm chung"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Bát cơm chung",
+          "meaning": "Chăm sóc là sự trao nhận cân bằng, không phải hy sinh một chiều."
+        }
+      ],
+      "topics": [
+        "trách nhiệm"
+      ],
+      "interpretationGuidance": "Phân biệt lòng tốt bền vững với việc tự làm kiệt sức.",
+      "cautions": [
+        "Đừng dùng cho đi để mua sự công nhận."
+      ],
+      "practicalAdvice": [
+        "Xác định phần mình có thể giúp mà không ảnh hưởng nhu cầu thiết yếu."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 14,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Con thuyền đổi bến",
+      "poem": "Bến cũ thân quen còn bóng cọc\nSông mới chưa đo độ nước sâu\nRời đi cần mang theo la bàn\nĐừng vì chán chỗ mà quên đường",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Đổi hướng cần kế hoạch và hiểu rõ điều đang chờ phía trước.",
+      "symbols": [
+        "La bàn trong thuyền"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "La bàn trong thuyền",
+          "meaning": "Mục tiêu và dữ liệu giúp phân biệt thay đổi có chủ đích với phản ứng nhất thời."
+        }
+      ],
+      "topics": [
+        "công việc"
+      ],
+      "interpretationGuidance": "Đề nghị đánh giá lựa chọn bằng tiêu chí có thể kiểm tra.",
+      "cautions": [
+        "Đừng quyết định lớn chỉ để thoát cảm giác khó chịu nhất thời."
+      ],
+      "practicalAdvice": [
+        "So sánh lựa chọn theo thu nhập, hỗ trợ, rủi ro và thời hạn thử."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 15,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Tiếng chuông cuối lớp",
+      "poem": "Chuông tan, bài còn trang chưa hết\nBạn ngồi thêm nghe gió qua sân\nNgười học sâu không vì điểm số\nMà vì câu hỏi sáng trong dần",
+      "grade": "THUẬN",
+      "centralMeaning": "Tri thức phát triển khi sự tò mò được nuôi dưỡng vượt khỏi mục tiêu điểm số trước mắt.",
+      "symbols": [
+        "Trang vở còn mở"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Trang vở còn mở",
+          "meaning": "Câu hỏi chưa giải đáp mở đường cho việc học tiếp."
+        }
+      ],
+      "topics": [
+        "học tập"
+      ],
+      "interpretationGuidance": "Khích lệ tò mò có kiểm chứng, không hứa thành tích.",
+      "cautions": [
+        "Đừng để thành tích ngắn hạn quyết định giá trị bản thân."
+      ],
+      "practicalAdvice": [
+        "Tìm một nguồn tin cậy để đào sâu câu hỏi còn bỏ ngỏ."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 16,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Chiếc ô còn khô",
+      "poem": "Trời chưa mưa, ô nằm bên cửa\nMang theo không nặng một niềm lo\nChuẩn bị vừa tầm không gọi sợ\nBiết phòng khi cần, bước tự do",
+      "grade": "BÌNH",
+      "centralMeaning": "Chuẩn bị hợp lý giúp giảm lo âu và giữ quyền lựa chọn khi hoàn cảnh đổi khác.",
+      "symbols": [
+        "Chiếc ô gấp"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Chiếc ô gấp",
+          "meaning": "Dự phòng là sự sẵn sàng chứ không phải dự báo tai họa."
+        }
+      ],
+      "topics": [
+        "cân bằng"
+      ],
+      "interpretationGuidance": "Phân biệt chuẩn bị thực tế với lo lắng kéo dài.",
+      "cautions": [
+        "Đừng để chuẩn bị biến thành tích trữ quá mức."
+      ],
+      "practicalAdvice": [
+        "Chuẩn bị một phương án dự phòng vừa sức cho việc quan trọng nhất."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 17,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Vườn sau mùa gặt",
+      "poem": "Rơm vàng nằm lại bên bờ ruộng\nĐất nghỉ một mùa vẫn giữ màu\nThành quả xong rồi cần hồi sức\nĐừng gieo liên tiếp đến khô sâu",
+      "grade": "THUẬN",
+      "centralMeaning": "Sau một giai đoạn nỗ lực, nghỉ ngơi và phục hồi là phần cần thiết của tiến trình lâu dài.",
+      "symbols": [
+        "Đất nghỉ sau vụ gặt"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Đất nghỉ sau vụ gặt",
+          "meaning": "Sự hồi phục giúp nguồn lực duy trì khả năng sinh trưởng."
+        }
+      ],
+      "topics": [
+        "sức khỏe tinh thần"
+      ],
+      "interpretationGuidance": "Tôn trọng giới hạn và khuyên tìm hỗ trợ chuyên môn nếu kiệt sức kéo dài.",
+      "cautions": [
+        "Đừng xem nghỉ ngơi là lười biếng hoặc thất bại."
+      ],
+      "practicalAdvice": [
+        "Đặt khoảng nghỉ thực sự sau mốc công việc lớn."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 18,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Lời xin lỗi muộn",
+      "poem": "Lời xin lỗi đến sau mùa gió\nKhông xóa cành gãy khỏi sân nhà\nNhưng có thể dọn đường cho bước\nNếu người gây lỗi sửa từ nay",
+      "grade": "BÌNH",
+      "centralMeaning": "Lời xin lỗi chỉ có giá trị khi đi cùng trách nhiệm và hành động thay đổi.",
+      "symbols": [
+        "Cành gãy được dọn"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Cành gãy được dọn",
+          "meaning": "Khắc phục hậu quả có thể bắt đầu dù không đảo ngược quá khứ."
+        }
+      ],
+      "topics": [
+        "quan hệ"
+      ],
+      "interpretationGuidance": "Phân biệt lời xin lỗi, sửa sai và quyền lựa chọn của người nhận.",
+      "cautions": [
+        "Không ép người bị tổn thương phải tha thứ ngay."
+      ],
+      "practicalAdvice": [
+        "Nói rõ việc mình chịu trách nhiệm và cách sẽ bù đắp cụ thể."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 19,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Hạt mưa trên mái tôn",
+      "poem": "Mưa gõ dồn dập trên mái mỏng\nTiếng động làm lòng tưởng bão to\nHãy bước ra hiên nhìn mây thật\nĐừng để lời đồn hóa sóng to",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Tin đồn và cảm giác có thể phóng đại nguy cơ; cần kiểm chứng trước khi phản ứng.",
+      "symbols": [
+        "Mái hiên nhìn trời"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Mái hiên nhìn trời",
+          "meaning": "Khoảng lùi giúp phân biệt tín hiệu thật với tiếng vang của lo lắng."
+        }
+      ],
+      "topics": [
+        "quan hệ xã hội"
+      ],
+      "interpretationGuidance": "Nhắc kiểm chứng thông tin, tránh củng cố nghi kỵ.",
+      "cautions": [
+        "Không lan truyền điều chưa xác thực về người khác."
+      ],
+      "practicalAdvice": [
+        "Kiểm tra nguồn độc lập và hỏi trực tiếp người liên quan khi phù hợp."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 20,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Cây tre trước gió",
+      "poem": "Thân tre nghiêng theo chiều gió lộng\nGốc bền giữ đất khỏi rời xa\nMềm không có nghĩa là khuất phục\nBiết đổi dáng mình vẫn đứng qua",
+      "grade": "THUẬN",
+      "centralMeaning": "Linh hoạt trong cách làm có thể bảo vệ mục tiêu và giá trị cốt lõi.",
+      "symbols": [
+        "Thân tre nghiêng"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Thân tre nghiêng",
+          "meaning": "Sự thích nghi giúp chống chọi mà không mất gốc."
+        }
+      ],
+      "topics": [
+        "nghị lực"
+      ],
+      "interpretationGuidance": "Làm rõ ranh giới giữa thích nghi và tự đánh mất mình.",
+      "cautions": [
+        "Đừng nhân danh linh hoạt để chấp nhận điều trái nguyên tắc."
+      ],
+      "practicalAdvice": [
+        "Viết rõ điều có thể thương lượng và điều cần giữ vững."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 21,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Thư chưa gửi",
+      "poem": "Trang thư nằm yên bên ngọn đèn\nMực khô chưa chắc lòng đã nguôi\nViết hết điều đau rồi đọc lại\nCó khi buông nhẹ chẳng cần gửi",
+      "grade": "BÌNH",
+      "centralMeaning": "Viết ra cảm xúc có thể giúp người hỏi hiểu mình trước khi chọn cách đối thoại.",
+      "symbols": [
+        "Lá thư chưa gửi"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Lá thư chưa gửi",
+          "meaning": "Khoảng cách giữa cảm xúc và hành động cho phép lựa chọn sáng suốt."
+        }
+      ],
+      "topics": [
+        "tình cảm"
+      ],
+      "interpretationGuidance": "Khuyến khích điều hòa cảm xúc mà không áp đặt im lặng.",
+      "cautions": [
+        "Đừng gửi lời khi đang muốn làm đau người khác."
+      ],
+      "practicalAdvice": [
+        "Viết nháp, nghỉ một đêm rồi quyết định có cần trao đổi hay không."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 22,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bản đồ nét chì",
+      "poem": "Nét chì còn sửa trên trang giấy\nĐường vẽ hôm nay chưa phải rào\nMục tiêu rõ mà đường đi đổi\nNgười cầm bút, chọn đường mình đi",
+      "grade": "THUẬN",
+      "centralMeaning": "Kế hoạch có thể được điều chỉnh mà vẫn giữ mục tiêu do chính người hỏi lựa chọn.",
+      "symbols": [
+        "Bản đồ chì"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Bản đồ chì",
+          "meaning": "Lộ trình là công cụ có thể sửa, không phải số phận cố định."
+        }
+      ],
+      "topics": [
+        "định hướng"
+      ],
+      "interpretationGuidance": "Giữ quyền chủ động của người hỏi, tránh ngôn ngữ định mệnh.",
+      "cautions": [
+        "Đừng thay mục tiêu liên tục chỉ vì một trở ngại nhỏ."
+      ],
+      "practicalAdvice": [
+        "Chia mục tiêu thành chặng và xem lại kế hoạch theo dữ kiện mới."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 23,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Giếng làng trong",
+      "poem": "Giếng trong soi mây giữa buổi trưa\nGầu kéo chậm, nước trong vẫn đầy\nĐiều tốt thường nằm trong nguồn sẵn\nBiết dùng vừa đủ, sạch tháng ngày",
+      "grade": "THUẬN",
+      "centralMeaning": "Nguồn lực tốt có thể đã ở gần; sử dụng có trách nhiệm giúp duy trì lâu dài.",
+      "symbols": [
+        "Gầu nước trong"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Gầu nước trong",
+          "meaning": "Giá trị sẵn có cần được tiếp cận và gìn giữ."
+        }
+      ],
+      "topics": [
+        "cơ hội"
+      ],
+      "interpretationGuidance": "Chuyển trọng tâm từ tìm kiếm vô hạn sang sử dụng tốt nguồn lực hiện có.",
+      "cautions": [
+        "Không khai thác nguồn lực đến mức ảnh hưởng người khác."
+      ],
+      "practicalAdvice": [
+        "Rà lại kỹ năng, mối quan hệ và công cụ đang có trước khi mua thêm."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 24,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Vệt sáng qua khe cửa",
+      "poem": "Khe cửa hẹp mà tia nắng lọt\nKhông đủ soi hết cả căn phòng\nMột dữ kiện vừa tìm ra trước\nCòn nhiều câu hỏi đợi soi chung",
+      "grade": "BÌNH",
+      "centralMeaning": "Thông tin mới có ích nhưng chưa đủ để kết luận toàn bộ tình hình.",
+      "symbols": [
+        "Tia sáng qua khe"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Tia sáng qua khe",
+          "meaning": "Một manh mối mở hướng tìm hiểu, không thay thế bức tranh hoàn chỉnh."
+        }
+      ],
+      "topics": [
+        "tri thức"
+      ],
+      "interpretationGuidance": "Đánh giá mức độ chắc chắn và phần còn thiếu của bằng chứng.",
+      "cautions": [
+        "Đừng kết luận từ một bằng chứng đơn lẻ."
+      ],
+      "practicalAdvice": [
+        "Tìm thêm nguồn độc lập và ghi rõ điều gì vẫn chưa biết."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 25,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Mùa hoa chậm nở",
+      "poem": "Nụ hoa giữ kín màu trong lá\nNắng đến nhiều phen mới hé cười\nĐiều đẹp có nhịp riêng của nó\nĐừng giục cành non phải nở tươi",
+      "grade": "BÌNH",
+      "centralMeaning": "Một tiến trình cần thời gian; người hỏi nên phân biệt kiên nhẫn với dấu hiệu trì trệ cần xử lý.",
+      "symbols": [
+        "Nụ hoa khép"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Nụ hoa khép",
+          "meaning": "Phát triển có nhịp độ riêng và cần điều kiện thích hợp."
+        }
+      ],
+      "topics": [
+        "thời điểm"
+      ],
+      "interpretationGuidance": "Định nghĩa kiên nhẫn bằng dấu hiệu quan sát được.",
+      "cautions": [
+        "Chờ đợi cần đi cùng quan sát tiến triển thực tế."
+      ],
+      "practicalAdvice": [
+        "Đặt vài dấu mốc nhỏ để biết quá trình có đang tiến lên."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 26,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bậc cửa hai thế hệ",
+      "poem": "Ông kể chuyện cũ bên thềm gạch\nCháu hỏi ngày mai ở phía nào\nHai thời xa nhau cùng một mái\nTôn trọng khác nhau, nhà rộng cao",
+      "grade": "THUẬN",
+      "centralMeaning": "Gia đình nhiều thế hệ có thể gắn bó khi kinh nghiệm và lựa chọn mới được đối thoại bình đẳng.",
+      "symbols": [
+        "Bậc cửa cũ"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Bậc cửa cũ",
+          "meaning": "Không gian chung nối ký ức với điều đang hình thành."
+        }
+      ],
+      "topics": [
+        "gia đình"
+      ],
+      "interpretationGuidance": "Gợi đối thoại tôn trọng, không mặc định hòa thuận.",
+      "cautions": [
+        "Đừng dùng tuổi tác để phủ nhận quyền tự quyết của nhau."
+      ],
+      "practicalAdvice": [
+        "Hỏi người thân điều họ lo và nói rõ điều mình cần tự quyết."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 27,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Con đường lát lại",
+      "poem": "Đá cũ nhấc lên bên đường xóm\nTừng viên đặt lại thẳng hàng hơn\nSửa lỗi chung cần nhiều bàn tay\nĐi chậm vài hôm, tiện lâu hơn",
+      "grade": "THUẬN",
+      "centralMeaning": "Cải thiện quy trình có thể bất tiện lúc đầu nhưng tạo nền tảng bền hơn nếu mọi người cùng góp sức.",
+      "symbols": [
+        "Viên đá lát lại"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Viên đá lát lại",
+          "meaning": "Sửa cấu trúc từ gốc giúp giảm lặp lại cùng một trở ngại."
+        }
+      ],
+      "topics": [
+        "công việc"
+      ],
+      "interpretationGuidance": "Hướng về giải quyết nguyên nhân, không chỉ chữa triệu chứng.",
+      "cautions": [
+        "Đừng đổ hết trách nhiệm cho một người."
+      ],
+      "practicalAdvice": [
+        "Xác định nguyên nhân gốc và thống nhất ai làm từng phần."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 28,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Chén nước tràn",
+      "poem": "Chén đầy thêm giọt là tràn mép\nLòng người cũng có giới hạn thôi\nViệc nhỏ dồn lâu thành nặng gánh\nNói sớm còn hơn đợi vỡ rồi",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Áp lực tích tụ cần được nhận diện và chia nhỏ trước khi ảnh hưởng sức khỏe hay quan hệ.",
+      "symbols": [
+        "Giọt nước bên miệng chén"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Giọt nước bên miệng chén",
+          "meaning": "Giới hạn bị vượt qua bởi nhiều việc nhỏ nối tiếp."
+        }
+      ],
+      "topics": [
+        "cân bằng"
+      ],
+      "interpretationGuidance": "Không chẩn đoán; khuyến khích hỗ trợ khi khó khăn kéo dài.",
+      "cautions": [
+        "Đừng chờ đến kiệt sức mới tìm trợ giúp."
+      ],
+      "practicalAdvice": [
+        "Tạm dừng một cam kết ít cần thiết và trao đổi giới hạn của mình."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 29,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Người thợ giữ khuôn",
+      "poem": "Bàn tay giữ khuôn cho đất đứng\nLửa nung vừa đủ, chén thành hình\nKỷ luật nâng điều mình mong muốn\nTự do cần khung để vững bền",
+      "grade": "THUẬN",
+      "centralMeaning": "Thói quen và cấu trúc phù hợp giúp biến mong muốn thành kết quả ổn định.",
+      "symbols": [
+        "Khuôn gốm"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Khuôn gốm",
+          "meaning": "Giới hạn hữu ích cho hình hài của ý tưởng."
+        }
+      ],
+      "topics": [
+        "trách nhiệm"
+      ],
+      "interpretationGuidance": "Đề xuất cấu trúc linh hoạt, không chủ trương kiểm soát cứng nhắc.",
+      "cautions": [
+        "Đừng biến kỷ luật thành trừng phạt bản thân."
+      ],
+      "practicalAdvice": [
+        "Chọn một lịch làm việc có khoảng nghỉ và giữ thử hai tuần."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 30,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Lá thư hồi âm",
+      "poem": "Thư đi qua mấy mùa mưa nắng\nHồi âm không đến đúng ngày chờ\nKhoảng lặng đôi khi là bận rộn\nHỏi bằng lời thật, chớ đoán mơ",
+      "grade": "BÌNH",
+      "centralMeaning": "Sự chậm trễ trong giao tiếp cần được làm rõ thay vì tự dựng nên kết luận.",
+      "symbols": [
+        "Phong thư chưa mở"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Phong thư chưa mở",
+          "meaning": "Thiếu phản hồi là dữ kiện chưa đầy đủ, không tự nói lên nguyên nhân."
+        }
+      ],
+      "topics": [
+        "giao tiếp"
+      ],
+      "interpretationGuidance": "Khuyến khích hỏi trực tiếp và tôn trọng phản hồi.",
+      "cautions": [
+        "Đừng liên tục nhắn dồn hoặc suy diễn ý định."
+      ],
+      "practicalAdvice": [
+        "Gửi một lời hỏi ngắn, tôn trọng thời gian và lựa chọn của họ."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 31,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Vườn chung nhiều luống",
+      "poem": "Mỗi luống gieo một loại rau riêng\nNước tưới chia đều cuối buổi chiều\nKhông ai cần trồng cùng một giống\nVườn tươi nhờ sắc lá đan xen",
+      "grade": "THUẬN",
+      "centralMeaning": "Tập thể vững mạnh khi khác biệt được phối hợp quanh mục tiêu và nguồn lực chung.",
+      "symbols": [
+        "Nhiều luống rau"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Nhiều luống rau",
+          "meaning": "Đa dạng có thể bổ trợ thay vì cạnh tranh nếu chia sẻ công bằng."
+        }
+      ],
+      "topics": [
+        "quan hệ xã hội"
+      ],
+      "interpretationGuidance": "Đưa ra giải pháp hợp tác cụ thể, coi trọng công bằng.",
+      "cautions": [
+        "Đừng ép mọi người thể hiện năng lực theo cùng một cách."
+      ],
+      "practicalAdvice": [
+        "Phân vai theo thế mạnh và thống nhất cách chia nguồn lực."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 32,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Ngọn đồi phủ sương",
+      "poem": "Sương dày che mất hàng cây cuối\nĐừng bước nhanh khi mắt chưa quen\nĐứng lại nghe tiếng suối bên dốc\nRõ thêm phương hướng mới đi lên",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Khi thông tin chưa đủ, tạm hoãn cam kết khó đảo ngược là lựa chọn khôn ngoan.",
+      "symbols": [
+        "Sương phủ lối đồi"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Sương phủ lối đồi",
+          "meaning": "Tầm nhìn hạn chế cần được thừa nhận trước khi quyết định."
+        }
+      ],
+      "topics": [
+        "lựa chọn"
+      ],
+      "interpretationGuidance": "Hạn chế kết luận khi dữ kiện chưa rõ, đồng thời tránh chờ vô hạn.",
+      "cautions": [
+        "Không nhầm sự mơ hồ với dấu hiệu xấu chắc chắn."
+      ],
+      "practicalAdvice": [
+        "Thu thập dữ kiện còn thiếu và đặt hạn cuối để xem lại."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 33,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bàn tay gieo hạt",
+      "poem": "Bàn tay gieo hạt không đòi quả\nChỉ chọn đất lành, tưới đúng hôm\nViệc tốt hôm nay chưa thành tiếng\nMai này bóng mát phủ đường thôn",
+      "grade": "THUẬN",
+      "centralMeaning": "Nỗ lực có ý nghĩa dài hạn dù kết quả chưa xuất hiện ngay.",
+      "symbols": [
+        "Hạt gieo bên đường"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Hạt gieo bên đường",
+          "meaning": "Hành động nhỏ có thể tạo lợi ích vượt quá thời điểm hiện tại."
+        }
+      ],
+      "topics": [
+        "trách nhiệm"
+      ],
+      "interpretationGuidance": "Nhấn giá trị của hành động đúng, không hứa quả báo.",
+      "cautions": [
+        "Không phải mọi việc tốt đều đem lại kết quả như mong đợi."
+      ],
+      "practicalAdvice": [
+        "Chọn một hành động tử tế có thể duy trì mà không cần được khen."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 34,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Đèn đỏ giữa phố",
+      "poem": "Đèn đỏ giữ dòng xe đang gấp\nMột nhịp dừng thôi tránh va chạm\nKhông phải cơ hội nào cũng mất\nBiết dừng đúng lúc giữ đường an",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Một khoảng dừng ngắn có thể bảo vệ người hỏi khỏi quyết định vội và hậu quả không cần thiết.",
+      "symbols": [
+        "Đèn đỏ giao lộ"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Đèn đỏ giao lộ",
+          "meaning": "Quy tắc dừng tạo an toàn cho nhiều người cùng lúc."
+        }
+      ],
+      "topics": [
+        "công việc"
+      ],
+      "interpretationGuidance": "Khuyên tạm dừng có chủ đích trước cam kết quan trọng.",
+      "cautions": [
+        "Đừng vin vào quy tắc để bỏ qua hoàn cảnh khẩn cấp thực sự."
+      ],
+      "practicalAdvice": [
+        "Trước khi ký hoặc trả lời, đọc lại điều khoản và hậu quả."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 35,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Chiếc cầu sau lũ",
+      "poem": "Nước rút để lộ chân cầu yếu\nMuốn qua sông phải sửa từ nền\nKhó khăn không chỉ là cơn lũ\nMà là chỗ yếu bị bỏ quên",
+      "grade": "BÌNH",
+      "centralMeaning": "Sau biến cố, phục hồi bền vững cần xử lý điểm yếu đã lộ ra thay vì chỉ trở lại nhịp cũ.",
+      "symbols": [
+        "Chân cầu sau lũ"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Chân cầu sau lũ",
+          "meaning": "Khủng hoảng cho thấy phần nền tảng cần được gia cố."
+        }
+      ],
+      "topics": [
+        "phục hồi"
+      ],
+      "interpretationGuidance": "Hướng đến học hỏi và phục hồi thực tế, không trách người gặp nạn.",
+      "cautions": [
+        "Đừng vội trở lại cường độ cũ khi chưa phục hồi."
+      ],
+      "practicalAdvice": [
+        "Rà lại điều gì khiến vấn đề xảy ra và thay một quy trình cụ thể."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 36,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Giọt dầu cuối đèn",
+      "poem": "Đèn còn sáng nhờ dầu ít ỏi\nThức thêm một đêm chẳng hóa khôn\nSức lực tiêu hoài không báo trước\nBiết châm thêm dầu, giữ trí bền",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Năng lượng cá nhân cần được quản lý như một nguồn lực có giới hạn.",
+      "symbols": [
+        "Ngọn đèn cạn dầu"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Ngọn đèn cạn dầu",
+          "meaning": "Ánh sáng hiện tại không chứng minh nguồn lực còn vô tận."
+        }
+      ],
+      "topics": [
+        "sức khỏe tinh thần"
+      ],
+      "interpretationGuidance": "Khuyến khích chăm sóc cơ bản và tìm chuyên gia khi triệu chứng kéo dài.",
+      "cautions": [
+        "Đừng coi kiệt sức là bằng chứng của tận tâm."
+      ],
+      "practicalAdvice": [
+        "Giảm một đầu việc và dành thời gian ngủ, ăn, vận động phù hợp."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 37,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Mảnh đất sau hàng rào",
+      "poem": "Sau hàng rào đất còn bỏ trống\nMuốn trồng cây cần hỏi chủ nhà\nCơ hội không phải quyền sở hữu\nTôn trọng ranh rồi mới gieo mầm",
+      "grade": "BÌNH",
+      "centralMeaning": "Một cơ hội chỉ nên theo đuổi khi quyền, sự đồng thuận và trách nhiệm đã rõ.",
+      "symbols": [
+        "Mảnh đất có ranh"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Mảnh đất có ranh",
+          "meaning": "Tiềm năng không xóa bỏ quyền và giới hạn của người khác."
+        }
+      ],
+      "topics": [
+        "đạo đức"
+      ],
+      "interpretationGuidance": "Làm rõ sự đồng thuận và quyền lợi của các bên.",
+      "cautions": [
+        "Không tự ý sử dụng tài sản, ý tưởng hay thời gian của người khác."
+      ],
+      "practicalAdvice": [
+        "Xác nhận quyền sở hữu và điều kiện hợp tác bằng văn bản."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 38,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Vệt phấn trên bảng",
+      "poem": "Bảng đen còn dòng sai cần xóa\nPhấn trắng viết lại chẳng ngại ngần\nLần làm trật không thành bản án\nSửa ngay từ đó, học thêm dần",
+      "grade": "THUẬN",
+      "centralMeaning": "Sai lầm có thể được sửa bằng nhận trách nhiệm và thay đổi cách làm.",
+      "symbols": [
+        "Dòng phấn được xóa"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Dòng phấn được xóa",
+          "meaning": "Lỗi được nhận diện có thể trở thành bài học thay vì nhãn dán con người."
+        }
+      ],
+      "topics": [
+        "trưởng thành"
+      ],
+      "interpretationGuidance": "Cân bằng lòng tự tha thứ với trách nhiệm sửa sai.",
+      "cautions": [
+        "Đừng lặp lại lỗi rồi chỉ dựa vào lời hứa."
+      ],
+      "practicalAdvice": [
+        "Nêu hậu quả, sửa phần còn sửa được và ghi cách phòng tránh."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 39,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Ngã ba ba biển chỉ",
+      "poem": "Ba tấm biển cùng ghi tên đường\nMỗi hướng đưa tới một miền riêng\nĐường đúng không nằm trong lời bói\nMà trong điều mình muốn giữ gìn",
+      "grade": "BÌNH",
+      "centralMeaning": "Lựa chọn phù hợp phụ thuộc vào giá trị, điều kiện và cái giá người hỏi sẵn lòng chấp nhận.",
+      "symbols": [
+        "Ngã ba đường"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Ngã ba đường",
+          "meaning": "Không có lựa chọn phù hợp cho mọi người; tiêu chí cá nhân rất quan trọng."
+        }
+      ],
+      "topics": [
+        "lựa chọn"
+      ],
+      "interpretationGuidance": "Khẳng định quyền tự quyết và phương pháp so sánh.",
+      "cautions": [
+        "Đừng giao quyền quyết định của mình cho quẻ hay người khác."
+      ],
+      "practicalAdvice": [
+        "Viết ba tiêu chí ưu tiên rồi chấm từng phương án theo dữ kiện."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 40,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Rổ cá vừa đủ",
+      "poem": "Người chài về bến, rổ vừa đầy\nKhông kéo thêm cá quá sức thuyền\nBiết điểm dừng cũng là khôn ngoan\nGiữ phần mai tới, nước còn yên",
+      "grade": "THUẬN",
+      "centralMeaning": "Biết giới hạn và thời điểm dừng giúp bảo toàn thành quả và khả năng tiếp tục.",
+      "symbols": [
+        "Rổ cá vừa đầy"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Rổ cá vừa đầy",
+          "meaning": "Đủ dùng đôi khi có giá trị hơn tích lũy thêm bằng mọi giá."
+        }
+      ],
+      "topics": [
+        "cân bằng"
+      ],
+      "interpretationGuidance": "Kết nối sự đủ đầy với trách nhiệm và tính bền vững.",
+      "cautions": [
+        "Đừng lấy quẻ làm lý do bỏ qua nghĩa vụ đã nhận."
+      ],
+      "practicalAdvice": [
+        "Xác định tiêu chí hoàn thành trước khi tiếp tục mở rộng."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 41,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Người bạn giữ lời",
+      "poem": "Hẹn chiều, người đến không cần nhắc\nMột việc nhỏ thôi giữ chữ tin\nDanh tiếng xây từ bao lần đúng\nĐừng nói quá xa sức của mình",
+      "grade": "THUẬN",
+      "centralMeaning": "Uy tín được hình thành qua những cam kết nhỏ được thực hiện nhất quán.",
+      "symbols": [
+        "Cuộc hẹn đúng giờ"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Cuộc hẹn đúng giờ",
+          "meaning": "Sự đáng tin cậy hiện rõ qua hành động lặp lại."
+        }
+      ],
+      "topics": [
+        "quan hệ xã hội"
+      ],
+      "interpretationGuidance": "Khuyến khích sự chân thật thay vì lời hứa lớn.",
+      "cautions": [
+        "Đừng nhận thêm việc chỉ để làm vừa lòng người khác."
+      ],
+      "practicalAdvice": [
+        "Rà soát lịch và chỉ hứa điều có thể hoàn thành."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 42,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Thửa ruộng nhiễm mặn",
+      "poem": "Lúa non vàng lá giữa đồng mặn\nTưới thêm bao lần chẳng hóa xanh\nĐổi nguồn nước trước khi gieo lại\nNỗ lực sai nơi hóa mong manh",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Khi cố gắng không cải thiện tình hình, cần xem lại điều kiện và phương pháp thay vì chỉ tăng cường độ.",
+      "symbols": [
+        "Đất ruộng nhiễm mặn"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Đất ruộng nhiễm mặn",
+          "meaning": "Môi trường không phù hợp có thể vô hiệu hóa nỗ lực cá nhân."
+        }
+      ],
+      "topics": [
+        "công việc"
+      ],
+      "interpretationGuidance": "Giúp nhận diện điều kiện hệ thống và tránh tự trách đơn giản.",
+      "cautions": [
+        "Đừng quy mọi thất bại cho thiếu cố gắng."
+      ],
+      "practicalAdvice": [
+        "Tìm nguyên nhân bên ngoài và hỏi ý kiến chuyên môn trước khi đầu tư thêm."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 43,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Hạt bụi trong nắng",
+      "poem": "Nắng xiên làm bụi bay thành vệt\nMắt thấy nhiều hơn lúc trời trong\nMột chuyện nhỏ qua lời thêm bớt\nBình tâm hỏi lại mới tỏ lòng",
+      "grade": "BÌNH",
+      "centralMeaning": "Góc nhìn và lời kể có thể làm thay đổi cảm nhận về một sự việc.",
+      "symbols": [
+        "Bụi bay trong nắng"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Bụi bay trong nắng",
+          "meaning": "Điều nổi bật trước mắt không luôn là điều quan trọng nhất."
+        }
+      ],
+      "topics": [
+        "giao tiếp"
+      ],
+      "interpretationGuidance": "Phân biệt quan sát với diễn giải, lắng nghe nhiều phía.",
+      "cautions": [
+        "Không bác bỏ cảm xúc, nhưng cũng đừng lấy cảm xúc làm toàn bộ bằng chứng."
+      ],
+      "practicalAdvice": [
+        "Tách điều mình thấy, điều mình nghe và điều mình suy đoán."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 44,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Mùa đông giữ củ",
+      "poem": "Củ nằm yên dưới tầng đất lạnh\nKhông phô màu mà vẫn nuôi cây\nCó lúc lùi sâu để giữ sức\nĐến mùa phù hợp sẽ vươn đầy",
+      "grade": "THUẬN",
+      "centralMeaning": "Giai đoạn ít biểu hiện không đồng nghĩa mất tiến triển; duy trì nền tảng có thể là ưu tiên.",
+      "symbols": [
+        "Củ dưới đất lạnh"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Củ dưới đất lạnh",
+          "meaning": "Sự phát triển đôi khi diễn ra âm thầm và kín đáo."
+        }
+      ],
+      "topics": [
+        "kiên nhẫn"
+      ],
+      "interpretationGuidance": "Cân bằng nghỉ dưỡng với việc kiểm tra tiến triển thực.",
+      "cautions": [
+        "Đừng dùng hình ảnh này để biện minh cho tình trạng trì trệ kéo dài."
+      ],
+      "practicalAdvice": [
+        "Theo dõi một chỉ dấu tiến bộ nhỏ theo tuần."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 45,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Tờ hóa đơn gấp",
+      "poem": "Tờ giấy gấp giấu dòng tiền lẻ\nMở ra mới rõ món nào thừa\nKhông nhìn con số không làm mất\nChỉ khiến khoản nợ lớn thêm dần",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Đối diện sớm với nghĩa vụ tài chính giúp người hỏi có thêm lựa chọn xử lý.",
+      "symbols": [
+        "Hóa đơn được mở"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Hóa đơn được mở",
+          "meaning": "Sự minh bạch làm vấn đề cụ thể và có thể giải quyết."
+        }
+      ],
+      "topics": [
+        "tài chính"
+      ],
+      "interpretationGuidance": "Không tư vấn pháp lý/tài chính cá nhân; khuyên tìm chuyên gia đáng tin.",
+      "cautions": [
+        "Đừng vay khoản mới để che khoản cũ khi chưa có kế hoạch."
+      ],
+      "practicalAdvice": [
+        "Liệt kê nợ, lãi, hạn trả và liên hệ bên cho vay để hỏi phương án."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 46,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Cành hoa cắm nước",
+      "poem": "Hoa rời cành vẫn còn hương nhẹ\nBình nước chăm từng buổi sớm mai\nĐiều đã đổi không còn như cũ\nVẫn có cách sống đẹp hôm nay",
+      "grade": "BÌNH",
+      "centralMeaning": "Mất mát có thể đổi hình thức sống nhưng không xóa hết giá trị và khả năng tiếp tục.",
+      "symbols": [
+        "Cành hoa trong bình"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Cành hoa trong bình",
+          "meaning": "Chăm sóc hiện tại tạo chỗ cho vẻ đẹp sau biến đổi."
+        }
+      ],
+      "topics": [
+        "mất mát"
+      ],
+      "interpretationGuidance": "Thừa nhận đau buồn, không hứa thời gian hồi phục.",
+      "cautions": [
+        "Đừng ép mình phải vui hoặc hồi phục theo hạn định của ai."
+      ],
+      "practicalAdvice": [
+        "Giữ một nếp sinh hoạt nhỏ và tìm người hỗ trợ khi cần."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 47,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Cây cầu có lan can",
+      "poem": "Cầu cao mở lối qua sông rộng\nLan can giữ bước khỏi chênh vênh\nMục tiêu lớn cần khung an toàn\nCó kế hoạch rồi hãy tiến nhanh",
+      "grade": "THUẬN",
+      "centralMeaning": "Tham vọng có thể theo đuổi vững vàng hơn khi đi kèm tiêu chuẩn an toàn và kế hoạch.",
+      "symbols": [
+        "Lan can cây cầu"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Lan can cây cầu",
+          "meaning": "Biện pháp bảo vệ giúp hành trình táo bạo trở nên bền hơn."
+        }
+      ],
+      "topics": [
+        "cơ hội"
+      ],
+      "interpretationGuidance": "Khuyến khích tiến lên có giới hạn bảo vệ.",
+      "cautions": [
+        "Đừng nhầm tự tin với miễn nhiễm rủi ro."
+      ],
+      "practicalAdvice": [
+        "Đặt ngưỡng dừng lỗ, ngân sách hoặc điều kiện an toàn phù hợp."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 48,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Dòng sông đổi màu",
+      "poem": "Nước đầu nguồn nay đục hơn rồi\nĐừng vội uống khi chưa lọc trong\nTin mới đến cần xem nguồn gốc\nGiữ mình tỉnh táo trước đám đông",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Thông tin hoặc lời mời mới cần được kiểm chứng nguồn gốc trước khi tin hay hành động.",
+      "symbols": [
+        "Dòng nước đục"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Dòng nước đục",
+          "meaning": "Tín hiệu bất thường đòi hỏi bước kiểm tra."
+        }
+      ],
+      "topics": [
+        "an toàn"
+      ],
+      "interpretationGuidance": "Nêu biện pháp xác thực, không khơi sợ hãi.",
+      "cautions": [
+        "Không chia sẻ thông tin cá nhân hoặc tiền khi chưa xác thực danh tính."
+      ],
+      "practicalAdvice": [
+        "Gọi qua kênh độc lập và xác nhận điều khoản trước khi chuyển tiền."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 49,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Đôi giày vừa chân",
+      "poem": "Giày vừa chân đi đường xa được\nKhông cần sáng bóng giữa phố đông\nCông việc hợp mình nuôi sức bền\nChọn nơi làm được điều có nghĩa",
+      "grade": "THUẬN",
+      "centralMeaning": "Công việc phù hợp với năng lực và giá trị có thể bền vững hơn vẻ hào nhoáng bên ngoài.",
+      "symbols": [
+        "Đôi giày vừa chân"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Đôi giày vừa chân",
+          "meaning": "Sự phù hợp giúp duy trì bước đi dài."
+        }
+      ],
+      "topics": [
+        "công việc"
+      ],
+      "interpretationGuidance": "Không lý tưởng hóa đam mê; cân nhắc thực tế và quyền lợi.",
+      "cautions": [
+        "Đừng bỏ qua lương, điều kiện và quyền lợi thiết yếu."
+      ],
+      "practicalAdvice": [
+        "So sánh cơ hội theo môi trường, thu nhập, học hỏi và sức khỏe."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 50,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Tiếng nói trong phòng họp",
+      "poem": "Ý kiến khác vang lên giữa phòng\nKhông làm bàn họp vỡ đôi đâu\nHỏi thêm lý lẽ, cùng soi xét\nKhác góc nhìn mở lối hiểu sâu",
+      "grade": "BÌNH",
+      "centralMeaning": "Bất đồng có thể cải thiện quyết định nếu các bên tập trung vào lý lẽ và mục tiêu chung.",
+      "symbols": [
+        "Chiếc ghế đối diện"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Chiếc ghế đối diện",
+          "meaning": "Góc nhìn khác mở rộng phần dữ kiện nhóm đang thiếu."
+        }
+      ],
+      "topics": [
+        "công việc"
+      ],
+      "interpretationGuidance": "Gợi đối thoại có cấu trúc và nhận diện môi trường thiếu an toàn.",
+      "cautions": [
+        "Không phải bất đồng nào cũng an toàn; giữ ranh giới khi bị xúc phạm."
+      ],
+      "practicalAdvice": [
+        "Nhắc lại ý người kia rồi nêu dữ kiện mình đang có."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 51,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bếp lửa mùa mưa",
+      "poem": "Mưa dài, bếp than còn đỏ lửa\nNồi canh chung ấm cả gian nhà\nChăm một điều nhỏ trong ngày tối\nHy vọng nảy từ điều gần ta",
+      "grade": "THUẬN",
+      "centralMeaning": "Khi hoàn cảnh nặng nề, chăm sóc những điều thiết thực gần mình có thể tạo điểm tựa.",
+      "symbols": [
+        "Bếp than đỏ"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Bếp than đỏ",
+          "meaning": "Nguồn ấm nhỏ vẫn có ý nghĩa trong thời kỳ khó khăn."
+        }
+      ],
+      "topics": [
+        "hy vọng"
+      ],
+      "interpretationGuidance": "Nuôi hy vọng bằng hành động nhỏ, không phủ nhận hoàn cảnh khó.",
+      "cautions": [
+        "Đừng xem lời khuyên này là thay thế hỗ trợ chuyên môn."
+      ],
+      "practicalAdvice": [
+        "Chọn một nhu cầu thiết yếu hôm nay và nhờ người thân giúp nếu cần."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 52,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bản lề được tra dầu",
+      "poem": "Cửa cũ kêu lâu ngày mới mở\nMột giọt dầu làm nhẹ bản lề\nĐiều vướng đôi khi chỉ cần sửa\nĐừng thay cả nhà vì tiếng kêu",
+      "grade": "THUẬN",
+      "centralMeaning": "Một điều chỉnh nhỏ đúng chỗ có thể tháo gỡ trở ngại lớn hơn việc thay đổi toàn bộ.",
+      "symbols": [
+        "Bản lề tra dầu"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Bản lề tra dầu",
+          "meaning": "Bảo trì có mục tiêu giúp phục hồi hoạt động vốn có."
+        }
+      ],
+      "topics": [
+        "giải quyết vấn đề"
+      ],
+      "interpretationGuidance": "Đề xuất thử nghiệm nhỏ với tiêu chí đánh giá.",
+      "cautions": [
+        "Nếu vấn đề có nguyên nhân sâu, đừng chỉ xử lý phần biểu hiện."
+      ],
+      "practicalAdvice": [
+        "Thử một thay đổi nhỏ, đo kết quả rồi mới mở rộng."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 53,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Mưa trên mái kính",
+      "poem": "Mưa chảy dài trên ô kính trong\nCảnh vật cong theo vệt nước trôi\nChờ khô rồi xem đường chân thật\nCảm xúc lắng, mắt sẽ sáng thôi",
+      "grade": "BÌNH",
+      "centralMeaning": "Cảm xúc mạnh có thể làm nhận định méo đi; người hỏi nên chờ ổn định rồi đánh giá lại.",
+      "symbols": [
+        "Vệt nước trên kính"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Vệt nước trên kính",
+          "meaning": "Cảm xúc tạo lớp lọc tạm thời lên điều ta quan sát."
+        }
+      ],
+      "topics": [
+        "cân bằng"
+      ],
+      "interpretationGuidance": "Hướng dẫn tự điều hòa và phân biệt tình huống khẩn cấp.",
+      "cautions": [
+        "Không trì hoãn việc cần xử lý khẩn cấp hoặc nguy hiểm."
+      ],
+      "practicalAdvice": [
+        "Ghi nhận cảm xúc, đợi bình tâm rồi kiểm tra lại dữ kiện."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 54,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Gánh hàng qua dốc",
+      "poem": "Gánh nặng chia đều qua hai đầu\nMột bên quá nặng, vai lệch nghiêng\nViệc chung cần cân phần đóng góp\nNói sớm kẻo mỏi cả hai bên",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Trách nhiệm mất cân bằng cần được thương lượng trước khi gây kiệt sức hoặc bất mãn.",
+      "symbols": [
+        "Đòn gánh lệch"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Đòn gánh lệch",
+          "meaning": "Sự bất cân xứng kéo dài làm cả quan hệ lẫn công việc suy yếu."
+        }
+      ],
+      "topics": [
+        "trách nhiệm"
+      ],
+      "interpretationGuidance": "Khuyến khích giao tiếp trực tiếp và đo khối lượng thực tế.",
+      "cautions": [
+        "Đừng im lặng mong người khác tự nhận ra."
+      ],
+      "practicalAdvice": [
+        "Liệt kê phần việc và đề nghị phân chia lại bằng tiêu chí rõ."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 55,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Người học nghề mới",
+      "poem": "Bàn tay vụng chạm vào mũi đục\nĐường khắc lệch rồi sửa từng hôm\nNgười giỏi cũng từng qua lúng túng\nCứ hỏi, cứ làm, tay vững dần",
+      "grade": "THUẬN",
+      "centralMeaning": "Bắt đầu ở vị trí người học là bước bình thường để hình thành năng lực mới.",
+      "symbols": [
+        "Mũi đục mới cầm"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Mũi đục mới cầm",
+          "meaning": "Thành thạo đến từ luyện tập, hướng dẫn và sửa lỗi."
+        }
+      ],
+      "topics": [
+        "học tập"
+      ],
+      "interpretationGuidance": "Khuyến khích học nghề an toàn và phản hồi hữu ích.",
+      "cautions": [
+        "Đừng nhận việc vượt quá năng lực mà không có giám sát."
+      ],
+      "practicalAdvice": [
+        "Tìm người hướng dẫn và xin phản hồi cụ thể sau mỗi lần thử."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 56,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Cánh cửa đóng nhẹ",
+      "poem": "Cánh cửa khép mà không tiếng động\nCó lần chia tay chẳng hơn thua\nĐôi khi rời đi là tôn trọng\nGiữ phẩm giá mình, đỡ tổn thương",
+      "grade": "BÌNH",
+      "centralMeaning": "Một kết thúc có thể được xử lý bằng sự rõ ràng và tôn trọng, dù cảm xúc còn phức tạp.",
+      "symbols": [
+        "Cánh cửa khép êm"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Cánh cửa khép êm",
+          "meaning": "Kết thúc không nhất thiết cần tranh thắng thua."
+        }
+      ],
+      "topics": [
+        "tình cảm"
+      ],
+      "interpretationGuidance": "Ưu tiên an toàn cá nhân; không mặc định phải hòa giải.",
+      "cautions": [
+        "Đừng ở lại nơi có bạo lực hoặc ép buộc chỉ để giữ hình thức."
+      ],
+      "practicalAdvice": [
+        "Nói rõ điều kết thúc, bảo vệ an toàn và nhờ người tin cậy hỗ trợ."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 57,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Hạt giống gửi kho",
+      "poem": "Hạt giống được cất nơi khô ráo\nChưa gieo không có nghĩa bỏ mùa\nĐợi đất đủ ẩm rồi xuống giống\nChuẩn bị kỹ để khỏi phí công",
+      "grade": "BÌNH",
+      "centralMeaning": "Một dự định có thể cần thời gian chuẩn bị trước khi thực hiện.",
+      "symbols": [
+        "Hạt giống trong kho"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Hạt giống trong kho",
+          "meaning": "Bảo quản kế hoạch giúp duy trì khả năng hành động đúng lúc."
+        }
+      ],
+      "topics": [
+        "khởi đầu"
+      ],
+      "interpretationGuidance": "Chuyển ý định chờ đợi thành ngưỡng bắt đầu cụ thể.",
+      "cautions": [
+        "Chuẩn bị không nên trở thành lý do trì hoãn mãi."
+      ],
+      "practicalAdvice": [
+        "Xác định điều kiện bắt đầu và ngày đánh giá lại."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 58,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Lối mòn trong rừng",
+      "poem": "Lối mòn cũ dẫn về nơi quen\nNhưng cầu gỗ trước đã mục rồi\nThói quen tốt cũng cần xem lại\nĐừng bước theo vì đã bước thôi",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Cách làm từng hiệu quả có thể không còn phù hợp với hoàn cảnh hiện tại.",
+      "symbols": [
+        "Cầu gỗ mục"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Cầu gỗ mục",
+          "meaning": "Thành công quá khứ không tự đảm bảo an toàn hiện nay."
+        }
+      ],
+      "topics": [
+        "thay đổi"
+      ],
+      "interpretationGuidance": "Đánh giá lại thói quen một cách công bằng, không cực đoan.",
+      "cautions": [
+        "Đừng phủ nhận điều cũ chỉ vì muốn khác biệt."
+      ],
+      "practicalAdvice": [
+        "Kiểm tra giả định cũ bằng dữ kiện hiện tại trước khi tiếp tục."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 59,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bình trà bớt nóng",
+      "poem": "Trà mới rót còn đầy hơi nóng\nChờ một nhịp rồi mới nhấp môi\nLời vừa giận cũng như hơi nước\nLắng xuống rồi nói sẽ sáng lời",
+      "grade": "BÌNH",
+      "centralMeaning": "Trao đổi nhạy cảm thường hiệu quả hơn khi người hỏi có thời gian điều hòa cảm xúc.",
+      "symbols": [
+        "Bình trà nóng"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Bình trà nóng",
+          "meaning": "Một khoảng nghỉ giúp tránh làm tổn thương nhau bằng lời bốc đồng."
+        }
+      ],
+      "topics": [
+        "giao tiếp"
+      ],
+      "interpretationGuidance": "Khuyến khích tạm dừng có thời hạn và quay lại đối thoại.",
+      "cautions": [
+        "Không dùng im lặng kéo dài để trừng phạt người khác."
+      ],
+      "practicalAdvice": [
+        "Xin hẹn nói lại sau một khoảng nghỉ cụ thể."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 60,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Đồng hồ chậm một nhịp",
+      "poem": "Kim đồng hồ trễ mất vài phút\nVẫn chỉ đường dài qua tháng năm\nTiến độ khác nhau không thành lỗi\nMiễn còn bước tới đúng phần mình",
+      "grade": "THUẬN",
+      "centralMeaning": "Mỗi người có tốc độ riêng; điều quan trọng là tiến triển thực và nhịp sống có thể duy trì.",
+      "symbols": [
+        "Kim đồng hồ chậm"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Kim đồng hồ chậm",
+          "meaning": "Khác biệt tốc độ không đồng nghĩa với kém cỏi."
+        }
+      ],
+      "topics": [
+        "trưởng thành"
+      ],
+      "interpretationGuidance": "Cân bằng sự cảm thông với trách nhiệm về thời hạn.",
+      "cautions": [
+        "Đừng lấy sự chậm rãi làm cớ bỏ qua hạn chót quan trọng."
+      ],
+      "practicalAdvice": [
+        "Chọn mốc tiến bộ phù hợp và kiểm tra lịch cam kết thực tế."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 61,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bờ kè còn khe nứt",
+      "poem": "Bờ kè nhìn xa còn vững chãi\nKhe nứt nhỏ ăn sâu dưới chân\nSớm gọi người xem kỹ nền móng\nĐừng chờ nước lớn mới phân vân",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Dấu hiệu nhỏ của rủi ro nên được kiểm tra sớm trước khi hậu quả khó kiểm soát.",
+      "symbols": [
+        "Khe nứt bờ kè"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Khe nứt bờ kè",
+          "meaning": "Bề ngoài nguyên vẹn không thay thế việc kiểm tra cấu trúc."
+        }
+      ],
+      "topics": [
+        "an toàn"
+      ],
+      "interpretationGuidance": "Khuyên kiểm tra chuyên môn, không tự chẩn đoán.",
+      "cautions": [
+        "Không tự sửa vấn đề kỹ thuật hoặc sức khỏe vượt quá chuyên môn."
+      ],
+      "practicalAdvice": [
+        "Ghi lại dấu hiệu và tìm người có chuyên môn đánh giá."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 62,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Tấm vé chưa ghi tên",
+      "poem": "Tấm vé còn trắng chưa vào cửa\nChỗ ngồi phía trong chưa ai trao\nMuốn đi xa cần hỏi điều kiện\nĐừng mua niềm tin bằng lời chào",
+      "grade": "BÌNH",
+      "centralMeaning": "Lời mời hấp dẫn cần được kiểm tra điều kiện và tính xác thực trước khi chấp nhận.",
+      "symbols": [
+        "Tấm vé trắng"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Tấm vé trắng",
+          "meaning": "Cơ hội mới chỉ là lời hứa cho tới khi điều kiện được xác nhận."
+        }
+      ],
+      "topics": [
+        "cơ hội"
+      ],
+      "interpretationGuidance": "Nêu cách xác minh cơ hội và nhận biết rủi ro.",
+      "cautions": [
+        "Cảnh giác yêu cầu trả trước hoặc bảo mật bất thường."
+      ],
+      "practicalAdvice": [
+        "Đọc thỏa thuận, xác minh đơn vị và lưu lại trao đổi."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 63,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bông lúa cúi đầu",
+      "poem": "Bông lúa nặng hạt cúi đầu thấp\nNgười hiểu nhiều chẳng vội hơn thua\nKhiêm nhường không làm mình nhỏ lại\nMở đường cho học hỏi quanh ta",
+      "grade": "THUẬN",
+      "centralMeaning": "Năng lực vững thường đi cùng thái độ sẵn lòng học và chia sẻ công lao.",
+      "symbols": [
+        "Bông lúa trĩu hạt"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Bông lúa trĩu hạt",
+          "meaning": "Thành quả có thể nuôi sự khiêm nhường thay vì phô trương."
+        }
+      ],
+      "topics": [
+        "trưởng thành"
+      ],
+      "interpretationGuidance": "Phân biệt khiêm nhường với tự phủ nhận.",
+      "cautions": [
+        "Đừng hạ thấp bản thân để người khác thấy dễ chịu."
+      ],
+      "practicalAdvice": [
+        "Ghi nhận đóng góp của mình và của người cùng làm."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 64,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Cửa hàng vắng khách",
+      "poem": "Sạp hàng im dưới chiều mưa bụi\nĐếm khách qua đường chẳng đủ dùng\nHỏi người mua cần gì trước đã\nĐổi món hàng rồi tính vốn chung",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Khi kết quả kinh doanh yếu, cần lắng nghe nhu cầu và xem lại mô hình trước khi chi thêm.",
+      "symbols": [
+        "Sạp hàng vắng"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Sạp hàng vắng",
+          "meaning": "Tín hiệu thị trường cần được phân tích, không chỉ chờ vận may."
+        }
+      ],
+      "topics": [
+        "tài chính"
+      ],
+      "interpretationGuidance": "Không đảm bảo lợi nhuận; khuyên dùng số liệu và cố vấn.",
+      "cautions": [
+        "Đừng vay thêm vốn nếu chưa hiểu dòng tiền và rủi ro."
+      ],
+      "practicalAdvice": [
+        "Nói chuyện với khách, rà biên lợi nhuận và lập giới hạn chi."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 65,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Mắt lưới chiếc vó",
+      "poem": "Mắt lưới đều giữ dòng cá nhỏ\nMột ô rách thôi lọt cả đàn\nQuy trình tốt cần xem chi tiết\nĐừng chỉ nhìn thành quả huy hoàng",
+      "grade": "BÌNH",
+      "centralMeaning": "Một hệ thống có thể thất thoát ở chi tiết nhỏ; kiểm tra quy trình giúp bảo vệ công sức.",
+      "symbols": [
+        "Mắt lưới rách"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Mắt lưới rách",
+          "meaning": "Khoảng trống nhỏ trong quy trình có thể gây mất mát lặp lại."
+        }
+      ],
+      "topics": [
+        "công việc"
+      ],
+      "interpretationGuidance": "Gợi cách cải tiến quy trình có trọng điểm.",
+      "cautions": [
+        "Không theo dõi quá mức đến mức mất niềm tin với mọi người."
+      ],
+      "practicalAdvice": [
+        "Kiểm tra một bước bàn giao hoặc đối soát thường bị bỏ qua."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 66,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Nước mát đầu nguồn",
+      "poem": "Dòng nước mát tìm đường qua đá\nKhông tranh phần, vẫn đến đồng xa\nLời nói mềm không là yếu đuối\nKiên trì đôi khi thắng tiếng la",
+      "grade": "THUẬN",
+      "centralMeaning": "Sự bền bỉ và cách giao tiếp điềm tĩnh có thể tạo ảnh hưởng lâu dài.",
+      "symbols": [
+        "Dòng nước qua đá"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Dòng nước qua đá",
+          "meaning": "Kiên trì thay đổi vật cản bằng tác động liên tục, không phải đối đầu ồn ào."
+        }
+      ],
+      "topics": [
+        "quan hệ"
+      ],
+      "interpretationGuidance": "Phân biệt mềm mỏng với cam chịu, ưu tiên an toàn.",
+      "cautions": [
+        "Đừng dùng nhẫn nhịn để ở trong tình huống nguy hiểm."
+      ],
+      "practicalAdvice": [
+        "Chọn một thông điệp ngắn, rõ và lặp lại bình tĩnh."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 67,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Người giữ chìa khóa",
+      "poem": "Chìa khóa trao tay cần đúng cửa\nTin cậy mà vẫn rõ phần trao\nQuyền hạn mở ra bao lối đi\nGhi ai chịu trách nhiệm về sau",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Trao quyền hoặc thông tin cần đi cùng phạm vi rõ ràng và trách nhiệm giải trình.",
+      "symbols": [
+        "Chìa khóa trong tay"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Chìa khóa trong tay",
+          "meaning": "Quyền tiếp cận phải tương xứng với trách nhiệm và sự tin cậy."
+        }
+      ],
+      "topics": [
+        "trách nhiệm"
+      ],
+      "interpretationGuidance": "Đề xuất nguyên tắc bảo mật và trách nhiệm rõ.",
+      "cautions": [
+        "Không chia sẻ mật khẩu hoặc giấy tờ nhạy cảm tùy tiện."
+      ],
+      "practicalAdvice": [
+        "Giới hạn quyền truy cập và lập danh sách người chịu trách nhiệm."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 68,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bàn tay nối việc",
+      "poem": "Người trước trao kìm, người sau đón\nCông việc liền mạch giữa xưởng đông\nBàn giao rõ ràng không mất sức\nĐội cùng hiểu việc, tiến mới thông",
+      "grade": "THUẬN",
+      "centralMeaning": "Hợp tác hiệu quả khi thông tin bàn giao và kỳ vọng được nói rõ.",
+      "symbols": [
+        "Chiếc kìm được trao"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Chiếc kìm được trao",
+          "meaning": "Kết nối giữa người làm giảm gián đoạn và sai sót."
+        }
+      ],
+      "topics": [
+        "công việc"
+      ],
+      "interpretationGuidance": "Tập trung vào giao tiếp rõ và khả năng kiểm chứng.",
+      "cautions": [
+        "Đừng mặc định đồng nghiệp đã hiểu điều chưa nói."
+      ],
+      "practicalAdvice": [
+        "Dùng danh sách bàn giao ngắn với người phụ trách và hạn hoàn thành."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 69,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bức tường mới xây",
+      "poem": "Hàng gạch đầu tiên đặt thẳng ngay\nTường cao nhờ mỗi lớp ngay ngắn\nQuan hệ cũng cần nền tin cậy\nLời nhỏ giữ đều, vững tháng năm",
+      "grade": "BÌNH",
+      "centralMeaning": "Niềm tin trong quan hệ cần được xây qua hành động nhất quán và tôn trọng.",
+      "symbols": [
+        "Hàng gạch đầu"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Hàng gạch đầu",
+          "meaning": "Nền tảng ban đầu quyết định độ vững của điều xây tiếp."
+        }
+      ],
+      "topics": [
+        "tình cảm"
+      ],
+      "interpretationGuidance": "Không phán đoán lòng người; dựa vào hành vi quan sát được.",
+      "cautions": [
+        "Đừng đòi tin tưởng ngay khi chưa có thời gian kiểm chứng."
+      ],
+      "practicalAdvice": [
+        "Thống nhất một cam kết nhỏ và xem cả hai có thực hiện không."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 70,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Ngọn đồi có đường xuống",
+      "poem": "Lên cao dễ tưởng mình đã tới\nNhìn xuống mới biết dốc còn dài\nThành công cần đường lui an toàn\nGiữ chân trên đất, mắt nhìn xa",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Khi đang thuận lợi, người hỏi vẫn cần quản trị rủi ro và chuẩn bị phương án dự phòng.",
+      "symbols": [
+        "Đường xuống đồi"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Đường xuống đồi",
+          "meaning": "Thành quả vững cần lối thoát và sự khiêm tốn trước biến động."
+        }
+      ],
+      "topics": [
+        "tài chính"
+      ],
+      "interpretationGuidance": "Khuyến khích phòng ngừa ngay cả lúc thuận lợi.",
+      "cautions": [
+        "Đừng mở rộng quá nhanh chỉ vì vài kết quả tốt."
+      ],
+      "practicalAdvice": [
+        "Giữ quỹ dự phòng và xác định ngưỡng dừng trước quyết định lớn."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 71,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Tiếng chim lúc rạng đông",
+      "poem": "Chim gọi bình minh trên mái ngói\nĐêm dài cũng đã nhường chân mây\nSau quãng tối, ngày không tự đến\nMở cửa ra sân, đón nắng này",
+      "grade": "THUẬN",
+      "centralMeaning": "Hy vọng có thể đi cùng một hành động nhỏ để bắt đầu lại sau thời kỳ khó khăn.",
+      "symbols": [
+        "Tiếng chim rạng đông"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Tiếng chim rạng đông",
+          "meaning": "Tín hiệu khởi sắc cần người hỏi đáp lại bằng bước đi thực tế."
+        }
+      ],
+      "topics": [
+        "hy vọng"
+      ],
+      "interpretationGuidance": "Lạc quan thực tế, chú ý hỗ trợ khi người hỏi đang khủng hoảng.",
+      "cautions": [
+        "Không ép mình phải hồi phục nhanh vì người khác mong đợi."
+      ],
+      "practicalAdvice": [
+        "Chọn việc nhỏ nhất giúp ngày hôm nay dễ chịu và có trật tự hơn."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 72,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Nút thắt dây thừng",
+      "poem": "Dây rối càng giật càng thêm chặt\nNới đầu mối rồi gỡ từng vòng\nViệc khó cần nhìn nơi mắc trước\nChia nhỏ ra làm, lối sẽ thông",
+      "grade": "BÌNH",
+      "centralMeaning": "Vấn đề phức tạp dễ giải quyết hơn khi tìm nút thắt đầu tiên và xử lý từng phần.",
+      "symbols": [
+        "Nút dây được nới"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Nút dây được nới",
+          "meaning": "Thay đổi cách tiếp cận có thể tháo gỡ sự bế tắc."
+        }
+      ],
+      "topics": [
+        "giải quyết vấn đề"
+      ],
+      "interpretationGuidance": "Ưu tiên bước nhỏ, cụ thể và có thể kiểm soát.",
+      "cautions": [
+        "Đừng đổ lỗi cho bản thân vì chưa giải được tất cả cùng lúc."
+      ],
+      "practicalAdvice": [
+        "Viết vấn đề thành ba phần và bắt đầu ở phần mình kiểm soát."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 73,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Mâm cơm thiếu một người",
+      "poem": "Mâm cơm đặt dư thêm đôi đũa\nChỗ trống vẫn còn ấm tiếng cười\nNhớ thương không cần che cho kín\nKể chuyện ngày xưa, rồi bước tiếp",
+      "grade": "BÌNH",
+      "centralMeaning": "Nỗi nhớ người vắng mặt có thể cùng tồn tại với việc tiếp tục chăm sóc cuộc sống hiện tại.",
+      "symbols": [
+        "Đôi đũa đặt thêm"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Đôi đũa đặt thêm",
+          "meaning": "Nghi thức tưởng nhớ tạo không gian cho tình cảm và sự tiếp nối."
+        }
+      ],
+      "topics": [
+        "mất mát"
+      ],
+      "interpretationGuidance": "Tôn trọng khác biệt trong đau buồn; gợi kết nối hỗ trợ.",
+      "cautions": [
+        "Đừng áp đặt cách để tang hay tưởng nhớ lên người khác."
+      ],
+      "practicalAdvice": [
+        "Chia sẻ một kỷ niệm với người thân hoặc làm một việc tưởng niệm phù hợp."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 74,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Hạt cát trong máy đồng hồ",
+      "poem": "Hạt cát kẹt ngang vòng bánh nhỏ\nKim đứng im dù máy còn đầy\nTìm đúng chỗ vướng rồi làm sạch\nĐừng thay toàn bộ chỉ vì chậm",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Trở ngại có thể nằm ở một điểm nhỏ; chẩn đoán trước khi thay đổi lớn sẽ tiết kiệm nguồn lực.",
+      "symbols": [
+        "Bánh răng mắc cát"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Bánh răng mắc cát",
+          "meaning": "Một nguyên nhân cụ thể có thể gây đình trệ toàn hệ thống."
+        }
+      ],
+      "topics": [
+        "công việc"
+      ],
+      "interpretationGuidance": "Khuyên phân tích nguyên nhân thay vì phản ứng vội.",
+      "cautions": [
+        "Không quy kết lỗi khi chưa kiểm tra nguyên nhân."
+      ],
+      "practicalAdvice": [
+        "Thử nghiệm từng khâu và ghi lại thời điểm vấn đề bắt đầu."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 75,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Lá non sau vết cắt",
+      "poem": "Cành cũ vừa tỉa còn vết nhựa\nChồi non mới lên cạnh khoảng trống\nBuông một phần không là mất hết\nCó chỗ cho điều khác vươn lên",
+      "grade": "THUẬN",
+      "centralMeaning": "Từ bỏ một điều không còn phù hợp có thể mở không gian cho hướng phát triển khác.",
+      "symbols": [
+        "Chồi bên vết tỉa"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Chồi bên vết tỉa",
+          "meaning": "Sự thay đổi tạo chỗ cho hình thức phát triển mới."
+        }
+      ],
+      "topics": [
+        "thay đổi"
+      ],
+      "interpretationGuidance": "Hỗ trợ quyết định buông bỏ có cân nhắc và không cực đoan.",
+      "cautions": [
+        "Đừng cắt bỏ điều quan trọng chỉ vì đang thất vọng nhất thời."
+      ],
+      "practicalAdvice": [
+        "Liệt kê điều đang tiêu hao sức lực và cân nhắc một giới hạn mới."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 76,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bước chân qua vạch",
+      "poem": "Vạch sơn phân đôi sân chơi nhỏ\nBước qua cần biết luật đôi bên\nRanh giới rõ làm trò chơi đẹp\nTôn trọng nhau thì dễ gần thêm",
+      "grade": "BÌNH",
+      "centralMeaning": "Ranh giới được thống nhất giúp quan hệ an toàn và công bằng hơn.",
+      "symbols": [
+        "Vạch sân chơi"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Vạch sân chơi",
+          "meaning": "Quy ước rõ ràng bảo vệ sự tham gia của mọi bên."
+        }
+      ],
+      "topics": [
+        "quan hệ"
+      ],
+      "interpretationGuidance": "Khuyến khích ranh giới tự bảo vệ, không thao túng.",
+      "cautions": [
+        "Đừng lấy ranh giới làm cách trừng phạt hoặc kiểm soát người khác."
+      ],
+      "practicalAdvice": [
+        "Nói rõ điều mình đồng ý và điều mình sẽ làm nếu ranh giới bị vượt."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 77,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Cơn gió đổi chiều",
+      "poem": "Buồm căng khi gió còn thuận hướng\nMây kéo ngang trời, nước khác đi\nNhìn cờ báo gió trước khi kéo\nĐổi cách chèo giữ được thuyền yên",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Điều kiện đang thay đổi; linh hoạt sớm có thể giảm thiệt hại và giữ mục tiêu quan trọng.",
+      "symbols": [
+        "Lá cờ báo gió"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Lá cờ báo gió",
+          "meaning": "Nhận biết tín hiệu sớm giúp điều chỉnh trước khi rủi ro tăng."
+        }
+      ],
+      "topics": [
+        "công việc"
+      ],
+      "interpretationGuidance": "Khuyến nghị dựa trên chỉ báo cụ thể thay vì phản ứng theo tin đồn.",
+      "cautions": [
+        "Đừng đổi hướng theo mọi biến động nhỏ."
+      ],
+      "practicalAdvice": [
+        "Theo dõi hai chỉ số báo trước và đặt điều kiện điều chỉnh."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 78,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Người gác thư viện",
+      "poem": "Trang sách trao tay qua năm tháng\nNgười giữ kho không giữ riêng mình\nTri thức sáng hơn khi chia sẻ\nGhi nguồn rõ ràng, học chân tình",
+      "grade": "THUẬN",
+      "centralMeaning": "Chia sẻ kiến thức có trách nhiệm giúp cộng đồng cùng tiến bộ.",
+      "symbols": [
+        "Cuốn sách mượn"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Cuốn sách mượn",
+          "meaning": "Tri thức lưu chuyển tốt khi nguồn và công sức được ghi nhận."
+        }
+      ],
+      "topics": [
+        "tri thức"
+      ],
+      "interpretationGuidance": "Đề cao trung thực nguồn, không tự nhận quyền tác giả.",
+      "cautions": [
+        "Đừng dùng công sức người khác như thể của mình."
+      ],
+      "practicalAdvice": [
+        "Chia sẻ điều hữu ích kèm nguồn và ghi nhận tác giả."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 79,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bình gốm rạn men",
+      "poem": "Vết rạn chạy dọc đường men xưa\nChén vẫn dùng nếu biết nâng niu\nKhông phải nguyên vẹn mới có giá\nSống thật cùng nhau mới bền nhiều",
+      "grade": "BÌNH",
+      "centralMeaning": "Khuyết điểm không làm mất giá trị, nhưng cần được nhìn nhận và chăm sóc đúng cách.",
+      "symbols": [
+        "Bình gốm rạn"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Bình gốm rạn",
+          "meaning": "Sự không hoàn hảo có thể cùng tồn tại với công năng và vẻ đẹp."
+        }
+      ],
+      "topics": [
+        "trưởng thành"
+      ],
+      "interpretationGuidance": "Không biến khó khăn thành điều phải biết ơn; nhấn nhu cầu sửa chữa.",
+      "cautions": [
+        "Đừng lãng mạn hóa tổn thương hay xem nhẹ sửa chữa cần thiết."
+      ],
+      "practicalAdvice": [
+        "Thừa nhận điều chưa ổn và chọn cách chăm sóc phù hợp."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 80,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Dòng chữ trong sổ nợ",
+      "poem": "Tên người ghi giữa trang giấy trắng\nNợ nghĩa tình cũng cần ranh riêng\nGiúp nhau đừng thành dây buộc chặt\nNói rõ từ đầu, nhẹ đôi bên",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Sự giúp đỡ cần minh bạch để tránh biến thành áp lực hoặc ràng buộc không mong muốn.",
+      "symbols": [
+        "Dòng ghi trong sổ"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Dòng ghi trong sổ",
+          "meaning": "Ghi nhớ nghĩa vụ giúp bảo vệ lòng tin và sự tự nguyện."
+        }
+      ],
+      "topics": [
+        "tài chính"
+      ],
+      "interpretationGuidance": "Tránh cổ súy vay mượn cảm tính; đề cao minh bạch.",
+      "cautions": [
+        "Đừng cho vay số tiền mình không thể mất."
+      ],
+      "practicalAdvice": [
+        "Thỏa thuận rõ khoản tiền, thời hạn và khả năng hoàn trả."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 81,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Chiếc ghế nhường chỗ",
+      "poem": "Ghế bên cửa nhường người mới đến\nMột chỗ nhỏ thôi đủ ấm lòng\nTập thể mạnh khi ai cũng thấy\nMình có phần trong tiếng nói chung",
+      "grade": "THUẬN",
+      "centralMeaning": "Sự bao gồm và nhường chỗ đúng lúc giúp mọi người cùng tham gia.",
+      "symbols": [
+        "Chiếc ghế được nhường"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Chiếc ghế được nhường",
+          "meaning": "Không gian và quyền lên tiếng có thể được chia sẻ công bằng."
+        }
+      ],
+      "topics": [
+        "quan hệ xã hội"
+      ],
+      "interpretationGuidance": "Đưa hành động bao gồm cụ thể, tránh hình thức.",
+      "cautions": [
+        "Nhường chỗ không có nghĩa gánh thay trách nhiệm người khác."
+      ],
+      "practicalAdvice": [
+        "Mời người ít được nghe phát biểu trước khi chốt quyết định."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 82,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bức thư từ chính mình",
+      "poem": "Mai này đọc lại dòng hôm nay\nĐừng viết lời mình chẳng tin đâu\nChọn điều làm được trong tầm với\nGiữ lời với mình, bắt đầu mau",
+      "grade": "BÌNH",
+      "centralMeaning": "Cam kết nhỏ với bản thân đáng tin hơn lời hứa lớn không có kế hoạch.",
+      "symbols": [
+        "Bức thư gửi tương lai"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Bức thư gửi tương lai",
+          "meaning": "Lời nhắn tạo cầu nối giữa ý định và hành động hiện tại."
+        }
+      ],
+      "topics": [
+        "trách nhiệm"
+      ],
+      "interpretationGuidance": "Khuyến khích cam kết linh hoạt và tự cảm thông.",
+      "cautions": [
+        "Đừng tự phạt mình nếu hoàn cảnh buộc phải đổi kế hoạch."
+      ],
+      "practicalAdvice": [
+        "Viết một cam kết đo được và cách điều chỉnh nếu có trở ngại."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 83,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bàn tay buông dây diều",
+      "poem": "Diều bay cao nhờ dây còn giữ\nBuông đúng lúc, gió đẩy xa hơn\nGiữ chặt quá làm khung tre gãy\nTin vừa đủ, mắt dõi theo đường",
+      "grade": "THUẬN",
+      "centralMeaning": "Trao quyền có kiểm soát giúp người khác trưởng thành mà vẫn giữ được kết nối.",
+      "symbols": [
+        "Sợi dây diều"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Sợi dây diều",
+          "meaning": "Kết nối lành mạnh cho phép tự do trong giới hạn an toàn."
+        }
+      ],
+      "topics": [
+        "gia đình"
+      ],
+      "interpretationGuidance": "Cân bằng tin cậy và an toàn, nhất là trong chăm sóc người thân.",
+      "cautions": [
+        "Đừng giám sát đến mức xâm phạm quyền riêng tư."
+      ],
+      "practicalAdvice": [
+        "Thống nhất mục tiêu và điểm cần báo lại, rồi giao phần việc phù hợp."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 84,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Bến xe chuyến cuối",
+      "poem": "Bảng giờ đổi khi chiều đã muộn\nĐường về còn cách mấy con dốc\nHỏi người trực bến trước khi đợi\nKẻo hết chuyến rồi mới lo toan",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Kế hoạch phụ thuộc thời hạn cần được kiểm tra sớm để tránh bị động.",
+      "symbols": [
+        "Bảng giờ xe"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Bảng giờ xe",
+          "meaning": "Thông tin cập nhật quan trọng hơn giả định dựa trên lịch cũ."
+        }
+      ],
+      "topics": [
+        "thời điểm"
+      ],
+      "interpretationGuidance": "Khuyến khích kiểm tra thông tin và phương án dự phòng.",
+      "cautions": [
+        "Đừng đặt cược vào một phương án duy nhất khi thời gian gấp."
+      ],
+      "practicalAdvice": [
+        "Xác nhận lịch và chuẩn bị cách thay thế trước hạn chót."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 85,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Người thợ sửa khóa",
+      "poem": "Ổ khóa kẹt vì bụi lâu ngày\nNgười thợ tra dầu, xoay thật đều\nCửa mở nhờ thợ khéo, kiên nhẫn\nViệc khó tìm đúng cách sẽ xuôi",
+      "grade": "THUẬN",
+      "centralMeaning": "Kỹ năng phù hợp và sự kiên nhẫn có thể tháo gỡ trở ngại tưởng như bế tắc.",
+      "symbols": [
+        "Ổ khóa được tra dầu"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Ổ khóa được tra dầu",
+          "meaning": "Công cụ đúng và hiểu biết giúp lực nhỏ tạo thay đổi."
+        }
+      ],
+      "topics": [
+        "giải quyết vấn đề"
+      ],
+      "interpretationGuidance": "Tôn trọng chuyên môn và giới hạn năng lực cá nhân.",
+      "cautions": [
+        "Đừng tự xử lý nguy hiểm nếu thiếu chuyên môn."
+      ],
+      "practicalAdvice": [
+        "Tìm người có kỹ năng cần thiết thay vì cố làm bằng sức."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 86,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Đám mây không mưa",
+      "poem": "Mây đen trôi qua ngoài cửa biển\nKhông phải lần nào cũng thành mưa\nLo xa giúp mình xem mái ngói\nNhưng đừng trú mãi giữa trời trưa",
+      "grade": "BÌNH",
+      "centralMeaning": "Chuẩn bị cho khả năng xấu là hữu ích, nhưng sống trong lo sợ liên tục sẽ thu hẹp cuộc sống.",
+      "symbols": [
+        "Đám mây trôi xa"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Đám mây trôi xa",
+          "meaning": "Nguy cơ có thể chỉ là một khả năng, không phải kết quả chắc chắn."
+        }
+      ],
+      "topics": [
+        "cân bằng"
+      ],
+      "interpretationGuidance": "Tránh trấn an tuyệt đối; gợi phân biệt kiểm soát được và không.",
+      "cautions": [
+        "Nếu lo âu ảnh hưởng sinh hoạt lâu dài, nên tìm trợ giúp phù hợp."
+      ],
+      "practicalAdvice": [
+        "Ghi điều có thể chuẩn bị và điều nằm ngoài khả năng kiểm soát."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 87,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Hạt giống trong tay trẻ",
+      "poem": "Đứa trẻ nâng hạt bằng hai ngón\nĐất đợi ngoài sân đã xới rồi\nTrao niềm tin kèm theo hướng dẫn\nTự làm mới biết quý công người",
+      "grade": "THUẬN",
+      "centralMeaning": "Trao cơ hội học hỏi cùng sự hướng dẫn phù hợp giúp người trẻ phát triển trách nhiệm.",
+      "symbols": [
+        "Hạt giống trong tay"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Hạt giống trong tay",
+          "meaning": "Niềm tin hiệu quả khi đi với kỹ năng và mức tự chủ tăng dần."
+        }
+      ],
+      "topics": [
+        "gia đình"
+      ],
+      "interpretationGuidance": "Khuyến khích tự chủ có hỗ trợ, không kiểm soát quá mức.",
+      "cautions": [
+        "Đừng giao trách nhiệm vượt quá khả năng và độ an toàn."
+      ],
+      "practicalAdvice": [
+        "Giao một việc vừa sức, hướng dẫn cách làm rồi để người học tự thử."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 88,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Lối đi qua chợ đông",
+      "poem": "Chợ đông người gọi mời bốn phía\nTúi bên vai cần giữ thật gần\nLời ngon ngọt chưa thành bằng chứng\nChọn món mình cần, chớ mua nhầm",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Nhiều lựa chọn và lời mời có thể gây phân tán; giữ tiêu chí giúp tránh quyết định theo áp lực.",
+      "symbols": [
+        "Lối chợ đông"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Lối chợ đông",
+          "meaning": "Tiếng ồn bên ngoài dễ lấn át nhu cầu thật của mình."
+        }
+      ],
+      "topics": [
+        "tài chính"
+      ],
+      "interpretationGuidance": "Nhắc tỉnh táo trước bán hàng gây áp lực.",
+      "cautions": [
+        "Không quyết định dưới sức ép thời gian giả tạo."
+      ],
+      "practicalAdvice": [
+        "Viết trước tiêu chí mua/chọn và xin thời gian suy nghĩ."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 89,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Cây cầu giữa hai làng",
+      "poem": "Hai làng góp gỗ làm cầu nhỏ\nBờ cách xa nay bước gần nhau\nKhác tiếng nói nhưng chung lối nước\nCùng giữ nhịp cầu khỏi bạc màu",
+      "grade": "THUẬN",
+      "centralMeaning": "Hợp tác giữa các nhóm khác nhau có thể tạo lợi ích chung khi trách nhiệm được chia đều.",
+      "symbols": [
+        "Cây cầu liên làng"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Cây cầu liên làng",
+          "meaning": "Công trình chung nối những người không nhất thiết giống nhau."
+        }
+      ],
+      "topics": [
+        "quan hệ xã hội"
+      ],
+      "interpretationGuidance": "Đề cao công bằng trong hợp tác, không chỉ hòa hợp bề ngoài.",
+      "cautions": [
+        "Đừng giả định lợi ích chia đều nếu quyền quyết định không công bằng."
+      ],
+      "practicalAdvice": [
+        "Thống nhất mục tiêu, đóng góp và cách giải quyết bất đồng từ đầu."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 90,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Chiếc neo thả sâu",
+      "poem": "Thuyền neo sâu khi trời nổi gió\nChẳng phải sợ xa bến ngày mai\nCó chỗ vững rồi thì đi tiếp\nTự do cần điểm tựa trong đời",
+      "grade": "BÌNH",
+      "centralMeaning": "Điểm tựa ổn định có thể giúp người hỏi mạo hiểm lành mạnh hơn.",
+      "symbols": [
+        "Chiếc neo dưới nước"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Chiếc neo dưới nước",
+          "meaning": "Sự an toàn nền tảng tạo khả năng khám phá."
+        }
+      ],
+      "topics": [
+        "cân bằng"
+      ],
+      "interpretationGuidance": "Nêu điểm tựa hỗ trợ nhưng không khuyên bám vào môi trường nguy hiểm.",
+      "cautions": [
+        "Đừng để nhu cầu an toàn giữ mình ở nơi gây hại."
+      ],
+      "practicalAdvice": [
+        "Xác định người, nguồn lực hoặc thói quen giúp mình hồi phục."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 91,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Cánh đồng sau sương",
+      "poem": "Sương tan, bờ cỏ hiện đường nhỏ\nNgười đi hôm qua để dấu chân\nSáng nay có thể nhìn thêm hướng\nKinh nghiệm soi đường, chẳng trói chân",
+      "grade": "THUẬN",
+      "centralMeaning": "Kinh nghiệm trước đây có thể hỗ trợ lựa chọn mới mà không cần lặp lại quá khứ.",
+      "symbols": [
+        "Dấu chân sau sương"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Dấu chân sau sương",
+          "meaning": "Ký ức hữu ích khi được dùng làm thông tin, không phải khuôn cứng."
+        }
+      ],
+      "topics": [
+        "trưởng thành"
+      ],
+      "interpretationGuidance": "Dùng kinh nghiệm có chọn lọc, tránh khái quát hóa.",
+      "cautions": [
+        "Đừng để thất bại cũ định nghĩa mọi cơ hội mới."
+      ],
+      "practicalAdvice": [
+        "So sánh điều kiện hiện tại với lần trước, ghi cả điểm khác nhau."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 92,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Ngọn nến giữa phòng rộng",
+      "poem": "Nến nhỏ không soi hết vách xa\nNhưng đủ tìm đôi dép dưới chân\nLàm điều trước mắt cho trọn vẹn\nRồi bước tiếp khi sáng hơn dần",
+      "grade": "BÌNH",
+      "centralMeaning": "Khi chưa thể giải quyết toàn bộ vấn đề, hãy tập trung vào bước gần nhất có ích.",
+      "symbols": [
+        "Ngọn nến nhỏ"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Ngọn nến nhỏ",
+          "meaning": "Ánh sáng hạn chế vẫn giúp định hướng hành động trước mắt."
+        }
+      ],
+      "topics": [
+        "định hướng"
+      ],
+      "interpretationGuidance": "Chia nhỏ công việc và nhận biết khi cần hỗ trợ.",
+      "cautions": [
+        "Đừng cố giải quyết mọi việc một mình."
+      ],
+      "practicalAdvice": [
+        "Chọn một việc cấp thiết trong hôm nay và nhờ trợ giúp cho phần còn lại."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 93,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Người giữ lời hứa nhỏ",
+      "poem": "Hứa tưới cây, sáng nào cũng nhớ\nChậu nhỏ xanh nhờ những lần đều\nTình thân lớn từ điều giản dị\nĐừng hẹn điều mình chẳng thể theo",
+      "grade": "THUẬN",
+      "centralMeaning": "Sự chăm sóc bền vững hình thành qua hành động nhỏ được duy trì.",
+      "symbols": [
+        "Chậu cây được tưới"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Chậu cây được tưới",
+          "meaning": "Tính nhất quán đem lại cảm giác an toàn và phát triển."
+        }
+      ],
+      "topics": [
+        "tình cảm"
+      ],
+      "interpretationGuidance": "Coi trọng độ tin cậy và giao tiếp khi kế hoạch thay đổi.",
+      "cautions": [
+        "Đừng hứa chỉ để xoa dịu phút hiện tại."
+      ],
+      "practicalAdvice": [
+        "Chọn một hành động nhỏ có thể lặp lại và báo trước khi không làm được."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 94,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Mặt hồ có gợn",
+      "poem": "Mặt hồ gợn vì cành rơi nhẹ\nKhông cần khuấy nước để nhìn sâu\nĐứng yên một lúc, hình sẽ rõ\nBình tĩnh không làm mất điều đau",
+      "grade": "BÌNH",
+      "centralMeaning": "Sự bình tĩnh giúp suy xét tốt hơn nhưng không phủ nhận cảm xúc hay vấn đề thật.",
+      "symbols": [
+        "Gợn sóng trên hồ"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Gợn sóng trên hồ",
+          "meaning": "Yên lặng có thể làm hình ảnh rõ hơn mà không xóa nguyên nhân."
+        }
+      ],
+      "topics": [
+        "cân bằng"
+      ],
+      "interpretationGuidance": "Tôn trọng cảm xúc, khuyên tìm hỗ trợ khi cần.",
+      "cautions": [
+        "Đừng buộc mình phải bình thản khi đang bị tổn thương."
+      ],
+      "practicalAdvice": [
+        "Gọi tên cảm xúc rồi chọn người an toàn để chia sẻ."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 95,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Đường dây qua thung lũng",
+      "poem": "Dây căng bắc qua khe sâu rộng\nMột mối nối yếu, cả đường chùng\nKiểm tra từng điểm trước khi bước\nTin cậy phải đi với thử cùng",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Trước khi phụ thuộc vào một người hay hệ thống, cần kiểm tra các điểm dễ hỏng.",
+      "symbols": [
+        "Mối nối dây cầu"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Mối nối dây cầu",
+          "meaning": "Độ tin cậy của cả mạng lưới phụ thuộc vào những liên kết cụ thể."
+        }
+      ],
+      "topics": [
+        "công việc"
+      ],
+      "interpretationGuidance": "Khuyến khích kiểm tra điểm lỗi và giảm phụ thuộc đơn lẻ.",
+      "cautions": [
+        "Đừng giao toàn bộ dữ liệu hoặc quyền quyết định cho một điểm duy nhất."
+      ],
+      "practicalAdvice": [
+        "Thử quy trình ở quy mô nhỏ và lập phương án thay thế."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 96,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Hạt mưa đầu mùa",
+      "poem": "Mưa đầu mùa rơi trên đường bụi\nMùi đất dâng lên gọi mầm xanh\nCơ hội mới cần người đón lấy\nBước nhỏ hôm nay mở lối lành",
+      "grade": "THUẬN",
+      "centralMeaning": "Một cơ hội đang hình thành có thể tiến triển nếu người hỏi chuyển ý định thành hành động đầu tiên.",
+      "symbols": [
+        "Mùi đất sau mưa"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Mùi đất sau mưa",
+          "meaning": "Tín hiệu mới khơi lại năng lượng và khả năng bắt đầu."
+        }
+      ],
+      "topics": [
+        "khởi đầu"
+      ],
+      "interpretationGuidance": "Chuyển hy vọng thành bước hành động cụ thể, không bảo đảm kết quả.",
+      "cautions": [
+        "Đừng chờ cảm hứng hoàn hảo mới hành động."
+      ],
+      "practicalAdvice": [
+        "Thực hiện bước đầu trong một giờ hoặc một ngày tới."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 97,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Chiếc thang dựa tường",
+      "poem": "Thang dựa tường, chân chưa cài chặt\nLeo cao cần người giữ phía sau\nViệc lớn một mình thêm nguy hiểm\nGọi đúng người cùng kiểm tra nào",
+      "grade": "CẨN TRỌNG",
+      "centralMeaning": "Mục tiêu lớn cần nguồn lực, hỗ trợ và biện pháp an toàn tương xứng.",
+      "symbols": [
+        "Chiếc thang chưa chèn"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Chiếc thang chưa chèn",
+          "meaning": "Nền móng và người hỗ trợ quyết định độ an toàn của bước tiến."
+        }
+      ],
+      "topics": [
+        "trách nhiệm"
+      ],
+      "interpretationGuidance": "Khuyên phối hợp đúng chuyên môn và chú ý an toàn.",
+      "cautions": [
+        "Đừng nhờ người không đủ năng lực cho việc chuyên môn nguy hiểm."
+      ],
+      "practicalAdvice": [
+        "Kiểm tra nguồn lực, kỹ năng và phương án hỗ trợ trước khi bắt đầu."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 98,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Mảnh ghép còn thiếu",
+      "poem": "Bức tranh dừng vì ô còn trống\nĐừng ép miếng khác vào cho vừa\nHỏi lại mẫu hình mình đang ghép\nCó khi thiếu mảnh ở nơi xa",
+      "grade": "BÌNH",
+      "centralMeaning": "Khi dữ kiện không khớp, người hỏi cần xem lại giả định thay vì ép kết luận theo ý muốn.",
+      "symbols": [
+        "Ô trống trong bức ghép"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Ô trống trong bức ghép",
+          "meaning": "Khoảng trống cho thấy điều chưa biết, không phải lỗi cần che ngay."
+        }
+      ],
+      "topics": [
+        "tri thức"
+      ],
+      "interpretationGuidance": "Khuyến khích nhận diện sự không chắc chắn và cập nhật quan điểm.",
+      "cautions": [
+        "Đừng bỏ qua bằng chứng trái với kỳ vọng."
+      ],
+      "practicalAdvice": [
+        "Ghi điều chưa rõ và tìm thông tin có thể kiểm chứng."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 99,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Gánh nhẹ sau chia phần",
+      "poem": "Gánh chia đôi qua con dốc nhỏ\nVai bớt đau, bước vững hơn nhiều\nNhờ người không làm mình yếu thế\nCùng san phần khó, sức bền theo",
+      "grade": "THUẬN",
+      "centralMeaning": "Nhận hỗ trợ phù hợp có thể giúp người hỏi tiếp tục mà không phải gánh mọi thứ một mình.",
+      "symbols": [
+        "Đòn gánh chia đều"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Đòn gánh chia đều",
+          "meaning": "Sự chia sẻ giảm áp lực và tăng khả năng hoàn thành."
+        }
+      ],
+      "topics": [
+        "nghị lực"
+      ],
+      "interpretationGuidance": "Khẳng định nhận trợ giúp là năng lực, không phải thất bại.",
+      "cautions": [
+        "Chọn người có thể tin cậy và thống nhất kỳ vọng."
+      ],
+      "practicalAdvice": [
+        "Nêu rõ việc cần giúp, thời gian và phần mình vẫn chịu trách nhiệm."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    },
+    {
+      "id": 100,
+      "systemId": "TLTL_ORIGINAL_100_V1",
+      "title": "Vòng tròn bên bếp lửa",
+      "poem": "Mỗi người kể một điều chưa nói\nLửa reo, căn bếp bớt xa xôi\nGia đình cần nghe không phán xét\nChậm lời khuyên, hỏi cảm nhận thôi",
+      "grade": "BÌNH",
+      "centralMeaning": "Không gian lắng nghe an toàn giúp người thân chia sẻ điều khó nói.",
+      "symbols": [
+        "Vòng người bên bếp"
+      ],
+      "symbolicExplanations": [
+        {
+          "symbol": "Vòng người bên bếp",
+          "meaning": "Sự hiện diện và chú tâm có thể nuôi kết nối."
+        }
+      ],
+      "topics": [
+        "gia đình"
+      ],
+      "interpretationGuidance": "Tôn trọng đồng thuận và quyền riêng tư trong gia đình.",
+      "cautions": [
+        "Đừng ép chia sẻ chuyện riêng khi người kia chưa sẵn sàng."
+      ],
+      "practicalAdvice": [
+        "Hỏi một câu mở và xin phép trước khi đưa lời khuyên."
+      ],
+      "contentType": "ORIGINAL",
+      "authoringMethod": "AI_ASSISTED_EDITORIAL_DRAFT",
+      "contentVersion": "1.0.1-draft",
+      "reviewStatus": "DRAFT"
+    }
+  ]
+}
