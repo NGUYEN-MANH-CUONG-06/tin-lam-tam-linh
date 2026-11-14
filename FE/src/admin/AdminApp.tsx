@@ -63,6 +63,7 @@ import {
 } from "../data/adminService";
 import { ContentEditor, type Kind } from "./ContentEditor";
 import { ContentDetailModal } from "./ContentDetailModal";
+import { DemoCatalogStatusPanel } from "./DemoCatalogStatusPanel";
 import { getContentCardCategory, getContentCardStatus } from "./contentCardPresentation";
 import { SignalAdminPanel } from "./SignalAdminPanel";
 import { PartnershipPanel } from "../components/PartnershipPanel";
@@ -563,6 +564,8 @@ export default function AdminApp() {
   const [searchDraft, setSearchDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [publishingXam, setPublishingXam] = useState(false);
+  const [xamPublicationMessage, setXamPublicationMessage] = useState("");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [reviewRecord, setReviewRecord] = useState<AdminRecord | null>(null);
   const [reviewField, setReviewField] = useState<ReviewField | null>(null);
@@ -890,6 +893,27 @@ export default function AdminApp() {
     setSearch("");
     setPage(1);
     if (section !== "overview") void fetchSection(section, 1, "", activeFilter);
+  };
+
+  const publishOriginalXam = async () => {
+    if (publishingXam || isDemoMode() || userRole !== "ADMIN") return;
+    const confirmed = window.confirm("Phát hành riêng bộ TLTL_ORIGINAL_100_V1 phiên bản 1.0.1-draft? Máy chủ chỉ chấp nhận khi đủ 100 quẻ hợp lệ và tất cả đã được duyệt. Thao tác này đưa cả bộ vào trạng thái công khai.");
+    if (!confirmed) return;
+    setPublishingXam(true);
+    setError("");
+    setXamPublicationMessage("");
+    try {
+      const result = await apiRequest<{ count: number }>("/admin/xam/original/publish", {
+        method: "POST",
+        body: JSON.stringify({ reviewNote: "Phát hành catalog sau khi xác nhận riêng trên Admin Dashboard." }),
+      });
+      setXamPublicationMessage(`Đã phát hành ${result.count} quẻ.`);
+      await fetchSection("xam", 1, search, activeFilter);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Không thể phát hành bộ quẻ.");
+    } finally {
+      setPublishingXam(false);
+    }
   };
 
   const changePage = (nextPage: number) => {
@@ -1295,6 +1319,11 @@ export default function AdminApp() {
             </div>
 
             <div className="admin-heading-actions">
+              {section === "xam" && userRole === "ADMIN" && !isDemoMode() && (
+                <button type="button" className="admin-create-button" onClick={() => void publishOriginalXam()} disabled={publishingXam}>
+                  {publishingXam ? "Đang kiểm tra và phát hành…" : "Phát hành bộ 100 quẻ nguyên tác"}
+                </button>
+              )}
               {hasSearch && (
                 <form
                   className="admin-search"
@@ -1334,6 +1363,7 @@ export default function AdminApp() {
                 </button>
               )}
             </div>
+            {section === "xam" && xamPublicationMessage && <p className="admin-success-message" role="status">{xamPublicationMessage}</p>}
           </div>
 
           {error && (
@@ -1351,6 +1381,8 @@ export default function AdminApp() {
               </button>
             </div>
           )}
+
+          {section === "xam" && userRole === "ADMIN" && <DemoCatalogStatusPanel />}
 
           {/* Section View: Overview Dashboard */}
           {section === "overview" && (

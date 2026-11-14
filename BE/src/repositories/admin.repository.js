@@ -6,6 +6,7 @@ const { stateAfterReview } = require("../services/editorial-workflow");
 const { hasPublishableCultureContent, cultureContentHash } = require("../services/culture-publication");
 const { ensureDifferentReviewer } = require("../services/content-review-guard");
 const { editorialContentHash } = require("../services/editorial-content-hash");
+const { SYSTEM_ID: ORIGINAL_XAM_SYSTEM_ID } = require("../services/original-xam-catalog");
 const PAGE_SIZE = 25;
 
 function pageResult(items, total, page, stats) {
@@ -155,6 +156,7 @@ async function updateReview({ model, id, actorId, patch, expectedUpdatedAt, revi
     if (!expectedUpdatedAt || new Date(expectedUpdatedAt).getTime() !== before.updated_at.getTime()) return { versionConflict: true };
     const effectiveSource = typeof source === "string" ? source.trim() : before.source;
     const originalXam = model === "xin_xam" && isOriginalXamMetadata(before.editorial_metadata);
+    if (originalXam && patch.active === true) return { catalogPublicationRequired: true };
     if (source !== undefined && source.trim() && !/^https:\/\/[^\s]+$/i.test(source.trim())) return { sourceInvalid: true };
     const nextWorkflow = stateAfterReview(before, patch);
     if (patch.verified === true) await ensureDifferentReviewer(tx, model, id, actorId);
@@ -272,5 +274,57 @@ async function updateReview({ model, id, actorId, patch, expectedUpdatedAt, revi
   });
 }
 
+async function publishOriginalXamCatalog({ actorId, reviewNote }) {
+  const xamType = `${ORIGINAL_XAM_SYSTEM_ID}:1.0.1-draft`;
+  try {
+    return await prisma.$transaction(async (tx) => {
+    const cards = await tx.xin_xam.findMany({ where: { xam_type: xamType }, orderBy: { stick_number: "asc" } });
+    if (cards.length !== 100) return { catalogIncomplete: true, count: cards.length };
+    if (cards.some((card, index) => card.stick_number !== index + 1)) return { catalogIdsInvalid: true };
+    if (cards.some((card) => card.editorial_status !== "APPROVED" || !card.verified || card.active)) return { cardsNotApproved: true };
+    if (cards.some((card) => !isOriginalXamMetadata(card.editorial_metadata)
+      || card.editorial_metadata.reviewStatus !== "APPROVED"
+      || card.editorial_metadata.humanApproved !== true
+      || !hasCompleteXamContent({ poem: card.poem, interpretations: [card.meaning, card.advice], source: card.source, editorial_metadata: card.editorial_metadata }))) return { contentIncomplete: true };
+
+    const approvalLogs = await tx.admin_audit_logs.findMany({
+      where: { target_type: "xin_xam", target_id: { in: cards.map((card) => card.id) }, action: "CONTENT_REVIEW_UPDATED" },
+      orderBy: { created_at: "desc" },
+      select: { target_id: true, details: true },
+    });
+    const approvedHashes = new Map();
+    for (const log of approvalLogs) {
+      if (!approvedHashes.has(log.target_id) && log.details?.after?.verified === true) {
+        approvedHashes.set(log.target_id, log.details.approvedContentHash);
+      }
+    }
+    if (cards.some((card) => approvedHashes.get(card.id) !== editorialContentHash(card))) return { approvalVersionMismatch: true };
+
+    for (const card of cards) {
+      const changed = await tx.xin_xam.updateMany({
+        where: { id: card.id, updated_at: card.updated_at, editorial_status: "APPROVED", verified: true, active: false },
+        data: { active: true, editorial_status: "PUBLISHED", updated_at: new Date(Math.max(Date.now(), card.updated_at.getTime() + 1)) },
+      });
+      if (changed.count !== 1) {
+        const conflict = new Error("XAM_PUBLICATION_VERSION_CONFLICT");
+        conflict.code = "XAM_PUBLICATION_VERSION_CONFLICT";
+        throw conflict;
+      }
+    }
+    await tx.admin_audit_logs.create({ data: {
+      actor_id: actorId,
+      action: "XAM_CATALOG_PUBLISHED",
+      target_type: "xin_xam_catalog",
+      target_id: cards[0].id,
+      details: { systemId: ORIGINAL_XAM_SYSTEM_ID, datasetVersion: "1.0.1-draft", recordCount: cards.length, reviewNote },
+    } });
+    return { published: true, systemId: ORIGINAL_XAM_SYSTEM_ID, datasetVersion: "1.0.1-draft", count: cards.length };
+    });
+  } catch (error) {
+    if (error?.code === "XAM_PUBLICATION_VERSION_CONFLICT") return { versionConflict: true };
+    throw error;
+  }
+}
+
 function inputSourceLocator(value) { return typeof value === "string" && value.trim().length >= 2; }
-module.exports = { getOverview, listArticles, listCalendarEvents, listXamLots, listRituals, listPrayers, listMembershipInterests, listAuditLogs, getEditorialContext, updateReview };
+module.exports = { getOverview, listArticles, listCalendarEvents, listXamLots, listRituals, listPrayers, listMembershipInterests, listAuditLogs, getEditorialContext, updateReview, publishOriginalXamCatalog };

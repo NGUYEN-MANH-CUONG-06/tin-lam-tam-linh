@@ -4,6 +4,7 @@ const dataset = require("../data/xin-xam/tltl-original-100-v1.json");
 const { toOriginalDraftRecord } = require("../src/services/original-xam-catalog");
 const { hasCompleteXamContent, isOriginalXamMetadata, markOriginalXamApproved, isPublishableXamCard } = require("../../shared/xin-xam-publication.mjs");
 const { schemas } = require("../src/validators/content-editor.validator");
+const { editorialContentHash } = require("../src/services/editorial-content-hash");
 
 test("original xam follows a separate human approval path without a false external source", () => {
   const draft = toOriginalDraftRecord(dataset.records[0], dataset);
@@ -133,4 +134,65 @@ test("admin approval of original xam requires a separate rights confirmation and
   assert.equal(updateData.editorial_metadata.reviewStatus, "APPROVED");
   assert.equal(updateData.editorial_metadata.humanApproved, true);
   assert.equal(updateData.source, undefined);
+});
+
+test("catalog publication requires all 100 individually approved current versions", async (context) => {
+  const prisma = require("../src/config/prisma");
+  const repository = require("../src/repositories/admin.repository");
+  const previousTransaction = prisma.$transaction;
+  const cards = dataset.records.map((row) => ({
+    ...toOriginalDraftRecord(row, dataset),
+    id: `id-${row.id}`,
+    editorial_metadata: markOriginalXamApproved(toOriginalDraftRecord(row, dataset).editorial_metadata),
+    editorial_status: "APPROVED",
+    verified: true,
+    active: false,
+    updated_at: new Date("2026-11-03T10:00:00.000Z"),
+  }));
+  const audit = cards.map((card) => ({ target_id: card.id, details: { after: { verified: true }, approvedContentHash: editorialContentHash(card) } }));
+  let publicationUpdates = 0;
+  let catalogAudit = null;
+  prisma.$transaction = async (callback) => callback({
+    xin_xam: {
+      findMany: async () => cards,
+      updateMany: async () => { publicationUpdates += 1; return { count: 1 }; },
+    },
+    admin_audit_logs: {
+      findMany: async () => audit,
+      create: async ({ data }) => { catalogAudit = data; return { id: "audit-id" }; },
+    },
+  });
+  context.after(() => { prisma.$transaction = previousTransaction; });
+
+  const result = await repository.publishOriginalXamCatalog({ actorId: "reviewer-id", reviewNote: "Explicit catalog release confirmation" });
+  assert.deepEqual(result, { published: true, systemId: dataset.systemId, datasetVersion: dataset.datasetVersion, count: 100 });
+  assert.equal(publicationUpdates, 100);
+  assert.equal(catalogAudit.action, "XAM_CATALOG_PUBLISHED");
+  assert.equal(catalogAudit.target_type, "xin_xam_catalog");
+  assert.equal(catalogAudit.target_id, cards[0].id);
+});
+
+test("catalog publication refuses incomplete or unapproved catalog records", async (context) => {
+  const prisma = require("../src/config/prisma");
+  const repository = require("../src/repositories/admin.repository");
+  const previousTransaction = prisma.$transaction;
+  const cards = dataset.records.slice(0, 99).map((row) => ({ ...toOriginalDraftRecord(row, dataset), id: `id-${row.id}` }));
+  prisma.$transaction = async (callback) => callback({ xin_xam: { findMany: async () => cards } });
+  context.after(() => { prisma.$transaction = previousTransaction; });
+  assert.deepEqual(await repository.publishOriginalXamCatalog({ actorId: "reviewer-id", reviewNote: "Explicit catalog release confirmation" }), { catalogIncomplete: true, count: 99 });
+});
+
+test("an original xam card cannot bypass its catalog release with individual publication", async (context) => {
+  const prisma = require("../src/config/prisma");
+  const repository = require("../src/repositories/admin.repository");
+  const previousTransaction = prisma.$transaction;
+  const card = toOriginalDraftRecord(dataset.records[0], dataset);
+  const updatedAt = new Date("2026-11-04T10:00:00.000Z");
+  prisma.$transaction = async (callback) => callback({ xin_xam: { findUnique: async () => ({ ...card, id: "card-id", updated_at: updatedAt, editorial_status: "APPROVED", verified: true, active: false }) } });
+  context.after(() => { prisma.$transaction = previousTransaction; });
+  const result = await repository.updateReview({
+    model: "xin_xam", id: "card-id", actorId: "admin-id", patch: { active: true },
+    expectedUpdatedAt: updatedAt.toISOString(), reviewNote: "Publish approved original card",
+  });
+  assert.deepEqual(result, { catalogPublicationRequired: true });
 });

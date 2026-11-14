@@ -60,6 +60,7 @@ function loadDemoXinXamSnapshot(): DemoXinXamSnapshot | null {
   const result = snapshot.result;
   if (typeof snapshot.drawId !== "string" || !result || typeof result !== "object") return null;
   const isText = (item: unknown): item is string => typeof item === "string";
+  if (result.reflectionQuestion !== undefined && !isText(result.reflectionQuestion)) return null;
   if (!isText(result.stickNumber) || !isText(result.sealText) || !isText(result.title) || !isText(result.quote)
     || !isText(result.regionSub) || !isText(result.topicTag) || !isText(result.insight)
     || !isText(result.culturalAspect) || !isText(result.relatedArticleId) || !isText(result.relatedArticleTitle)
@@ -101,6 +102,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
   const [step, setStep] = useState<1 | 2 | 3>(demoSnapshot ? 3 : 1);
   const selectedRegion = "Toàn quốc" as const;
   const [selectedTopic, setSelectedTopic] = useState<TopicType>(demoSnapshot?.result.topic ?? "Bình an");
+  const [reflectionQuestion, setReflectionQuestion] = useState(demoSnapshot?.result.reflectionQuestion ?? "");
 
   const [availability, setAvailability] =
     useState<XinXamAvailability | null>(null);
@@ -304,7 +306,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
       remote = await drawXinXam(
         selectedRegion,
         selectedTopic,
-        undefined,
+        reflectionQuestion.trim() || undefined,
         { signal: controller.signal },
       );
     } catch (error) {
@@ -348,7 +350,13 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
 
     const poemLines = normalizeXamPoemLines(remote.poem || "");
 
-    const publishable = isPublishableXamCard({
+    const publishable = isDemoMode()
+      ? remote.demoStatus === "DEMO_ACTIVE"
+        && remote.active === true
+        && remote.verified === false
+        && poemLines.length === 4
+        && remote.xamType === "TLTL_ORIGINAL_100_V1:1.0.1-draft"
+      : isPublishableXamCard({
       active: remote.active,
       verified: remote.verified,
       xam_type: remote.xamType,
@@ -374,6 +382,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
 
     const chosen: XinXamResult = {
       resultToken: remote.resultToken,
+      reflectionQuestion: reflectionQuestion.trim(),
       metadata: remote.originalContent.metadata,
       aiExplanation: remote.aiExplanation || undefined,
       source: remote.source || "",
@@ -724,6 +733,22 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                   })}
                 </div>
               </fieldset>
+
+              <div className="mb-6 space-y-2">
+                <label htmlFor="xin-xam-reflection-question" className="block text-xs font-bold uppercase tracking-wider text-accent">
+                  Câu hỏi muốn chiêm nghiệm <span className="font-normal normal-case tracking-normal text-muted">(không bắt buộc)</span>
+                </label>
+                <textarea
+                  id="xin-xam-reflection-question"
+                  rows={3}
+                  maxLength={2000}
+                  value={reflectionQuestion}
+                  onChange={(event) => setReflectionQuestion(event.target.value)}
+                  placeholder="Bạn đang băn khoăn điều gì trong phương diện đã chọn?"
+                  className="w-full rounded-xl border border-line bg-surface p-3 text-sm text-ink placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                />
+                <p className="text-xs text-muted">Câu hỏi được gửi đến máy chủ để tạo luận giải; vui lòng không nhập thông tin nhạy cảm.</p>
+              </div>
 
               {/* Selection Summary Callout Box */}
               <Card className="p-5 rounded-2xl bg-surface border border-line flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shadow-2xs">
@@ -1389,7 +1414,7 @@ export const XinXamScreen: React.FC<XinXamScreenProps> = ({
                     sections={[]}
                     onInterpretation={async () => {
                       if (!currentResult.resultToken) throw new Error("Thiếu mã lượt Xin xăm do máy chủ ký.");
-                      const result = await interpretDemoXinXam(currentResult.resultToken, currentResult.topic);
+                      const result = await interpretDemoXinXam(currentResult.resultToken, currentResult.topic, currentResult.reflectionQuestion);
                       return [
                         { title: "Tổng quan", content: result.summary },
                         { title: "Ý nghĩa truyền thống", content: result.traditionalMeaning },

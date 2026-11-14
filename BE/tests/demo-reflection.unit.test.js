@@ -1,7 +1,13 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { randomUUID } = require("node:crypto");
-const { throwDemoKeo, interpretDemoKeo, interpretDemoXam } = require("../src/services/demo-reflection.service");
+const demoService = require("../src/services/demo-reflection.service");
+const DEMO_ENV = { NODE_ENV: "test", TLTL_DEMO_AUTO_PUBLISH: true };
+const withDemoEnv = (service) => (input) => service({ ...input, environment: DEMO_ENV });
+const throwDemoKeo = withDemoEnv(demoService.throwDemoKeo);
+const interpretDemoKeo = withDemoEnv(demoService.interpretDemoKeo);
+const interpretDemoXam = withDemoEnv(demoService.interpretDemoXam);
+const drawDemoXam = withDemoEnv(demoService.drawDemoXam);
 const { issueXamResult, contentFingerprint } = require("../src/utils/xam-result-token");
 
 test("demo Xin keo takes the result from the backend, is idempotent and signs the immutable outcome", async () => {
@@ -13,6 +19,9 @@ test("demo Xin keo takes the result from the backend, is idempotent and signs th
   assert.ok(["am", "duong"].includes(first.piece1));
   assert.ok(["am", "duong"].includes(first.piece2));
   assert.ok(["YES", "UNCLEAR", "NO"].includes(first.result));
+  assert.equal(typeof first.title, "string");
+  assert.equal(typeof first.meaning, "string");
+  assert.equal(typeof first.guidance, "string");
   assert.equal(typeof first.resultToken, "string");
   await assert.rejects(interpretDemoKeo({ address: "keo-tamper-test", resultToken: "tampered", generate: async () => ({}) }), { name: "JsonWebTokenError" });
 });
@@ -90,4 +99,91 @@ test("demo Xin xam refuses unverified or mismatched fortune data before Gemini",
   const result = await interpretDemoXam({ address: "xam-test", resultToken, topic: "Công việc", question: "câu hỏi", findCatalog: async () => card, generate });
   assert.equal(result.status, "SUCCESS");
   assert.equal(generated, true);
+});
+
+test("demo Xin xam draws from all 100 validated JSON cards and Gemini receives that exact card", async () => {
+  const address = `demo-xam-${randomUUID()}`;
+  const requestId = randomUUID();
+  const availability = demoService.getDemoXamAvailability({ environment: DEMO_ENV, region: "Bắc Bộ", topic: "Bình an" });
+  assert.equal(availability.count, 100);
+  assert.equal(availability.available, true);
+  assert.equal(availability.region, "Bắc Bộ");
+  assert.equal(availability.topic, "Bình an");
+  const draw = drawDemoXam({ address, requestId, region: "Bắc Bộ", topic: "Tài chính", question: "Câu hỏi demo" });
+  assert.equal(draw.demoStatus, "DEMO_ACTIVE");
+  assert.equal(draw.editorialStatus, "DEMO_ACTIVE");
+  assert.equal(draw.active, true);
+  assert.equal(draw.verified, false);
+  assert.match(draw.xamType, /^TLTL_ORIGINAL_100_V1:1\.0\.1-draft$/);
+  assert.ok(Number(draw.stickNumber) >= 1 && Number(draw.stickNumber) <= 100);
+  assert.equal(draw.originalContent.poem.split(/\r?\n/).length, 4);
+  assert.deepEqual(drawDemoXam({ address, requestId, region: "Bắc Bộ", topic: "Tài chính", question: "Câu hỏi demo" }), draw);
+
+  let prompt;
+  const interpreted = await interpretDemoXam({
+    address,
+    resultToken: draw.resultToken,
+    topic: "Tài chính",
+    question: "Câu hỏi demo",
+    generate: async (input) => { prompt = JSON.parse(input.prompt); return { status: "SUCCESS" }; },
+  });
+  assert.equal(interpreted.status, "SUCCESS");
+  assert.equal(prompt.fortune.stickNumber, Number(draw.stickNumber));
+  assert.equal(prompt.fortune.poem, draw.poem);
+  assert.equal(prompt.fortune.demoStatus, "DEMO_ACTIVE");
+  assert.equal(prompt.question, "Câu hỏi demo");
+});
+
+test("demo auto-activation requires the backend flag and is impossible in production", () => {
+  assert.equal(demoService.getDemoStatus(DEMO_ENV).xinXam.count, 100);
+  assert.equal(demoService.getDemoStatus({ NODE_ENV: "production", TLTL_DEMO_AUTO_PUBLISH: true }).enabled, false);
+  assert.equal(demoService.getDemoStatus({ NODE_ENV: "development", TLTL_DEMO_AUTO_PUBLISH: false }).enabled, false);
+  assert.throws(
+    () => demoService.drawDemoXam({ address: "disabled", requestId: randomUUID(), topic: "all", environment: { NODE_ENV: "development", TLTL_DEMO_AUTO_PUBLISH: false } }),
+    { code: "DEMO_ENDPOINT_DISABLED" },
+  );
+  assert.throws(
+    () => demoService.drawDemoXam({ address: "production", requestId: randomUUID(), topic: "all", environment: { NODE_ENV: "production", TLTL_DEMO_AUTO_PUBLISH: true } }),
+    { code: "DEMO_ENDPOINT_DISABLED" },
+  );
+});
+
+test("demo HTTP routes do not treat a client query or body field as backend enablement", async (context) => {
+  const app = require("../src/app");
+  const server = app.listen(0);
+  context.after(() => new Promise((resolve) => server.close(resolve)));
+  await new Promise((resolve) => server.once("listening", resolve));
+  const address = server.address();
+  const base = `http://127.0.0.1:${address.port}/api/v1/demo/reflections`;
+
+  const statusResponse = await fetch(`${base}/status`);
+  const status = await statusResponse.json();
+  assert.equal(status.success, true);
+  assert.equal(status.data.enabled, demoService.getDemoStatus().enabled);
+  const queryStatusResponse = await fetch(`${base}/status?demo=1`);
+  const queryStatus = await queryStatusResponse.json();
+  assert.equal(queryStatus.data.enabled, status.data.enabled);
+
+  const bodyEnableAttempt = await fetch(`${base}/xin-xam/draw`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ requestId: randomUUID(), topic: "all", TLTL_DEMO_AUTO_PUBLISH: true }),
+  });
+  assert.equal(bodyEnableAttempt.status, 422);
+});
+
+test("a signed demo Xam result is rejected before the account persistence path", async (context) => {
+  const reflectionService = require("../src/services/reflection.service");
+  const repository = require("../src/repositories/xin-xam.repository");
+  const previousFindDraw = repository.findDraw;
+  let databaseRead = false;
+  repository.findDraw = async () => { databaseRead = true; return null; };
+  context.after(() => { repository.findDraw = previousFindDraw; });
+  const card = require("../src/services/demo-xam-catalog").DEMO_CARDS[0];
+  const token = issueXamResult({
+    drawId: randomUUID(), cardId: card.id, xamType: card.xam_type, stickNumber: card.stick_number,
+    proverbId: null, fingerprint: contentFingerprint(card, null), createdAt: Date.now(), demo: true,
+  });
+  await assert.rejects(reflectionService.saveXamDraw("user-id", { resultToken: token }), { statusCode: 403 });
+  assert.equal(databaseRead, false);
 });

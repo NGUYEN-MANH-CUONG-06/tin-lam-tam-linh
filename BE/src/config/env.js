@@ -19,6 +19,7 @@ const envSchema = z
     GEMINI_API_KEY: optionalString,
     GEMINI_FALLBACK_MODEL: optionalString,
     XIN_XAM_CATALOG_TYPE: z.preprocess(emptyToUndefined, z.string().trim().max(100).optional()),
+    TLTL_DEMO_AUTO_PUBLISH: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
     PRIVATE_DATA_KEY: z.preprocess((value) => value === "" ? undefined : value, z.string().regex(/^[a-f0-9]{64}$/i, "PRIVATE_DATA_KEY must be 32 bytes encoded as 64 hexadecimal characters").optional()),
     SMTP_HOST: z.preprocess(emptyToUndefined, z.string().default("smtp.gmail.com")),
     SMTP_PORT: z.preprocess(emptyToUndefined, z.coerce.number().int().positive().default(465)),
@@ -57,6 +58,9 @@ const envSchema = z
   .superRefine((value, context) => {
     if (value.NODE_ENV === "production" && !value.PRIVATE_DATA_KEY) {
       context.addIssue({ code: "custom", path: ["PRIVATE_DATA_KEY"], message: "PRIVATE_DATA_KEY is required in production" });
+    }
+    if (value.NODE_ENV === "production" && value.TLTL_DEMO_AUTO_PUBLISH) {
+      context.addIssue({ code: "custom", path: ["TLTL_DEMO_AUTO_PUBLISH"], message: "TLTL_DEMO_AUTO_PUBLISH must be false in production" });
     }
     if (value.NODE_ENV === "production" && value.JWT_ACCESS_SECRET.length < 32) {
       context.addIssue({

@@ -631,6 +631,12 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
         outcome = {
           ...KEO_OUTCOMES[cast.type],
+          ...(isDemoMode() && cast.title ? {
+            title: cast.title,
+            statusLabel: cast.statusLabel || KEO_OUTCOMES[cast.type].statusLabel,
+            meaning: cast.meaning || KEO_OUTCOMES[cast.type].meaning,
+            guidance: cast.guidance || KEO_OUTCOMES[cast.type].guidance,
+          } : {}),
           piece1: cast.piece1,
           piece2: cast.piece2,
           proverb: cast.proverb,

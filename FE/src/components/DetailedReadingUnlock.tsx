@@ -66,33 +66,46 @@ export function DetailedReadingUnlock({
   const requestIdRef = useRef<string | null>(null);
   const interpretationStartedRef = useRef(false);
   const interpretationStorageKey = `ai-reading:${kind}:${resultId}`;
+  const interpretationAttemptStorageKey = `ai-reading-attempted:${kind}:${resultId}`;
   const [generatedSections, setGeneratedSections] = useState<DetailedReadingSection[] | null>(
     () => readDemoValue<DetailedReadingSection[] | null>(interpretationStorageKey, null),
   );
-  const [interpretationError, setInterpretationError] = useState("");
+  const [interpretationAttempted, setInterpretationAttempted] = useState(
+    () => readDemoValue<boolean>(interpretationAttemptStorageKey, false),
+  );
+  const [interpretationError, setInterpretationError] = useState(() =>
+    readDemoValue<boolean>(interpretationAttemptStorageKey, false)
+      && !readDemoValue<DetailedReadingSection[] | null>(interpretationStorageKey, null)
+      ? "Lượt luận giải trước chưa hoàn tất. Kết quả vẫn được giữ nguyên; bạn có thể thử lại."
+      : "",
+  );
   const [interpretationLoading, setInterpretationLoading] = useState(false);
 
-  const loadInterpretation = async () => {
+  const loadInterpretation = async (explicitRetry = false) => {
     if (!onInterpretation || interpretationLoading) return;
+    if (!explicitRetry && interpretationAttempted) return;
     interpretationStartedRef.current = true;
+    writeDemoValue(interpretationAttemptStorageKey, true);
+    setInterpretationAttempted(true);
     setInterpretationLoading(true);
     setInterpretationError("");
     try {
       const result = await onInterpretation();
       setGeneratedSections(result);
       writeDemoValue(interpretationStorageKey, result);
-    } catch {
-      setInterpretationError("Chưa lấy được lời luận giải từ máy chủ. Kết quả gieo vẫn được giữ nguyên; bạn có thể thử lại.");
+    } catch (error) {
+      const serverMessage = error instanceof Error ? error.message.trim() : "";
+      setInterpretationError(serverMessage || "Không kết nối được dịch vụ luận giải. Kết quả gieo vẫn được giữ nguyên; bạn có thể thử lại.");
     } finally {
       setInterpretationLoading(false);
     }
   };
 
   useEffect(() => {
-    if (unlocked && onInterpretation && !generatedSections && !interpretationStartedRef.current) {
+    if (unlocked && onInterpretation && !generatedSections && !interpretationAttempted && !interpretationStartedRef.current) {
       void loadInterpretation();
     }
-  }, [unlocked, onInterpretation, generatedSections]);
+  }, [unlocked, onInterpretation, generatedSections, interpretationAttempted]);
 
   if (!isDemoMode() || !resultId) return null;
 
@@ -277,7 +290,7 @@ export function DetailedReadingUnlock({
           {onInterpretation && !generatedSections && (
             <div role="status" className="rounded-xl border border-line bg-surface/70 p-3.5 text-sm text-muted">
               {interpretationLoading ? "Đang lấy lời luận giải từ máy chủ…" : interpretationError || "Lời luận giải AI chưa được tạo."}
-              {!interpretationLoading && <button type="button" className="ml-2 underline" onClick={() => void loadInterpretation()}>Thử lại</button>}
+              {!interpretationLoading && <button type="button" className="ml-2 underline" onClick={() => void loadInterpretation(true)}>Thử lại</button>}
             </div>
           )}
           <div className="rounded-xl border border-line bg-surface/70 p-3.5 text-xs leading-relaxed text-muted flex items-start gap-2.5">

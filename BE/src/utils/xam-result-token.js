@@ -15,6 +15,7 @@ const receiptSchema = z.object({
   proverbId: z.string().uuid().nullable(),
   fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
   createdAt: z.number().int().positive().safe(),
+  demo: z.boolean().optional(),
 }).strict();
 
 function contentFingerprint(card, proverb) {

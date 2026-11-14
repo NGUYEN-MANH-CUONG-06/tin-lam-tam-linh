@@ -17,6 +17,7 @@ async function auditLogs(req, res) { return sendSuccess(res, { data: await servi
 async function updateArticle(req, res) { return sendSuccess(res, { data: await service.updateArticleReview(req.params.id, req.user.id, req.body) }); }
 async function updateCalendar(req, res) { return sendSuccess(res, { data: await service.updateCalendarReview(req.params.id, req.user.id, req.body) }); }
 async function updateXam(req, res) { return sendSuccess(res, { data: await service.updateXamReview(req.params.id, req.user.id, req.body) }); }
+async function publishOriginalXamCatalog(req, res) { return sendSuccess(res, { data: await service.publishOriginalXamCatalog(req.user.id, req.body) }); }
 async function updateRitual(req, res) { return sendSuccess(res, { data: await service.updateRitualReview(req.params.id, req.user.id, req.body) }); }
 async function updatePrayer(req, res) { return sendSuccess(res, { data: await service.updatePrayerReview(req.params.id, req.user.id, req.body) }); }
 
@@ -52,4 +53,4 @@ async function teamMembers(_req, res) { return sendSuccess(res, { data: await te
 async function addTeamEditor(req, res) { return sendSuccess(res, { statusCode: 201, data: await teamService.addEditorByEmail(req.body.email, req.user.id) }); }
 async function updateTeamMember(req, res) { return sendSuccess(res, { data: await teamService.setEditorialAccess(req.params.id, req.body.role, req.user.id) }); }
 
-module.exports = { overview, articles, calendar, xam, rituals, prayers, interests, auditLogs, updateArticle, updateCalendar, updateXam, updateRitual, updatePrayer, signals, signal, createSignal, updateSignal, reviewSignal, withdrawSignal, revokeSignalApproval, signalAuditLogs, teamMembers, addTeamEditor, updateTeamMember };
+module.exports = { overview, articles, calendar, xam, rituals, prayers, interests, auditLogs, updateArticle, updateCalendar, updateXam, publishOriginalXamCatalog, updateRitual, updatePrayer, signals, signal, createSignal, updateSignal, reviewSignal, withdrawSignal, revokeSignalApproval, signalAuditLogs, teamMembers, addTeamEditor, updateTeamMember };

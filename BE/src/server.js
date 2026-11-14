@@ -6,7 +6,11 @@ const logger = require("./utils/logger");
 let server;
 // Trigger nodemon reload: 2026-10-13
 async function start() {
-  await prisma.$queryRaw`SELECT 1`;
+  if (env.TLTL_DEMO_AUTO_PUBLISH) {
+    logger.info("Starting stateless demo mode without a database connection");
+  } else {
+    await prisma.$queryRaw`SELECT 1`;
+  }
   server = app.listen(env.PORT, () => {
     logger.info(`API listening on port ${env.PORT}`);
   });

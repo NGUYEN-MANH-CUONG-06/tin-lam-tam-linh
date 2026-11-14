@@ -239,6 +239,9 @@ async function saveXamDraw(userId, input) {
 
   // Khách rút trước rồi mới đăng nhập.
   const receipt = readXamResult(input.resultToken);
+  if (receipt.demo === true) {
+    throw new ApiError(403, "Kết quả Xin xăm Demo chỉ được lưu trong bộ nhớ cục bộ của phiên Demo.");
+  }
 
   // Retry cùng lượt: trả lại bản đã tạo cho tài khoản này.
   const existing = await xinXamRepository.findDraw(

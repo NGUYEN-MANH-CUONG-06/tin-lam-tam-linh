@@ -15,6 +15,7 @@ async function updateReview(model, id, actorId, input) {
   if (result.imageRightsBasisRequired) throw new ApiError(422, "Ảnh tổng quan nghi lễ cần có căn cứ quyền sử dụng trước khi duyệt.");
   if (result.imageRightsConfirmationRequired) throw new ApiError(422, "Người duyệt cần xác nhận đã kiểm tra hồ sơ quyền của ảnh tổng quan nghi lễ.");
   if (result.approvalRequired) throw new ApiError(422, "Chỉ nội dung đã được duyệt mới có thể chuyển sang trạng thái xuất bản.");
+  if (result.catalogPublicationRequired) throw new ApiError(422, "Quẻ nguyên tác chỉ được phát hành cùng toàn bộ catalog.");
   if (result.approvalVersionMismatch) throw new ApiError(409, "Phiên bản nội dung không khớp với bản đã duyệt. Hãy đưa về bản nháp, gửi duyệt và duyệt lại trước khi công khai.");
   if (result.invalidTransition) throw new ApiError(422, "Thao tác không hợp lệ với trạng thái nội dung hiện tại.");
   if (result.revokeApprovalRequired) throw new ApiError(422, "Dùng thao tác thu hồi duyệt để đưa nội dung về bản nháp.");
@@ -33,6 +34,17 @@ async function updateReview(model, id, actorId, input) {
   return result.updated;
 }
 
+async function publishOriginalXamCatalog(actorId, input) {
+  const result = await repository.publishOriginalXamCatalog({ actorId, reviewNote: input.reviewNote });
+  if (result.catalogIncomplete) throw new ApiError(422, `Bộ quẻ chưa đủ 100 bản ghi (hiện có ${result.count}).`);
+  if (result.catalogIdsInvalid) throw new ApiError(422, "Mã quẻ phải đầy đủ, duy nhất và liên tục từ 1 đến 100.");
+  if (result.cardsNotApproved) throw new ApiError(422, "Tất cả 100 quẻ phải được duyệt riêng trước khi phát hành.");
+  if (result.contentIncomplete) throw new ApiError(422, "Bộ quẻ có nội dung chưa đầy đủ hoặc chưa được ghi nhận duyệt.");
+  if (result.approvalVersionMismatch) throw new ApiError(409, "Nội dung đã thay đổi kể từ lần duyệt; cần duyệt lại trước khi phát hành.");
+  if (result.versionConflict) throw new ApiError(409, "Catalog vừa được cập nhật đồng thời. Tải lại trạng thái rồi thử lại.");
+  return result;
+}
+
 module.exports = {
   getOverview: repository.getOverview,
   listArticles: (params, actorId) => repository.listArticles(params, actorId),
@@ -47,4 +59,5 @@ module.exports = {
   updateXamReview: (id, actorId, input) => updateReview("xin_xam", id, actorId, input),
   updateRitualReview: (id, actorId, input) => updateReview("rituals", id, actorId, input),
   updatePrayerReview: (id, actorId, input) => updateReview("prayers", id, actorId, input),
+  publishOriginalXamCatalog,
 };

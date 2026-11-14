@@ -54,6 +54,7 @@ export function saveXam(result: {
 
 export interface XinXamDrawResponse extends SavedXinXamItem {
   active: boolean;
+  demoStatus?: "DEMO_ACTIVE";
   xamType: string;
   classification: string;
   rank: "Thượng Xăm" | "Trung Xăm" | "Hạ Xăm";
@@ -97,9 +98,11 @@ export function loadXinXamAvailability(
     topic,
   });
 
-  const request = isDemoMode() ? apiBackendRequest : apiRequest;
+  const demo = isDemoMode();
+  const request = demo ? apiBackendRequest : apiRequest;
+  const endpoint = demo ? "/demo/reflections/xin-xam/availability" : "/xam/availability";
   return request<XinXamAvailability>(
-    `/xam/availability?${params.toString()}`,
+    `${endpoint}?${params.toString()}`,
     {
       signal: options.signal,
     },
@@ -112,16 +115,25 @@ export function drawXinXam(
   question?: string,
   options: { signal?: AbortSignal } = {},
 ): Promise<XinXamDrawResponse> {
-  const request = isDemoMode() ? apiBackendRequest : apiRequest;
-  return request<XinXamDrawResponse>("/xam/draw", {
+  const demo = isDemoMode();
+  const inputKey = JSON.stringify({ region, topic, question: question || "" });
+  const storedRequest = demo
+    ? readDemoValue<{ inputKey: string; requestId: string } | null>("xin-xam-pending-request-v1", null)
+    : null;
+  const requestId = demo && storedRequest?.inputKey === inputKey ? storedRequest.requestId : crypto.randomUUID();
+  if (demo) writeDemoValue("xin-xam-pending-request-v1", { inputKey, requestId });
+  const request = demo ? apiBackendRequest : apiRequest;
+  return request<XinXamDrawResponse>(demo ? "/demo/reflections/xin-xam/draw" : "/xam/draw", {
     method: "POST",
     body: JSON.stringify({
+      ...(demo ? { requestId } : {}),
       region,
       topic,
       question,
     }),
     signal: options.signal,
   }).then((result) => {
+    if (demo) writeDemoValue("xin-xam-pending-request-v1", null);
     trackProductEvent("xam_draw_completed");
     return result;
   });
@@ -204,6 +216,10 @@ export interface XinKeoCast {
   piece2: "am" | "duong";
   proverb: SourcedProverb | null;
   resultToken?: string;
+  title?: string;
+  statusLabel?: string;
+  meaning?: string;
+  guidance?: string;
 }
 
 export interface XinKeoSession {
