@@ -67,6 +67,55 @@ test("Gemini falls back once only after primary 5xx and reports the actual model
   assert.equal(result.model, "fallback-test-model");
 });
 
+test("Gemini quota errors fall back to Groq with the same validated JSON schema", async () => {
+  let groqRequest;
+  const result = await generateInterpretation({
+    prompt: JSON.stringify({ kind: "xin-keo", question: "Mong gia đình bình an." }),
+    allowedSourceRefs: new Set(["keo-traditional-outcome"]),
+    apiKey: "gemini-test-key",
+    model: "gemini-test-model",
+    groqKey: "groq-test-key",
+    groqModel: "qwen/qwen3.8-27b",
+    generateContentImpl: async () => { const error = new Error("Gemini quota exhausted"); error.status = 429; throw error; },
+    groqFetchImpl: async (url, options) => {
+      groqRequest = { url, options, body: JSON.parse(options.body) };
+      return { ok: true, status: 200, json: async () => ({ choices: [{ finish_reason: "stop", message: { content: JSON.stringify(interpretation) } }] }) };
+    },
+  });
+
+  assert.equal(result.status, "SUCCESS");
+  assert.equal(result.model, "qwen/qwen3.8-27b");
+  assert.equal(result.provider, "groq");
+  assert.equal(groqRequest.url, "https://api.groq.com/openai/v1/chat/completions");
+  assert.equal(groqRequest.options.headers.Authorization, "Bearer groq-test-key");
+  assert.equal(groqRequest.body.response_format.type, "json_schema");
+  assert.equal(groqRequest.body.response_format.json_schema.schema.type, "object");
+  assert.equal(groqRequest.body.response_format.json_schema.schema.additionalProperties, false);
+  assert.equal("propertyOrdering" in groqRequest.body.response_format.json_schema.schema, false);
+  assert.equal(JSON.stringify(result).includes("groq-test-key"), false);
+});
+
+test("Gemini reports which model returned the final provider 5xx", async () => {
+  const attemptedModels = [];
+  await assert.rejects(
+    generateInterpretation({
+      prompt: "simple prompt",
+      allowedSourceRefs: new Set(["keo-traditional-outcome"]),
+      apiKey: "test",
+      model: "primary-test-model",
+      fallbackModel: "fallback-test-model",
+      generateContentImpl: async ({ model }) => {
+        attemptedModels.push(model);
+        const error = new Error("provider unavailable");
+        error.status = 503;
+        throw error;
+      },
+    }),
+    { code: "GEMINI_PROVIDER_UNAVAILABLE", status: 503, model: "fallback-test-model" },
+  );
+  assert.deepEqual(attemptedModels, ["primary-test-model", "fallback-test-model"]);
+});
+
 test("Xin keo interpretation rejects any client outcome that conflicts with recorded sides", async () => {
   await assert.rejects(interpretKeo({
     userId: "invalid-side-user",

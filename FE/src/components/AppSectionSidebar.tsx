@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Bell,
   BookOpen,
@@ -11,6 +11,8 @@ import {
   Landmark,
   Map,
   Music2,
+  PanelLeftClose,
+  PanelLeftOpen,
   PenLine,
   ScrollText,
   Settings,
@@ -28,6 +30,8 @@ type Props = {
   currentScreen: NavScreen;
   onNavigate: (screen: NavScreen) => void;
   user?: { name: string; email: string } | null;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 };
 
 type SidebarLink = {
@@ -70,8 +74,8 @@ const groups: Record<Props["area"], { title: string; links: SidebarLink[] }[]> =
       { label: "Một lời biết ơn", screen: "gratitude", icon: Heart },
     ] },
     { title: "CHIÊM NGHIỆM DÂN GIAN", links: [
-      { label: "Xin xăm", screen: "xinxam", icon: ScrollText },
       { label: "Xin keo âm dương", screen: "xinkeo", icon: Compass },
+      { label: "Xin xăm", screen: "xinxam", icon: ScrollText },
       { label: "Xem tử vi", screen: "astrology", icon: Sparkles },
     ] },
     { title: "GIA TIÊN & TƯỞNG NHỚ", links: [
@@ -93,57 +97,126 @@ const areaLabels: Record<Props["area"], { aside: string; nav: string }> = {
   experience: { aside: "Điều hướng Trải nghiệm", nav: "Các trải nghiệm" },
 };
 
-export const AppSectionSidebar: React.FC<Props> = ({ area, currentScreen, onNavigate, user }) => (
-  <aside className="app-section-sidebar" aria-label={areaLabels[area].aside}>
-    <nav className="app-section-sidebar__nav" aria-label={areaLabels[area].nav}>
-      {groups[area].map((group) => (
-        <div className="app-section-sidebar__group" key={group.title}>
-          <h2>{group.title}</h2>
-          {group.links.map(({ label, screen, icon: Icon, activeScreens }) => {
-            const active = screen === currentScreen || activeScreens?.includes(currentScreen);
+export const AppSectionSidebar: React.FC<Props> = ({
+  area,
+  currentScreen,
+  onNavigate,
+  user,
+  isCollapsed = false,
+  onToggleCollapse,
+}) => {
+  useEffect(() => {
+    if (!onToggleCollapse) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
+        const target = e.target as HTMLElement | null;
+        if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+          return;
+        }
+        e.preventDefault();
+        onToggleCollapse();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onToggleCollapse]);
 
-            return (
-              <button
-                key={screen}
-                type="button"
-                className="app-section-sidebar__link"
-                aria-current={active ? "page" : undefined}
-                onClick={() => onNavigate(screen)}
-              >
-                <Icon aria-hidden="true" />
-                <span>{label}</span>
-                {active && <i aria-hidden="true" />}
-              </button>
-            );
-          })}
-        </div>
-      ))}
-      {currentScreen === "settings" && (
-        <div className="app-section-sidebar__subnav" aria-label="Các mục cài đặt">
-          <h2>TRONG CÀI ĐẶT</h2>
-          {settingsSections.map(({ label, id }) => (
-            <a key={id} href={`#${id}`} className="app-section-sidebar__section-link">{label}</a>
-          ))}
-        </div>
-      )}
-    </nav>
-    <div className="app-section-sidebar__bottom">
-      {area === "account" ? (
-        <button type="button" className="app-section-sidebar__profile" onClick={() => onNavigate("account")}>
-          <span className="app-section-sidebar__avatar">{(user?.name || "A").slice(0, 1).toUpperCase()}</span>
-          <span><strong>{user?.name || "Góc cá nhân"}</strong><small>Thông tin tài khoản</small></span>
-        </button>
-      ) : (
-        <button
-          type="button"
-          className="app-section-sidebar__back group"
-          onClick={() => onNavigate("today")}
-          title="Quay về Trang chủ"
-        >
-          <Home className="transition-transform duration-200 group-hover:scale-125 group-active:scale-95" aria-hidden="true" />
-          <span className="font-semibold transition-colors duration-200">Về Trang chủ</span>
-        </button>
-      )}
-    </div>
-  </aside>
-);
+  return (
+    <aside
+      className={`app-section-sidebar ${isCollapsed ? "app-section-sidebar--collapsed" : ""}`}
+      aria-label={areaLabels[area].aside}
+    >
+      <div className="app-section-sidebar__header">
+        {!isCollapsed ? (
+          <div className="app-section-sidebar__header-title">
+            <span className="app-section-sidebar__header-indicator" aria-hidden="true" />
+            <span className="app-section-sidebar__header-text">
+              {area === "experience"
+                ? "Trải nghiệm"
+                : area === "discover"
+                ? "Khám phá"
+                : "Góc cá nhân"}
+            </span>
+          </div>
+        ) : (
+          <div className="app-section-sidebar__header-collapsed-dot" aria-hidden="true" />
+        )}
+        {onToggleCollapse && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="app-section-sidebar__toggle"
+            title={isCollapsed ? "Mở rộng thanh điều hướng (Ctrl+B)" : "Thu gọn thanh điều hướng (Ctrl+B)"}
+            aria-label={isCollapsed ? "Mở rộng thanh điều hướng" : "Thu gọn thanh điều hướng"}
+          >
+            {isCollapsed ? (
+              <PanelLeftOpen className="w-4 h-4" aria-hidden="true" />
+            ) : (
+              <PanelLeftClose className="w-4 h-4" aria-hidden="true" />
+            )}
+          </button>
+        )}
+      </div>
+
+      <nav className="app-section-sidebar__nav" aria-label={areaLabels[area].nav}>
+        {groups[area].map((group) => (
+          <div className="app-section-sidebar__group" key={group.title}>
+            <h2>{group.title}</h2>
+            {group.links.map(({ label, screen, icon: Icon, activeScreens }) => {
+              const active = screen === currentScreen || activeScreens?.includes(currentScreen);
+
+              return (
+                <button
+                  key={screen}
+                  type="button"
+                  className="app-section-sidebar__link"
+                  aria-current={active ? "page" : undefined}
+                  title={label}
+                  onClick={() => onNavigate(screen)}
+                >
+                  <Icon aria-hidden="true" />
+                  <span className="app-section-sidebar__link-text">{label}</span>
+                  {active && <i aria-hidden="true" />}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+        {currentScreen === "settings" && !isCollapsed && (
+          <div className="app-section-sidebar__subnav" aria-label="Các mục cài đặt">
+            <h2>TRONG CÀI ĐẶT</h2>
+            {settingsSections.map(({ label, id }) => (
+              <a key={id} href={`#${id}`} className="app-section-sidebar__section-link">{label}</a>
+            ))}
+          </div>
+        )}
+      </nav>
+      <div className="app-section-sidebar__bottom">
+        {area === "account" ? (
+          <button
+            type="button"
+            className="app-section-sidebar__profile"
+            onClick={() => onNavigate("account")}
+            title={user?.name || "Góc cá nhân"}
+          >
+            <span className="app-section-sidebar__avatar">{(user?.name || "A").slice(0, 1).toUpperCase()}</span>
+            <span className="app-section-sidebar__profile-text">
+              <strong>{user?.name || "Góc cá nhân"}</strong>
+              <small>Thông tin tài khoản</small>
+            </span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="app-section-sidebar__back group"
+            onClick={() => onNavigate("today")}
+            title="Quay về Trang chủ"
+          >
+            <Home className="transition-transform duration-200 group-hover:scale-125 group-active:scale-95" aria-hidden="true" />
+            <span className="font-semibold transition-colors duration-200 app-section-sidebar__back-text">Về Trang chủ</span>
+          </button>
+        )}
+      </div>
+    </aside>
+  );
+};

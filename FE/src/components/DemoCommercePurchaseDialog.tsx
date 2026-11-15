@@ -66,9 +66,11 @@ export function DemoCommercePurchaseDialog({ sku, onClose, onPurchaseComplete }:
     <AppDialog labelledBy={`demo-purchase-${sku}`} onClose={onClose}>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 id={`demo-purchase-${sku}`} className="font-display text-xl font-bold text-ink">Mua {product.name}</h2>
+          <h2 id={`demo-purchase-${sku}`} className="font-display text-xl font-bold text-ink">Thỉnh {product.name}</h2>
           <p className="mt-2 text-sm text-muted">
-            {sku === "ROYAL_LANTERN_BUNDLE" ? `${quantity * unitsPerPurchase} hoa đăng xịn (${quantity} bộ, mỗi bộ 3 chiếc).` : `${quantity} gà ảo để dâng trên bàn thờ.`}
+            {sku === "ROYAL_LANTERN_BUNDLE"
+              ? `${quantity * unitsPerPurchase} hoa đăng (${quantity} bộ, mỗi bộ 3 chiếc) dâng cúng tâm nguyện.`
+              : `${quantity} mâm lễ gà luộc truyền thống dâng kính bàn thờ gia tiên.`}
           </p>
         </div>
         <button type="button" aria-label="Đóng" onClick={onClose} className="min-h-11 min-w-11 rounded-full border border-line text-lg text-muted hover:text-ink">×</button>

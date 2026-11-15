@@ -1,6 +1,7 @@
 import {
   lazy,
   Suspense,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -488,7 +489,7 @@ const isSameSavedReflection = (
 };
 
 const getCultureRegionFromLocation = (): CultureRegionSlug => {
-  const path = window.location.pathname.replace(/^\/+/, "");
+  const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
 
   // Các trải nghiệm riêng luôn thuộc vùng tương ứng.
   if (path === "chau-van") return "north";
@@ -522,7 +523,7 @@ export default function App() {
     if (searchParams.get("login") === "true" || searchParams.get("screen") === "login") {
       return "login";
     }
-    const path = window.location.pathname.replace(/^\//, "");
+    const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
     if (
       ["account", "settings"].includes(path) &&
       !initialUser
@@ -710,7 +711,7 @@ export default function App() {
       }
 
       if (user) {
-        const path = window.location.pathname.replace(/^\/+/, "");
+        const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
         if (["account", "settings"].includes(path)) setScreen(path as NavScreen);
       }
     });
@@ -1044,10 +1045,7 @@ export default function App() {
     if (!sessionResolved || isDemoMode()) return;
     if (currentUser) return;
 
-    const path = window.location.pathname.replace(
-      /^\/+/,
-      ""
-    );
+    const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
 
     const protectedScreens = [
       "account",
@@ -1100,7 +1098,7 @@ export default function App() {
     }
 
     const handlePopState = (event: PopStateEvent) => {
-      const path = window.location.pathname.replace(/^\//, "");
+      const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
       const params = new URLSearchParams(window.location.search);
 
       if (path !== "wish") {
@@ -2690,6 +2688,24 @@ export default function App() {
         ? "experience"
       : null;
 
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("tltl_sidebar_collapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("tltl_sidebar_collapsed", String(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
   return (
     <div className={`app-shell ${dark ? "dark" : ""} ${["login", "register", "forgot", "reset-password"].includes(screen) ? "lg:h-screen lg:max-h-screen lg:overflow-hidden" : ""}`}>
       {isDemoMode() && (
@@ -2741,8 +2757,17 @@ export default function App() {
 
       {/* Screen Router */}
       <div className={`app-screen-outlet ${["login", "register", "forgot"].includes(screen) ? "flex-1 min-h-0 lg:overflow-hidden" : ""}`}>
-        <div className={sidebarArea ? "app-area-layout" : undefined}>
-          {sidebarArea && <AppSectionSidebar area={sidebarArea} currentScreen={screen} onNavigate={navigateTo} user={displayUser} />}
+        <div className={sidebarArea ? `app-area-layout ${isSidebarCollapsed ? "app-area-layout--collapsed" : ""}` : undefined}>
+          {sidebarArea && (
+            <AppSectionSidebar
+              area={sidebarArea}
+              currentScreen={screen}
+              onNavigate={navigateTo}
+              user={displayUser}
+              isCollapsed={isSidebarCollapsed}
+              onToggleCollapse={toggleSidebar}
+            />
+          )}
           <div className={sidebarArea ? "app-area-layout__content" : undefined}>
         <Suspense
           fallback={

@@ -1,10 +1,9 @@
 import { useState } from "react";
-import type {
-  useJadeDecoration,
-} from "../hooks/useJadeDecoration";
+import type { useJadeDecoration } from "../hooks/useJadeDecoration";
 import { isDemoMode } from "../data/demoMode";
 import { Button } from "./ui/button";
 import { DemoCommercePurchaseDialog } from "./DemoCommercePurchaseDialog";
+import { Sparkles, Utensils, RotateCcw } from "lucide-react";
 
 export function JadeDecorationControl({
   state,
@@ -15,78 +14,104 @@ export function JadeDecorationControl({
 }) {
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   return (
-    <div className="my-4 rounded-2xl border border-line bg-surface/90 p-4 shadow-sm sm:p-5">
-      <label className="block text-sm font-semibold tracking-wide text-ink">
-        Vật phẩm bày trên bàn thờ
-        <select
-          className="mt-2 block min-h-12 w-full appearance-none rounded-xl border border-line bg-surface px-4 py-3 text-ink shadow-sm transition-colors hover:border-accent focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-          value={state.selected ?? ""}
-          disabled={
-            state.loading ||
-            state.busy ||
-            Boolean(state.error)
-          }
-          onChange={(event) =>
-            void state.change(event.target.value)
-          }
+    <div className="my-5 rounded-2xl border border-line bg-surface/90 p-5 shadow-xs sm:p-6 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-line/60 pb-3">
+        <label
+          htmlFor="altar-offering-select"
+          className="text-sm font-bold tracking-wide text-ink font-serif flex items-center gap-2"
         >
-          <option value="">Cất vật phẩm khỏi bàn thờ</option>
+          <Utensils className="w-4 h-4 text-accent" />
+          <span>Bài trí lễ phẩm bàn thờ</span>
+        </label>
+        <span className="text-[11px] text-muted font-medium">
+          Tùy tâm biện lễ, cốt ở lòng thành
+        </span>
+      </div>
 
+      <div>
+        <select
+          id="altar-offering-select"
+          className="block min-h-12 w-full appearance-none rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink shadow-xs transition-colors hover:border-accent focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer"
+          value={state.selected ?? ""}
+          disabled={state.loading || state.busy || Boolean(state.error)}
+          onChange={(event) => void state.change(event.target.value)}
+        >
+          <option value="">Cất lễ vật (Bàn thờ trang nghiêm thanh tịnh)</option>
           {state.items.map((item) => (
             <option key={item.code} value={item.code}>
               {item.name}
             </option>
           ))}
         </select>
-      </label>
 
-      <p role="status" className="mt-2 text-sm text-muted">
-        {state.loading
-          ? "Đang tải vật phẩm…"
-          : state.busy
-            ? "Đang lưu lựa chọn…"
-            : !state.items.length
-              ? "Bạn chưa sở hữu vật phẩm trang trí cho cảnh này."
-              : isDemoMode()
-                ? "Bản demo chỉ lưu lựa chọn trên trình duyệt; gà sẽ hiện trên bàn thờ khi bạn chọn bày."
-                : "Chỉ vật phẩm bạn đã sở hữu mới xuất hiện ở đây. Chọn để bày trên bàn thờ; chọn cất để đưa vật phẩm về kho."}
-      </p>
-
-      <p className="mt-2 text-xs text-muted">
-        Vật phẩm chỉ thay đổi trang trí, không làm tăng
-        hiệu lực của nghi thức hay lời nguyện.
-      </p>
+        <p role="status" className="mt-2 text-xs text-muted leading-relaxed">
+          {state.loading
+            ? "Đang chuẩn bị lễ phẩm…"
+            : state.busy
+              ? "Đang bài trí lên bàn thờ…"
+              : !state.items.length
+                ? "Chưa có vật phẩm mâm cúng cho không gian này."
+                : "Chọn vật phẩm để kính cẩn bày lên bàn thờ gia tiên; chọn cất để thu dọn mâm lễ về kho gia đình."}
+        </p>
+      </div>
 
       {state.error && (
-        <p role="alert" className="mt-3 text-sm text-danger">
+        <p role="alert" className="text-xs text-danger">
           {state.error}
         </p>
       )}
 
       {isDemoMode() && allowDemoChickenOffering && (
-        <div className="mt-4 rounded-xl border border-line bg-surface-soft p-4">
-          <h3 className="font-semibold text-ink">Gà ảo dùng một lần</h3>
-          <p className="mt-1 text-sm text-muted">Trong demo, dâng một gà sẽ trừ một con và dùng mô hình gà hiện có trên bàn thờ. Gà luộc mâm lễ trong danh sách phía trên vẫn là vật phẩm trang trí sở hữu lâu dài.</p>
-          <p role="status" className="mt-2 text-sm font-medium text-ink">Còn {state.virtualChickenStock} gà ảo.</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button type="button" variant="outline" disabled={state.busy || state.loading || state.virtualChickenStock < 1} onClick={() => void state.useVirtualChicken().catch(() => {})}>
-              Dâng 1 gà ảo
+        <div className="rounded-xl border border-amber-600/25 bg-amber-500/[0.04] p-4 sm:p-5 space-y-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-serif font-bold text-sm text-ink flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-accent" />
+              <span>Mâm cỗ mặn truyền thống (Gà luộc hoa hồng)</span>
+            </h3>
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-200 border border-amber-500/30">
+              Có sẵn: {state.virtualChickenStock} mâm
+            </span>
+          </div>
+
+          <p className="text-xs text-muted leading-relaxed">
+            Mâm cỗ mặn dâng kính gia tiên trong ngày sóc vọng, giỗ chạp hoặc dịp trọng đại để tỏ lòng hiếu kính, cầu chúc gia đạo bình an và phúc lộc vững bền.
+          </p>
+
+          <div className="pt-2 flex flex-wrap items-center gap-2.5">
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              disabled={state.busy || state.loading || state.virtualChickenStock < 1}
+              onClick={() => void state.useVirtualChicken().catch(() => {})}
+              className="h-10 px-4 rounded-xl font-semibold text-xs bg-action hover:bg-action/90 text-white shadow-xs cursor-pointer flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+              <span>Kính dâng 1 mâm lễ lên bàn thờ</span>
             </Button>
-            <Button type="button" disabled={state.busy || state.loading} onClick={() => setPurchaseOpen(true)}>
-              Mua thêm gà ảo
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={state.busy || state.loading}
+              onClick={() => setPurchaseOpen(true)}
+              className="h-10 px-4 rounded-xl font-semibold text-xs border-amber-600/30 text-accent hover:bg-accent/5 cursor-pointer flex items-center gap-1.5"
+            >
+              <span>Thỉnh thêm mâm cỗ</span>
             </Button>
+            <button
+              type="button"
+              disabled={state.loading || state.busy}
+              onClick={state.retry}
+              className="h-10 px-3 rounded-xl border border-line text-xs text-muted hover:text-ink hover:bg-surface-soft transition-colors cursor-pointer flex items-center gap-1"
+              title="Làm mới bài trí"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Làm mới</span>
+            </button>
           </div>
         </div>
       )}
-
-      <button
-        type="button"
-        disabled={state.loading || state.busy}
-        onClick={state.retry}
-        className="mt-3 min-h-11 rounded-lg border border-line px-3 py-2 text-sm"
-      >
-        Tải lại vật phẩm
-      </button>
 
       {purchaseOpen && isDemoMode() && (
         <DemoCommercePurchaseDialog

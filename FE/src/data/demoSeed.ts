@@ -1,7 +1,6 @@
 import type {
   SavedSignalItem,
   SavedWishItem,
-  SavedXinXamItem,
 } from "../screens/AccountScreen";
 import type { CalendarEventItem } from "./calendarData";
 import { getSignalForMoodContext, type MoodKey } from "./demoSignals";
@@ -11,6 +10,13 @@ const SEED_MARKER = "tltl-demo-seed-v1";
 
 export function ensureDemoSeeded(): void {
   try {
+    const savedXam = readDemoValue<{ id: string }[]>("saved-xam", []);
+    const xamWithoutLegacySample = savedXam.filter(
+      (item) => item.id !== "demo-xam-reflection-1",
+    );
+    if (xamWithoutLegacySample.length !== savedXam.length) {
+      writeDemoValue("saved-xam", xamWithoutLegacySample);
+    }
     if (localStorage.getItem(SEED_MARKER)) return;
 
     const signal = getSignalForMoodContext("An yên" as MoodKey, "general");
@@ -35,23 +41,6 @@ export function ensureDemoSeeded(): void {
         starred: true,
       };
       writeDemoValue("saved-signals", [sample]);
-    }
-
-    if (!localStorage.getItem("tltl-demo-saved-xam")) {
-      const sample: SavedXinXamItem = {
-        id: "demo-xam-reflection-1",
-        drawId: "demo-draw-1",
-        stickNumber: "08",
-        fortuneType: "Bình an",
-        category: "Bình an & Tâm trí",
-        region: "Bắc Bộ",
-        quote: "Giữ lòng bình tĩnh, từng việc rồi sẽ tìm được cách tháo gỡ.",
-        date: date(3),
-        createdAt: now - 3 * 86_400_000,
-        starred: false,
-        verified: false,
-      };
-      writeDemoValue("saved-xam", [sample]);
     }
 
     if (!localStorage.getItem("tltl-demo-saved-wishes")) {

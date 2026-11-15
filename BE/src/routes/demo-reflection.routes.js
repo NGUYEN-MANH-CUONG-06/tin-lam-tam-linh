@@ -10,13 +10,37 @@ const router = express.Router();
 function mapError(error) {
   if (error instanceof ApiError) return error;
   if (error.code === "DEMO_ENDPOINT_DISABLED") return new ApiError(404, "Demo endpoint unavailable.");
-  if (["DEMO_RATE_LIMITED", "DEMO_SESSION_LIMIT", "INTERPRETATION_RATE_LIMITED", "GEMINI_RATE_LIMITED"].includes(error.code)) return new ApiError(429, "Demo usage limit reached. Try again later.");
-  if (error.code === "GEMINI_NOT_CONFIGURED") return new ApiError(503, "Gemini is not configured on the backend.");
+  if (error.code === "DEMO_RATE_LIMITED") {
+    return new ApiError(429, "Đã chạm giới hạn sử dụng demo theo giờ. Hãy thử lại sau.", [{ code: error.code }]);
+  }
+  if (error.code === "DEMO_SESSION_LIMIT") {
+    return new ApiError(429, "Phiên này đã đủ 3 lượt. Hãy bắt đầu phiên mới.", [{ code: error.code }]);
+  }
+  if (error.code === "INTERPRETATION_RATE_LIMITED") {
+    return new ApiError(429, "Đã chạm giới hạn luận giải trong giờ này. Hãy thử lại sau.", [{ code: error.code }]);
+  }
+  if (error.code === "GEMINI_RATE_LIMITED") {
+    return new ApiError(429, "Gemini đang giới hạn yêu cầu. Hãy thử lại sau.", [{ code: error.code, ...(Number.isFinite(error.status) ? { providerStatus: error.status } : {}), ...(typeof error.model === "string" ? { model: error.model } : {}) }]);
+  }
+  if (error.code === "GROQ_RATE_LIMITED") {
+    return new ApiError(429, "Các dịch vụ luận giải đang quá tải. Hãy thử lại sau.", [{ code: error.code, ...(Number.isFinite(error.status) ? { providerStatus: error.status } : {}), ...(typeof error.model === "string" ? { model: error.model } : {}) }]);
+  }
+  if (error.code?.startsWith("GROQ_")) {
+    const status = error.code === "GROQ_TIMEOUT" ? 504 : 502;
+    return new ApiError(status, "Dịch vụ luận giải đang tạm thời bận. Hãy thử lại sau.", [{ code: error.code, ...(Number.isFinite(error.status) ? { providerStatus: error.status } : {}), ...(typeof error.model === "string" ? { model: error.model } : {}) }]);
+  }
+  if (error.code === "GEMINI_NOT_CONFIGURED" || error.code === "AI_PROVIDER_NOT_CONFIGURED") return new ApiError(503, "AI interpretation is not configured on the backend.");
   if (error.code === "DEMO_REQUEST_CONFLICT") return new ApiError(409, error.message);
   if (error.code === "INVALID_DEMO_REQUEST" || error.code === "INVALID_DEMO_RESULT" || error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") return new ApiError(400, "Demo request is invalid or expired.");
   if (error.code === "FORTUNE_NOT_VERIFIED") return new ApiError(409, error.message);
   if (error.code === "GEMINI_TIMEOUT") return new ApiError(504, "Gemini request timed out.", [{ code: error.code }]);
-  if (error.code?.startsWith("GEMINI_")) return new ApiError(502, "Gemini interpretation is unavailable.", [{ code: error.code }]);
+  if (error.code?.startsWith("GEMINI_")) {
+    return new ApiError(502, "Gemini interpretation is unavailable.", [{
+      code: error.code,
+      ...(Number.isFinite(error.status) ? { providerStatus: error.status } : {}),
+      ...(typeof error.model === "string" ? { model: error.model } : {}),
+    }]);
+  }
   return error;
 }
 

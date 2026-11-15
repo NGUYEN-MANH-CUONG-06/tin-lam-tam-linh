@@ -1,7 +1,6 @@
 declare const process: { exitCode?: number };
 import { ALL_SIGNALS } from "../src/data/demoSignals";
 import { CULTURE_ARTICLES } from "../src/data/cultureData";
-import { XIN_XAM_RESULTS } from "../src/data/xinXamData";
 import {
   TRADITIONAL_XAM_COLLECTIONS,
   TRADITIONAL_XAM_STICKS,
@@ -33,18 +32,6 @@ const articleIds = new Set(
 for (const signal of ALL_SIGNALS) {
   if (!signal.metadata) {
     errors.push(`${signal.id}: thiếu metadata.`);
-  }
-}
-
-for (const [key, result] of Object.entries(XIN_XAM_RESULTS)) {
-  if (!result.metadata) {
-    errors.push(`${key}: thiếu metadata.`);
-  }
-
-  if (!articleIds.has(result.relatedArticleId)) {
-    errors.push(
-      `${key}: bài liên quan không tồn tại — ${result.relatedArticleId}`
-    );
   }
 }
 

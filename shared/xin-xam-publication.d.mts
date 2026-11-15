@@ -2,6 +2,7 @@ export interface PublishableXamContent {
   active?: boolean;
   verified?: boolean;
   xam_type?: string;
+  editorial_status?: string;
   poem?: string | string[] | null;
   interpretations?: string | Array<string | null | undefined> | null;
   source?: string | null;

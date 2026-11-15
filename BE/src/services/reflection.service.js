@@ -5,7 +5,7 @@ const wishRepository = require("../repositories/wish.repository");
 const proverbRepository = require("../repositories/proverb.repository");
 const ApiError = require("../utils/api-error");
 const { toProverbDto } = require("./proverb.service");
-const { selectUniformXamCard } = require("./xin-xam-algorithm");
+const { XIN_XAM_TOPICS, selectUniformXamCard, filterCardsByTopic } = require("./xin-xam-algorithm");
 const fortuneInterpretationService = require("./fortune-interpretation.service");
 
 const {
@@ -29,11 +29,12 @@ function hasFullOriginalXamPool(cards) {
   return numbers.size === 100 && Array.from({ length: 100 }, (_, index) => index + 1).every((number) => numbers.has(number));
 }
 
-async function listXamCatalogForRequest(input, region, configuredCatalogType = env.XIN_XAM_CATALOG_TYPE) {
-  if (input.region === "Toàn quốc" && configuredCatalogType) {
+async function listXamCatalogForRequest(input, region, configuredCatalogType) {
+  const catalogType = arguments.length >= 3 ? configuredCatalogType : env.XIN_XAM_CATALOG_TYPE;
+  if (input.region === "Toàn quốc" && catalogType) {
     // A configured system pool intentionally ignores the question topic for drawing.
-    const cards = await xinXamRepository.listCatalog(configuredCatalogType, region);
-    if (configuredCatalogType.startsWith("TLTL_ORIGINAL_100_V1:") && !hasFullOriginalXamPool(cards)) return [];
+    const cards = await xinXamRepository.listCatalog(catalogType, region);
+    if (catalogType.startsWith("TLTL_ORIGINAL_100_V1:") && !hasFullOriginalXamPool(cards)) return [];
     return cards;
   }
   if (input.region === "Toàn quốc") return xinXamRepository.listUnifiedCatalog(input.topic);
@@ -41,14 +42,29 @@ async function listXamCatalogForRequest(input, region, configuredCatalogType = e
 }
 
 function fortuneGroup(level) {
-  if (["Đại Cát", "Thượng Cát", "Trung Cát", "Tiểu Cát"].includes(level)) return "CAT";
-  if (["Hung", "Đại Hung"].includes(level)) return "CAUTION";
+  if (
+    ["THUẬN", "Đại Cát", "Thượng Cát", "Trung Cát", "Tiểu Cát"]
+      .includes(level)
+  ) {
+    return "CAT";
+  }
+
+  if (["CẨN TRỌNG", "Hung", "Đại Hung"].includes(level)) {
+    return "CAUTION";
+  }
+
   return "NEUTRAL";
 }
 
 function fortuneRank(level) {
-  if (["Đại Cát", "Thượng Cát"].includes(level)) return "Thượng Xăm";
-  if (["Trung Cát", "Tiểu Cát", "Bình"].includes(level)) return "Trung Xăm";
+  if (["THUẬN", "Đại Cát", "Thượng Cát"].includes(level)) {
+    return "Thượng Xăm";
+  }
+
+  if (["BÌNH", "Bình", "Trung Cát", "Tiểu Cát"].includes(level)) {
+    return "Trung Xăm";
+  }
+
   return "Hạ Xăm";
 }
 
@@ -80,7 +96,10 @@ function toXamMetadata(xam) {
           : {}),
       }]
       : [],
-    quotationVerified: approved && Boolean(xam.poem),
+    quotationVerified:
+      approved &&
+      Boolean(xam.poem) &&
+      editorialMetadata.contentType !== "ORIGINAL",
     ...(approved && xam.reviewMetadata?.reviewedBy ? { reviewedBy: xam.reviewMetadata.reviewedBy } : {}),
     ...(approved && xam.reviewMetadata?.reviewedOn ? { reviewedOn: xam.reviewMetadata.reviewedOn } : {}),
     editorialNote: approved
@@ -142,6 +161,15 @@ function toXamItem(draw) {
     source: xam.source,
     verified: xam.verified,
     active: xam.active,
+    editorialStatus: xam.editorial_status,
+    editorialMetadata: {
+      systemId: xam.editorial_metadata?.systemId,
+      contentType: xam.editorial_metadata?.contentType,
+      authoringMethod: xam.editorial_metadata?.authoringMethod,
+      contentVersion: xam.editorial_metadata?.contentVersion,
+      reviewStatus: xam.editorial_metadata?.reviewStatus,
+      humanApproved: xam.editorial_metadata?.humanApproved,
+    },
     disclaimer: "Thông tin chỉ dùng để tham khảo và chiêm nghiệm văn hóa; không cổ súy mê tín, không dự đoán chắc chắn tương lai.",
     date: new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }).format(draw.created_at),
     createdAt: draw.created_at.getTime(),
@@ -172,7 +200,8 @@ async function drawXam(userId, input) {
     );
   }
 
-  const card = selectUniformXamCard(cards);
+  const candidateCards = filterCardsByTopic(cards, input.topic);
+  const card = selectUniformXamCard(candidateCards.length > 0 ? candidateCards : cards);
 
   if (!userId) {
     const drawId = randomUUID();
@@ -439,6 +468,14 @@ async function getXamAvailability(input) {
   };
 }
 
+function getXamOptions() {
+  return {
+    topics: XIN_XAM_TOPICS,
+    regions: Object.keys(REGION_TO_DB),
+    defaultRegion: "Toàn quốc",
+  };
+}
+
 async function interpretXam(userId, drawId, input) {
   const draw = await xinXamRepository.findDraw(drawId, userId);
   if (!draw) throw new ApiError(404, "Không tìm thấy lượt xin xăm đã xác minh.");
@@ -464,12 +501,18 @@ async function interpretXam(userId, drawId, input) {
     if (error.code === "FORTUNE_NOT_VERIFIED") throw new ApiError(409, error.message);
     if (error.code === "INTERPRETATION_RATE_LIMITED") throw new ApiError(429, error.message);
     if (error.code === "AI_ENTITLEMENT_UNAVAILABLE") throw new ApiError(503, error.message);
-    throw new ApiError(error.code === "GEMINI_TIMEOUT" ? 504 : 502, error.message, [{ code: error.code }]);
+    const providerError = error.code?.startsWith("GEMINI_") || error.code?.startsWith("GROQ_");
+    if (providerError) {
+      const status = error.status === 429 ? 429 : error.code.endsWith("TIMEOUT") ? 504 : 502;
+      throw new ApiError(status, "Dịch vụ luận giải đang tạm thời bận. Hãy thử lại sau.", [{ code: error.code, ...(Number.isFinite(error.status) ? { providerStatus: error.status } : {}), ...(typeof error.model === "string" ? { model: error.model } : {}) }]);
+    }
+    throw new ApiError(502, error.message, [{ code: error.code }]);
   }
 }
 
 module.exports = {
   getXamAvailability,
+  getXamOptions,
   interpretXam,
   drawXam,
   saveXamDraw,

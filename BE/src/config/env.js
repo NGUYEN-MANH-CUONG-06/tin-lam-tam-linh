@@ -18,6 +18,8 @@ const envSchema = z
     GOOGLE_CLIENT_ID: optionalString,
     GEMINI_API_KEY: optionalString,
     GEMINI_FALLBACK_MODEL: optionalString,
+    GROQ_API_KEY: optionalString,
+    GROQ_MODEL: z.string().default("qwen/qwen3.8-27b"),
     XIN_XAM_CATALOG_TYPE: z.preprocess(emptyToUndefined, z.string().trim().max(100).optional()),
     TLTL_DEMO_AUTO_PUBLISH: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
     PRIVATE_DATA_KEY: z.preprocess((value) => value === "" ? undefined : value, z.string().regex(/^[a-f0-9]{64}$/i, "PRIVATE_DATA_KEY must be 32 bytes encoded as 64 hexadecimal characters").optional()),

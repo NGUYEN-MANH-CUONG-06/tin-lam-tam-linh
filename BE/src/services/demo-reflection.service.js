@@ -2,7 +2,8 @@ const { createHash, randomUUID, randomInt } = require("node:crypto");
 const jwt = require("jsonwebtoken");
 const env = require("../config/env");
 const { castPieces } = require("./xin-keo-algorithm");
-const { OUTCOMES } = require("./xin-keo.service");
+const { OUTCOMES, getOutcome } = require("./xin-keo.service");
+const { filterCardsByTopic } = require("./xin-xam-algorithm");
 const { isDemoAutoActivationEnabled } = require("./demo-activation");
 const { generateInterpretation } = require("./fortune-interpretation.service");
 const xinXamRepository = require("../repositories/xin-xam.repository");
@@ -30,7 +31,7 @@ function getDemoStatus(environment = env) {
   return {
     enabled,
     xinXam: { status: enabled ? "DEMO_ACTIVE" : "DISABLED", count: enabled ? DEMO_CARDS.length : 0, expectedCount: 100, systemId: EXPECTED_SYSTEM, datasetVersion: EXPECTED_VERSION },
-    xinKeo: { status: enabled ? "DEMO_ACTIVE" : "DISABLED", version: "KEO_OUTCOMES_V1", outcomes: enabled ? Object.entries(OUTCOMES).map(([result, value]) => ({ result, ...value })) : [] },
+    xinKeo: { status: enabled ? "DEMO_ACTIVE" : "DISABLED", version: "KEO_OUTCOMES_V2", outcomes: Object.keys(OUTCOMES).map((result) => ({ result, ...getOutcome(result) })) },
     disclaimer: "Kích hoạt Demo không phải phê duyệt hay phát hành chính thức.",
   };
 }
@@ -62,7 +63,9 @@ function drawDemoXam({ address, requestId, question, topic, environment = env })
     return existing.response;
   }
   consumeLimit(`xam-draw:${ipKey}`, 30);
-  const card = DEMO_CARDS[randomInt(0, DEMO_CARDS.length)];
+  const candidateCards = filterCardsByTopic(DEMO_CARDS, topic);
+  const pool = candidateCards.length > 0 ? candidateCards : DEMO_CARDS;
+  const card = pool[randomInt(0, pool.length)];
   const createdAt = new Date();
   const drawId = randomUUID();
   const resultToken = issueXamResult({
@@ -140,7 +143,7 @@ function throwDemoKeo({ address, sessionId, requestId, question, environment = e
     rightSide: result.right,
     outcome: result.result,
   }, env.JWT_ACCESS_SECRET, { expiresIn: "24h", issuer: "tin-lam-tam-linh", audience: "demo-reflection" });
-  const response = { ...OUTCOMES[result.result], id, resultToken, throwNumber: state.throws.size + 1, piece1: result.left, piece2: result.right, result: result.result, proverb: null };
+  const response = { ...getOutcome(result.result, question), id, resultToken, throwNumber: state.throws.size + 1, piece1: result.left, piece2: result.right, result: result.result, proverb: null };
   state.throws.set(requestId, response);
   if (demoCastSessions.size >= 2000) demoCastSessions.delete(demoCastSessions.keys().next().value);
   demoCastSessions.set(sessionId, state);
@@ -159,21 +162,30 @@ async function interpretDemoKeo({ address, resultToken, generate = generateInter
   return cachedInterpretation(key, async () => {
     const ipKey = hashAddress(address);
     consumeLimit(`interpretation:${ipKey}`, 5);
+    const outcome = getOutcome(claims.outcome);
     return generate({
       allowedSourceRefs: new Set(["keo-traditional-outcome"]),
-      prompt: JSON.stringify({ kind: "xin-keo", recordedOutcome: claims.outcome, sides: [claims.leftSide, claims.rightSide], question: claims.question, sourceRefs: ["keo-traditional-outcome"] }),
+      prompt: JSON.stringify({
+        kind: "xin-keo",
+        instruction: "Chỉ gọi kết quả bằng danh xưng văn hóa Việt: 'Nhất Âm Nhất Dương (Đắc keo)', 'Nhị Dương (Keo Tiếu)' hoặc 'Nhị Âm'. Tuyệt đối KHÔNG dùng các từ tiếng Anh (như YES, NO, UNCLEAR) hoặc mã kỹ thuật nội bộ. Tuyệt đối KHÔNG gán cho thần linh, đấng bề trên hay thế giới tâm linh ban ơn/nâng đỡ/phán xét, mà hãy diễn giải theo triết lý văn hóa âm dương cân bằng: gợi mở người hỏi tự soi chiếu nội tâm, nhận diện khúc mắc và chủ động hành động thực tế.",
+        recordedOutcome: outcome?.title || "Kết quả ghi nhận",
+        resultMeaning: outcome?.meaning || "",
+        sides: [claims.leftSide, claims.rightSide],
+        question: claims.question,
+        sourceRefs: ["keo-traditional-outcome"],
+      }),
     });
   });
 }
 
 async function interpretDemoXam({ address, resultToken, question, topic, findCatalog = xinXamRepository.findCatalog, generate = generateInterpretation, environment = env }) {
-  assertDemoEnvironment(environment);
   if (typeof topic !== "string" || topic.length > 80) {
     const error = new Error("Invalid demo xin xam topic.");
     error.code = "INVALID_DEMO_REQUEST";
     throw error;
   }
   const receipt = readXamResult(resultToken);
+  if (receipt.demo === true) assertDemoEnvironment(environment);
   const card = receipt.demo
     ? findDemoXamCard(receipt.xamType, receipt.stickNumber)
     : await findCatalog(receipt.xamType, receipt.stickNumber);
@@ -191,7 +203,7 @@ async function interpretDemoXam({ address, resultToken, question, topic, findCat
     const sourceRef = `fortune:${card.id}`;
     return generate({
       allowedSourceRefs: new Set([sourceRef]),
-      prompt: JSON.stringify({ kind: "xin-xam", fortune: { id: card.id, system: card.xam_type, name: card.name, stickNumber: card.stick_number, level: card.fortune_level, poem: card.poem, verifiedMeaning: card.meaning, verifiedAdvice: card.advice, interpretationGuidance: card.editorial_metadata?.interpretationGuidance || [], cautions: card.editorial_metadata?.cautions || [], verifiedSource: card.editorial_metadata?.sourceTitle || card.source, demoStatus: receipt.demo ? "DEMO_ACTIVE" : undefined }, question: String(question || "").slice(0, 2000), topic, sourceRefs: [sourceRef] }),
+      prompt: JSON.stringify({ kind: "xin-xam", instruction: "Xin xăm không có kết quả nhị phân YES, NO hoặc UNCLEAR. Tuyệt đối không nhắc các mã này và không tự gán phán quyết thuận lợi hay bất lợi. Chỉ diễn giải lá xăm đã xác minh, chủ đề và câu hỏi được cung cấp.", fortune: { id: card.id, system: card.xam_type, name: card.name, stickNumber: card.stick_number, level: card.fortune_level, poem: card.poem, verifiedMeaning: card.meaning, verifiedAdvice: card.advice, interpretationGuidance: card.editorial_metadata?.interpretationGuidance || [], cautions: card.editorial_metadata?.cautions || [], verifiedSource: card.editorial_metadata?.sourceTitle || card.source, demoStatus: receipt.demo ? "DEMO_ACTIVE" : undefined }, question: String(question || "").slice(0, 2000), topic, sourceRefs: [sourceRef] }),
     });
   });
 }

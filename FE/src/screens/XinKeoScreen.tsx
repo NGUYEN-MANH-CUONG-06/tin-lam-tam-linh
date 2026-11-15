@@ -20,9 +20,13 @@ import {
   castXinKeo,
   createXinKeoSession,
   interpretDemoXinKeo,
+  loadXinKeoOutcomeCatalog,
   loadXinKeoSession,
 } from "../data/reflectionService";
-import type { SourcedProverb } from "../data/reflectionService";
+import type {
+  XinKeoCast,
+  XinKeoOutcomeCatalogItem,
+} from "../data/reflectionService";
 
 interface XinKeoScreenProps {
   onBackToExperience: () => void;
@@ -33,61 +37,46 @@ interface XinKeoScreenProps {
   isLoggedIn?: boolean;
 }
 
-type KeoResultType = "nhat-am-nhat-duong" | "nhi-duong" | "nhi-am";
+type KeoOutcome = XinKeoCast & { badgeColor: string };
 
-interface KeoOutcome {
-  type: KeoResultType;
-  title: string;
-  subTitle: string;
-  statusLabel: string;
-  badgeColor: string;
-  meaning: string;
-  guidance: string;
-  piece1: "am" | "duong"; // am = ngua (phang), duong = up (cong)
-  piece2: "am" | "duong";
-  proverb?: SourcedProverb | null;
-  resultToken?: string;
-}
-
-const KEO_OUTCOMES: Record<KeoResultType, KeoOutcome> = {
-  "nhat-am-nhat-duong": {
-    type: "nhat-am-nhat-duong",
-    title: "Nhất Âm Nhất Dương",
-    subTitle: "Một Ngửa (Âm) • Một Úp (Dương)",
-    statusLabel: "Một âm • Một dương",
-    badgeColor: "bg-success-soft text-success border border-success/30",
-    meaning: "Lượt gieo này cho kết quả một mặt âm và một mặt dương.",
-    guidance:
-      "Hãy xem đây là lời nhắc để cân nhắc câu hỏi từ nhiều phía. Kết quả gieo ngẫu nhiên không xác nhận quyết định nào là đúng; hãy dựa vào thông tin thực tế và trao đổi với người bạn tin cậy.",
-    piece1: "am",
-    piece2: "duong",
-  },
-  "nhi-duong": {
-    type: "nhi-duong",
-    title: "Nhị Dương",
-    subTitle: "Cùng Sấp • Hai mặt cong úp xuống",
-    statusLabel: "Hai mặt dương",
-    badgeColor: "bg-gold-soft text-gold border border-gold/40",
-    meaning: "Lượt gieo này cho kết quả hai mặt dương.",
-    guidance:
-      "Nếu câu hỏi vẫn còn băn khoăn, hãy dành thời gian kiểm tra giả định, rủi ro và phương án dự phòng trước khi quyết định.",
-    piece1: "duong",
-    piece2: "duong",
-  },
-  "nhi-am": {
-    type: "nhi-am",
-    title: "Nhị Âm",
-    subTitle: "Cùng Ngửa • Hai mặt phẳng ngửa lên",
-    statusLabel: "Hai mặt âm",
-    badgeColor: "bg-surface-soft text-muted border border-line",
-    meaning: "Lượt gieo này cho kết quả hai mặt âm.",
-    guidance:
-      "Kết quả này không dự báo điều xấu. Hãy xem lại điều mình biết, điều còn chưa rõ và người có thể giúp bạn đánh giá tình huống.",
-    piece1: "am",
-    piece2: "am",
-  },
+const KEO_BADGE_COLORS: Record<XinKeoCast["type"], string> = {
+  "nhat-am-nhat-duong": "bg-success-soft text-success border border-success/30",
+  "nhi-duong": "bg-gold-soft text-gold border border-gold/40",
+  "nhi-am": "bg-surface-soft text-muted border border-line",
 };
 
+const toKeoOutcome = (cast: XinKeoCast): KeoOutcome => ({
+  ...cast,
+  subTitle: cast.subTitle || "",
+  badgeColor: KEO_BADGE_COLORS[cast.type],
+});
+
+function cleanKeoInterpretationText(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/(?:quẻ|kết quả)\s+(?:xin keo\s+)?thuận lợi\s*\(\s*YES\s*\)/gi, "thế quẻ Âm Dương Hòa Hợp (Đắc keo)")
+    .replace(/(?:quẻ|kết quả)\s+(?:xin keo\s+)?bất lợi\s*\(\s*NO\s*\)/gi, "thế quẻ Nhị Âm (Chưa thuận)")
+    .replace(/(?:quẻ|kết quả)\s+(?:xin keo\s+)?không rõ\s*\(\s*UNCLEAR\s*\)/gi, "thế quẻ Nhị Dương (Keo Tiếu)")
+    .replace(/\(\s*YES\s*\)/gi, "(Đắc keo)")
+    .replace(/\(\s*NO\s*\)/gi, "(Chưa thuận)")
+    .replace(/\(\s*UNCLEAR\s*\)/gi, "(Keo Tiếu)")
+    .replace(/\bYES\b/g, "Đắc keo")
+    .replace(/\bNO\b/g, "Chưa thuận")
+    .replace(/\bUNCLEAR\b/g, "Keo Tiếu")
+    .replace(
+      /các đấng bề trên hoặc thế giới tâm linh,\s*cho thấy con đường phía trước có sự nâng đỡ,\s*thuận buồm xuôi gió/gi,
+      "sự tương hòa giữa thiên thời và nhân tâm, là lời động viên tinh thần để bạn thêm tự tin vững bước",
+    )
+    .replace(/các đấng bề trên hoặc thế giới tâm linh/gi, "triết lý văn hóa âm dương")
+    .replace(/thế giới tâm linh/gi, "triết lý nhân sinh");
+}
+
+const KEO_TOPICS = [
+  { id: "hoctap", label: "Học tập & Thi cử" },
+  { id: "congviec", label: "Công việc & Sự nghiệp" },
+  { id: "giadinh", label: "Gia đình & Người thân" },
+  { id: "binhan", label: "Bình an & Tâm trí" },
+];
 // SVG Crescent Moon Divination Piece
 // Keo âm dương — hình lưỡi liềm gỗ hương đỏ cổ truyền
 // Hình dạng: crescent nằm ngang, dày ở giữa, 2 đầu bo tròn
@@ -118,7 +107,8 @@ const CrescentKeoPiece: React.FC<{
 }) => {
   // Keo thật là nửa bầu dục dựng đứng: mép ngoài tròn, mép trong cắt cong.
   const outerPath = "M 96,10 C 140,18 164,52 162,94 C 160,137 133,166 98,172";
-  const innerReturn = "C 86,174 77,166 80,151 C 89,115 88,64 78,28 C 75,15 83,7 96,10 Z";
+  const innerReturn =
+    "C 86,174 77,166 80,151 C 89,115 88,64 78,28 C 75,15 83,7 96,10 Z";
   const fullPath = outerPath + " " + innerReturn;
 
   return (
@@ -128,8 +118,8 @@ const CrescentKeoPiece: React.FC<{
           isCasting
             ? animClass
             : hasCast
-            ? `transition-none ${settledClass}`
-            : `transition-transform duration-700 ${rotationClass}`
+              ? `transition-none ${settledClass}`
+              : `transition-transform duration-700 ${rotationClass}`
         }`}
         onAnimationEnd={(event) => {
           if (event.target === event.currentTarget && isCasting) onSettle?.();
@@ -139,47 +129,105 @@ const CrescentKeoPiece: React.FC<{
           <defs>
             {/* ── Base rosewood gradient ─────────────── */}
             <linearGradient id="rw_duong" x1="30%" y1="0%" x2="70%" y2="100%">
-              <stop offset="0%"   stopColor="#d8835e" />
-              <stop offset="30%"  stopColor="#a9472d" />
-              <stop offset="70%"  stopColor="#6e2419" />
+              <stop offset="0%" stopColor="#d8835e" />
+              <stop offset="30%" stopColor="#a9472d" />
+              <stop offset="70%" stopColor="#6e2419" />
               <stop offset="100%" stopColor="#3b120d" />
             </linearGradient>
 
             <linearGradient id="rw_am" x1="20%" y1="0%" x2="80%" y2="100%">
-              <stop offset="0%"   stopColor="#f0ba82" />
-              <stop offset="45%"  stopColor="#d98d60" />
-              <stop offset="80%"  stopColor="#b96340" />
+              <stop offset="0%" stopColor="#f0ba82" />
+              <stop offset="45%" stopColor="#d98d60" />
+              <stop offset="80%" stopColor="#b96340" />
               <stop offset="100%" stopColor="#854027" />
             </linearGradient>
 
             {/* ── Convex dome highlight (Dương) ──────── */}
-            <radialGradient id="dome_hl" cx="50%" cy="30%" r="60%" fx="48%" fy="18%">
-              <stop offset="0%"   stopColor="#ffd2ab" stopOpacity="0.9" />
-              <stop offset="30%"  stopColor="#e18a64" stopOpacity="0.55" />
-              <stop offset="70%"  stopColor="#8b3020" stopOpacity="0.2" />
+            <radialGradient
+              id="dome_hl"
+              cx="50%"
+              cy="30%"
+              r="60%"
+              fx="48%"
+              fy="18%"
+            >
+              <stop offset="0%" stopColor="#ffd2ab" stopOpacity="0.9" />
+              <stop offset="30%" stopColor="#e18a64" stopOpacity="0.55" />
+              <stop offset="70%" stopColor="#8b3020" stopOpacity="0.2" />
               <stop offset="100%" stopColor="#3b120d" stopOpacity="0" />
             </radialGradient>
 
             {/* Gloss lacquer overlay (Dương) */}
             <radialGradient id="gloss" cx="50%" cy="22%" r="55%">
-              <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.32" />
-              <stop offset="45%"  stopColor="#ff9aaa" stopOpacity="0.12" />
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.32" />
+              <stop offset="45%" stopColor="#ff9aaa" stopOpacity="0.12" />
               <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
             </radialGradient>
 
             {/* ── Wood grain pattern (Âm face) ───────── */}
-            <pattern id="grain" width="28" height="28"
-              patternUnits="userSpaceOnUse" patternTransform="rotate(-30) scale(1)">
-              <line x1="0" y1="2"  x2="28" y2="2"  stroke="#9c5436" strokeWidth="0.7" strokeOpacity="0.5" />
-              <line x1="0" y1="7"  x2="28" y2="7"  stroke="#6e321e" strokeWidth="1.1" strokeOpacity="0.52" />
-              <line x1="0" y1="13" x2="28" y2="13" stroke="#bd7048" strokeWidth="0.5" strokeOpacity="0.5" />
-              <line x1="0" y1="19" x2="28" y2="19" stroke="#7e3e26" strokeWidth="1.3" strokeOpacity="0.48" />
-              <line x1="0" y1="25" x2="28" y2="25" stroke="#e8a572" strokeWidth="0.5" strokeOpacity="0.4"/>
+            <pattern
+              id="grain"
+              width="28"
+              height="28"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(-30) scale(1)"
+            >
+              <line
+                x1="0"
+                y1="2"
+                x2="28"
+                y2="2"
+                stroke="#9c5436"
+                strokeWidth="0.7"
+                strokeOpacity="0.5"
+              />
+              <line
+                x1="0"
+                y1="7"
+                x2="28"
+                y2="7"
+                stroke="#6e321e"
+                strokeWidth="1.1"
+                strokeOpacity="0.52"
+              />
+              <line
+                x1="0"
+                y1="13"
+                x2="28"
+                y2="13"
+                stroke="#bd7048"
+                strokeWidth="0.5"
+                strokeOpacity="0.5"
+              />
+              <line
+                x1="0"
+                y1="19"
+                x2="28"
+                y2="19"
+                stroke="#7e3e26"
+                strokeWidth="1.3"
+                strokeOpacity="0.48"
+              />
+              <line
+                x1="0"
+                y1="25"
+                x2="28"
+                y2="25"
+                stroke="#e8a572"
+                strokeWidth="0.5"
+                strokeOpacity="0.4"
+              />
             </pattern>
 
             {/* ── Drop shadow filter ──────────────────── */}
             <filter id="kshadow" x="-12%" y="-20%" width="124%" height="150%">
-              <feDropShadow dx="0" dy="7" stdDeviation="5" floodColor="#000" floodOpacity="0.7" />
+              <feDropShadow
+                dx="0"
+                dy="7"
+                stdDeviation="5"
+                floodColor="#000"
+                floodOpacity="0.7"
+              />
             </filter>
           </defs>
 
@@ -243,11 +291,17 @@ const CrescentKeoPiece: React.FC<{
               {/* Vòng tuổi gỗ tự nhiên (annual rings) trên mặt xẻ */}
               <path
                 d="M 96,38 Q 126,63 151,100"
-                fill="none" stroke="#2e0508" strokeWidth="1.0" strokeOpacity="0.42"
+                fill="none"
+                stroke="#2e0508"
+                strokeWidth="1.0"
+                strokeOpacity="0.42"
               />
               <path
                 d="M 94,72 Q 120,96 145,132"
-                fill="none" stroke="#2e0508" strokeWidth="0.8" strokeOpacity="0.32"
+                fill="none"
+                stroke="#2e0508"
+                strokeWidth="0.8"
+                strokeOpacity="0.32"
               />
               {/* Vát mép bên trong (chamfer) */}
               <path
@@ -260,7 +314,15 @@ const CrescentKeoPiece: React.FC<{
                 strokeOpacity="0.35"
               />
               {/* Ánh sáng khuếch tán nhẹ (mặt phẳng phản chiếu ánh sáng đều) */}
-              <ellipse cx="126" cy="84" rx="14" ry="49" fill="#ffffff" opacity="0.07" transform="rotate(-28 126 84)" />
+              <ellipse
+                cx="126"
+                cy="84"
+                rx="14"
+                ry="49"
+                fill="#ffffff"
+                opacity="0.07"
+                transform="rotate(-28 126 84)"
+              />
             </g>
           </g>
         </svg>
@@ -272,19 +334,19 @@ const CrescentKeoPiece: React.FC<{
           isCasting
             ? shadowClass
             : hasCast
-            ? `transition-none ${settledShadowClass}`
-            : "opacity-60 scale-100 transition-all"
+              ? `transition-none ${settledShadowClass}`
+              : "opacity-60 scale-100 transition-all"
         }`}
       />
 
       {/* Badge nhận diện */}
-      <div className="text-center mt-3 h-7 flex items-center justify-center">
+      <div className="text-center mt-2.5 min-h-[28px] flex items-center justify-center">
         {isCasting ? (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[11px] font-semibold animate-pulse">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
             <span>Đang gieo quẻ...</span>
           </span>
-        ) : (
+        ) : hasCast ? (
           <span
             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[11px] font-semibold transition-colors ${
               side === "am"
@@ -300,14 +362,12 @@ const CrescentKeoPiece: React.FC<{
               }`}
             />
             <span>
-              {hasCast
-                ? side === "am"
-                  ? "Mặt phẳng (Âm • Ngửa)"
-                  : "Mặt cong (Dương • Úp)"
-                : "Mặt cong (Chuẩn bị gieo)"}
+              {side === "am"
+                ? "Mặt phẳng (Âm • Ngửa)"
+                : "Mặt cong (Dương • Úp)"}
             </span>
           </span>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -318,19 +378,28 @@ const playKeoClackSounds = () => {
   try {
     const AudioContextClass =
       window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext;
     if (!AudioContextClass) return;
     const ctx = new AudioContextClass();
     if (ctx.state === "suspended") {
       void ctx.resume();
     }
 
-    const playWoodTick = (time: number, freq: number, decay: number, vol = 0.35) => {
+    const playWoodTick = (
+      time: number,
+      freq: number,
+      decay: number,
+      vol = 0.35,
+    ) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
       osc.frequency.setValueAtTime(freq, time);
-      osc.frequency.exponentialRampToValueAtTime(freq * 0.45, time + decay * 0.7);
+      osc.frequency.exponentialRampToValueAtTime(
+        freq * 0.45,
+        time + decay * 0.7,
+      );
       gain.gain.setValueAtTime(vol, time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + decay);
       osc.connect(gain);
@@ -341,15 +410,15 @@ const playKeoClackSounds = () => {
 
     const now = ctx.currentTime;
     // Nhịp 1: Chạm đĩa lần đầu (t ~ 1.82s trên chu kỳ 2.6s)
-    playWoodTick(now + 1.82, 780, 0.10, 0.45);
+    playWoodTick(now + 1.82, 780, 0.1, 0.45);
     playWoodTick(now + 1.88, 620, 0.12, 0.38);
 
     // Nhịp 2: Nảy nhẹ lần hai (t ~ 2.15s)
     playWoodTick(now + 2.15, 840, 0.08, 0.25);
-    playWoodTick(now + 2.20, 690, 0.09, 0.20);
+    playWoodTick(now + 2.2, 690, 0.09, 0.2);
 
     // Nhịp 3: Trượt yên vị êm ái (t ~ 2.40s)
-    playWoodTick(now + 2.40, 920, 0.05, 0.12);
+    playWoodTick(now + 2.4, 920, 0.05, 0.12);
   } catch {
     // Không làm gián đoạn trải nghiệm nếu trình duyệt chặn tự phát âm thanh
   }
@@ -359,11 +428,20 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
   onBackToExperience,
   onGoToCulture,
   onGoToHome,
+  onGoToLogin,
   drawId,
   isLoggedIn = false,
 }) => {
   const [selectedTopic, setSelectedTopic] = useState<string>("binhan");
+  const selectedTopicLabel =
+    KEO_TOPICS.find((topic) => topic.id === selectedTopic)?.label ||
+    "Bình an & Tâm trí";
+  const requiresLogin = !isLoggedIn && (!isDemoMode() || Boolean(drawId));
   const [reflectionText, setReflectionText] = useState("");
+  const [outcomeCatalog, setOutcomeCatalog] = useState<
+    XinKeoOutcomeCatalogItem[]
+  >([]);
+  const [catalogError, setCatalogError] = useState("");
   const [isCasting, setIsCasting] = useState(false);
   const [castResult, setCastResult] = useState<KeoOutcome | null>(null);
   const [castResultId, setCastResultId] = useState<string | null>(null);
@@ -378,17 +456,13 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
   const [requestError, setRequestError] = useState("");
   const requestLockRef = useRef(false);
 
-  const [isRequestingKeo, setIsRequestingKeo] =
-    useState(false);
+  const [isRequestingKeo, setIsRequestingKeo] = useState(false);
 
-  const [sessionLoading, setSessionLoading] =
-    useState(false);
+  const [sessionLoading, setSessionLoading] = useState(false);
 
-  const [sessionReady, setSessionReady] =
-    useState(!isLoggedIn);
+  const [sessionReady, setSessionReady] = useState(!isLoggedIn);
 
-  const [sessionReload, setSessionReload] =
-    useState(0);
+  const [sessionReload, setSessionReload] = useState(0);
 
   const sessionVersionRef = useRef(0);
 
@@ -396,6 +470,21 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
     sessionId: string;
     requestId: string;
   } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void loadXinKeoOutcomeCatalog()
+      .then((items) => {
+        if (active) setOutcomeCatalog(items);
+      })
+      .catch(() => {
+        if (active)
+          setCatalogError("Chưa tải được nội dung các thế keo từ máy chủ.");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const version = ++sessionVersionRef.current;
@@ -412,16 +501,17 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
     setIsRequestingKeo(false);
     setRequestError("");
 
-    const savedSessionId = new URLSearchParams(
-      window.location.search,
-    ).get("keoSessionId") || (isDemoMode()
-      ? readDemoValue<string | null>("xin-keo-last-session-id", null)
-      : null);
+    const savedSessionId =
+      new URLSearchParams(window.location.search).get("keoSessionId") ||
+      (isDemoMode()
+        ? readDemoValue<string | null>("xin-keo-last-session-id", null)
+        : null);
 
-    setSessionLoading(Boolean(isLoggedIn && savedSessionId));
-    setSessionReady(!isLoggedIn || !savedSessionId);
+    const canRestoreSession = isLoggedIn || isDemoMode();
+    setSessionLoading(Boolean(canRestoreSession && savedSessionId));
+    setSessionReady(!canRestoreSession || !savedSessionId);
 
-    if (isLoggedIn && savedSessionId) {
+    if (canRestoreSession && savedSessionId) {
       void loadXinKeoSession(savedSessionId)
         .then((session) => {
           if (version !== sessionVersionRef.current) return;
@@ -436,9 +526,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
           if (
             pendingAttempt?.sessionId === session.id &&
-            session.throws.some(
-              (item) => item.id === pendingAttempt.requestId
-            )
+            session.throws.some((item) => item.id === pendingAttempt.requestId)
           ) {
             // BE đã xác nhận lượt đang chờ: lần bấm sau là lượt mới.
             keoAttemptRef.current = null;
@@ -447,16 +535,20 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
           setSessionId(session.id);
           setThrowCount(session.throws.length);
 
+          const restoredTopic = KEO_TOPICS.find((topic) =>
+            session.question.includes(topic.label),
+          );
+          setSelectedTopic(restoredTopic?.id || "binhan");
+          setReflectionText(
+            session.question
+              .match(/(?:^|\n)Mong muốn:\s*([\s\S]*)$/i)?.[1]
+              ?.trim() || "",
+          );
+
           const last = session.throws.at(-1);
 
           if (last) {
-            const restored: KeoOutcome = {
-              ...KEO_OUTCOMES[last.type],
-              piece1: last.piece1,
-              piece2: last.piece2,
-              proverb: last.proverb,
-              resultToken: last.resultToken,
-            };
+            const restored = toKeoOutcome(last);
 
             setLandingResult(restored);
             setCastResult(restored);
@@ -494,6 +586,10 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
     const url = new URL(window.location.href);
     url.searchParams.delete("keoSessionId");
 
+    if (isDemoMode()) {
+      writeDemoValue("xin-keo-last-session-id", null);
+    }
+
     window.history.replaceState(
       window.history.state,
       "",
@@ -503,25 +599,21 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
     setSessionReload((value) => value + 1);
   };
 
-  const topics = [
-    { id: "hoctap", label: "Học tập & Thi cử" },
-    { id: "congviec", label: "Công việc & Sự nghiệp" },
-    { id: "giadinh", label: "Gia đình & Người thân" },
-    { id: "binhan", label: "Bình an & Tâm trí" },
-  ];
-
   const handleCastKeo = async () => {
-    if (
-      requestLockRef.current ||
-      sessionLoading ||
-      !sessionReady
-    ) {
+    if (requestLockRef.current || sessionLoading || !sessionReady) {
       return;
     }
 
     if (drawId && !isLoggedIn) {
       setRequestError(
         "Hãy đăng nhập để sử dụng phiên liên kết với lượt xin xăm.",
+      );
+      return;
+    }
+
+    if (!isLoggedIn && !isDemoMode()) {
+      setRequestError(
+        "Vui lòng đăng nhập để gieo và lưu kết quả trên máy chủ.",
       );
       return;
     }
@@ -545,14 +637,21 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
     let outcomeId: string;
 
     try {
-      if (isLoggedIn) {
+      if (isLoggedIn || isDemoMode()) {
         if (!nextSessionId) {
           const topicLabel =
-            topics.find((item) => item.id === selectedTopic)
-              ?.label || "Bình an";
+            KEO_TOPICS.find((item) => item.id === selectedTopic)?.label ||
+            "Bình an";
+          const wish = reflectionText.trim();
+          const sessionQuestion = [
+            `Chủ đề: ${topicLabel}`,
+            wish ? `Mong muốn: ${wish}` : "",
+          ]
+            .filter(Boolean)
+            .join("\n");
 
           const session = await createXinKeoSession(
-            `Chủ đề: ${topicLabel}`,
+            sessionQuestion,
             drawId || undefined,
           );
 
@@ -560,7 +659,8 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
           nextSessionId = session.id;
           setSessionId(session.id);
-          if (isDemoMode()) writeDemoValue("xin-keo-last-session-id", session.id);
+          if (isDemoMode())
+            writeDemoValue("xin-keo-last-session-id", session.id);
 
           const url = new URL(window.location.href);
           url.searchParams.set("keoSessionId", session.id);
@@ -585,9 +685,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
         if (
           pendingAttempt?.sessionId === current.id &&
-          current.throws.some(
-            (item) => item.id === pendingAttempt.requestId
-          )
+          current.throws.some((item) => item.id === pendingAttempt.requestId)
         ) {
           keoAttemptRef.current = null;
         }
@@ -614,10 +712,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
           keoAttemptRef.current = attempt;
         }
 
-        const cast = await castXinKeo(
-          nextSessionId,
-          attempt.requestId
-        );
+        const cast = await castXinKeo(nextSessionId, attempt.requestId);
 
         // Chỉ bỏ mã sau khi đã nhận được kết quả.
         if (keoAttemptRef.current === attempt) {
@@ -629,47 +724,9 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
         setThrowCount(cast.throwNumber);
         outcomeId = cast.id;
 
-        outcome = {
-          ...KEO_OUTCOMES[cast.type],
-          ...(isDemoMode() && cast.title ? {
-            title: cast.title,
-            statusLabel: cast.statusLabel || KEO_OUTCOMES[cast.type].statusLabel,
-            meaning: cast.meaning || KEO_OUTCOMES[cast.type].meaning,
-            guidance: cast.guidance || KEO_OUTCOMES[cast.type].guidance,
-          } : {}),
-          piece1: cast.piece1,
-          piece2: cast.piece2,
-          proverb: cast.proverb,
-          resultToken: cast.resultToken,
-        };
-      } else if (!isDemoMode()) {
-        const sides = new Uint8Array(2);
-        crypto.getRandomValues(sides);
-
-        const piece1 = sides[0] & 1 ? "duong" : "am";
-        const piece2 = sides[1] & 1 ? "duong" : "am";
-        outcomeId = `demo-keo-${crypto.randomUUID()}`;
-
-        const type: KeoResultType =
-          piece1 !== piece2
-            ? "nhat-am-nhat-duong"
-            : piece1 === "duong"
-              ? "nhi-duong"
-              : "nhi-am";
-
-        outcome = {
-          ...KEO_OUTCOMES[type],
-          piece1,
-          piece2,
-          proverb: null,
-        };
-
-        setThrowCount((count) => count + 1);
-        setRequestError(
-          "Lượt gieo cục bộ, chưa được lưu vào tài khoản.",
-        );
+        outcome = toKeoOutcome(cast);
       } else {
-        throw new Error("Xin keo demo must be cast by the backend.");
+        throw new Error("Xin keo must be cast by the backend.");
       }
 
       if (version !== sessionVersionRef.current) return;
@@ -782,8 +839,20 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
           </div>
         </div>
 
-        {requestError && <p role="status" className="mb-5 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-muted">{requestError}</p>}
-        {drawId && isLoggedIn && <p className="mb-5 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-muted">Bạn đang mở xin keo từ một lượt xin xăm. Máy chủ sẽ kiểm tra quyền truy cập khi tạo phiên liên kết.</p>}
+        {requestError && (
+          <p
+            role="status"
+            className="mb-5 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-muted"
+          >
+            {requestError}
+          </p>
+        )}
+        {drawId && isLoggedIn && (
+          <p className="mb-5 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-muted">
+            Bạn đang mở xin keo từ một lượt xin xăm. Máy chủ sẽ kiểm tra quyền
+            truy cập khi tạo phiên liên kết.
+          </p>
+        )}
 
         {/* Top Badge */}
         <div className="mb-3">
@@ -796,13 +865,19 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
         {/* Header Title Section */}
         <div className="mb-8 sm:mb-10">
           <h1 className="page-title mb-3 flex items-center gap-2.5 text-2xl sm:text-3xl text-ink font-display">
-            <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-amber-700 to-amber-900 text-amber-100 font-serif font-bold text-base shadow-xs" aria-hidden="true">
+            <span
+              className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-amber-700 to-amber-900 text-amber-100 font-serif font-bold text-base shadow-xs"
+              aria-hidden="true"
+            >
               卦
             </span>
             <span>Xin keo âm dương</span>
           </h1>
           <p className="text-sm sm:text-base text-muted leading-relaxed max-w-3xl">
-            Lắng lòng định trí, nương vào triết lý âm dương hòa hợp của tiền nhân để tự soi chiếu khúc mắc nội tâm. Lời quẻ là chiếc gương phản chiếu tâm thức, gợi mở góc nhìn để bạn sáng suốt đưa ra quyết định của chính mình.
+            Lắng lòng định trí, nương vào triết lý âm dương hòa hợp của tiền
+            nhân để tự soi chiếu khúc mắc nội tâm. Lời quẻ là chiếc gương phản
+            chiếu tâm thức, gợi mở góc nhìn để bạn sáng suốt đưa ra quyết định
+            của chính mình.
           </p>
         </div>
 
@@ -819,20 +894,21 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
               </div>
 
               <h2 className="font-display font-bold text-lg text-ink mb-1">
-                Chọn phương diện chiêm nghiệm
+                Chọn chủ đề chính
               </h2>
               <p className="text-sm text-muted leading-relaxed mb-4">
-                Hãy định tâm vào một phương diện bạn đang tìm kiếm sự tĩnh trí hoặc muốn được gợi mở góc nhìn:
+                Chọn điều bạn muốn tập trung trong lượt gieo này:
               </p>
 
               {/* Topic Buttons Grid */}
               <div className="grid grid-cols-2 gap-2.5 mb-5">
-                {topics.map((t) => {
+                {KEO_TOPICS.map((t) => {
                   const isSelected = selectedTopic === t.id;
                   return (
                     <button
                       key={t.id}
                       type="button"
+                      aria-pressed={isSelected}
                       disabled={
                         isCasting ||
                         isRequestingKeo ||
@@ -848,7 +924,9 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                       }`}
                     >
                       <span>{t.label}</span>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-accent" />}
+                      {isSelected && (
+                        <Check className="w-3.5 h-3.5 text-accent" />
+                      )}
                     </button>
                   );
                 })}
@@ -856,23 +934,39 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
 
               {/* Reflection Text Input (Optional) */}
               <div>
-                <label htmlFor="keo-reflection" className="block text-xs font-semibold text-ink mb-1.5">
-                  Nỗi niềm muốn gửi gắm{" "}
-                  <span className="font-normal text-muted">(không bắt buộc)</span>
+                <label
+                  htmlFor="keo-reflection"
+                  className="block text-xs font-semibold text-ink mb-1.5"
+                >
+                  Điều bạn mong muốn{" "}
+                  <span className="font-normal text-muted">
+                    (không bắt buộc)
+                  </span>
                 </label>
                 <textarea
                   id="keo-reflection"
                   rows={3}
+                  maxLength={1800}
                   value={reflectionText}
                   onChange={(e) => setReflectionText(e.target.value)}
-                  placeholder="Ví dụ: Mong cho dự định sắp tới được hanh thông, lòng bớt âu lo..."
+                  disabled={
+                    isCasting ||
+                    isRequestingKeo ||
+                    sessionLoading ||
+                    Boolean(sessionId) ||
+                    throwCount > 0
+                  }
+                  placeholder={
+                    selectedTopic === "giadinh"
+                      ? "Ví dụ: Mong gia đình luôn mạnh khỏe, bình an."
+                      : selectedTopic === "hoctap"
+                        ? "Ví dụ: Mong kỳ thi tới làm bài tốt, đạt mục tiêu điểm số."
+                        : selectedTopic === "congviec"
+                          ? "Ví dụ: Mong công việc ổn định và có cơ hội phát triển."
+                          : "Ví dụ: Mong lòng bớt lo và tìm được sự bình an."
+                  }
                   className="w-full p-3.5 rounded-panel border border-line focus:border-accent focus:ring-1 focus:ring-accent text-xs outline-none resize-none bg-surface/70 placeholder:text-subtle text-ink leading-relaxed"
                 />
-                <p className="text-xs text-muted mt-2 leading-relaxed">
-                  {isDemoMode()
-                    ? "Ghi chú được lưu tạm thời trên trình duyệt của bạn nhằm bảo đảm quyền riêng tư tuyệt đối."
-                    : "Ghi chú chỉ nằm trong màn hình này và sẽ mất khi tải lại. Khi đăng nhập và gieo, hệ thống lưu kết quả an toàn vào tài khoản của bạn."}
-                </p>
               </div>
             </div>
 
@@ -886,7 +980,8 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                   Triết lý âm dương trong văn hóa Việt
                 </h4>
                 <p className="text-muted leading-relaxed mb-2.5">
-                  Hai mảnh keo gỗ mít hình trăng khuyết thể hiện sự vận động không ngừng của trời đất và lòng người.
+                  Hai mảnh keo gỗ mít hình trăng khuyết thể hiện sự vận động
+                  không ngừng của trời đất và lòng người.
                 </p>
                 {onGoToCulture && (
                   <button
@@ -902,7 +997,7 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
           </div>
 
           {/* Right Column (7 cols): Step 2 Sacred Open Altar */}
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7 lg:sticky lg:top-24 self-start">
             <div className="p-6 sm:p-8 rounded-2xl bg-surface border border-line shadow-xs">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent">
@@ -911,19 +1006,43 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                   </span>
                   <span>KHAI TÂM ĐỊNH TRÍ • Không gian gieo keo</span>
                 </div>
-                <Badge variant="outline" className="text-xs border-line text-muted">
-                  Trạng thái: {isCasting ? "Đang gieo..." : castResult ? "Đã gieo" : "Tĩnh lặng"}
+                <Badge
+                  variant="outline"
+                  className={`text-xs border-line transition-colors ${
+                    castResult
+                      ? "border-accent/40 bg-accent/10 text-accent font-semibold"
+                      : "text-muted"
+                  }`}
+                >
+                  Trạng thái:{" "}
+                  {isCasting
+                    ? "Đang gieo quẻ..."
+                    : castResult
+                      ? `${castResult.statusLabel} • Lượt ${throwCount}/3`
+                      : "Tĩnh lặng"}
                 </Badge>
               </div>
 
               {/* Sacred Altar Tray with Ambient Aura */}
-              <div className={`relative rounded-2xl overflow-visible pt-14 sm:pt-16 bg-gradient-to-b from-surface-soft/80 via-surface/60 to-surface-soft border border-line p-5 sm:p-10 text-center mb-6 transition-all duration-700 ${isCasting ? "border-amber-500/50 shadow-lg shadow-amber-500/10" : ""}`}>
+              <div
+                id="keo-altar-tray"
+                className={`relative rounded-3xl overflow-visible py-6 sm:py-8 px-4 sm:px-6 bg-gradient-to-b from-surface-soft/90 via-surface/70 to-surface-soft border border-amber-600/25 ring-1 ring-amber-500/10 text-center mb-6 transition-all duration-700 shadow-sm ${
+                  isCasting ? "border-amber-500/60 shadow-xl shadow-amber-500/15" : ""
+                }`}
+              >
                 {/* Ambient Golden Glow Aura */}
-                <div className={`absolute inset-0 bg-radial from-amber-500/20 via-orange-500/5 to-transparent pointer-events-none rounded-2xl transition-opacity duration-700 ${isCasting ? "opacity-100" : "opacity-60"}`} />
+                <div
+                  className={`absolute inset-0 bg-radial from-amber-500/20 via-orange-500/5 to-transparent pointer-events-none rounded-2xl transition-opacity duration-700 ${isCasting ? "opacity-100" : "opacity-60"}`}
+                />
 
                 {/* Circular Stone/Woven Mat Platform */}
-                <div className={`relative mx-auto max-w-lg rounded-2xl border border-accent/25 bg-surface/90 backdrop-blur-xs p-6 sm:p-8 shadow-inner ${isCasting ? "anim-keo-tray-impact" : ""}`}>
-                  <div className="flex items-center justify-center gap-3 sm:gap-6 py-2" aria-live="polite">
+                <div
+                  className={`relative mx-auto max-w-lg rounded-2xl border border-accent/25 bg-surface/90 backdrop-blur-xs p-5 sm:p-7 shadow-inner ${isCasting ? "anim-keo-tray-impact" : ""}`}
+                >
+                  <div
+                    className="flex items-center justify-center gap-3 sm:gap-6 py-2"
+                    aria-live="polite"
+                  >
                     {/* Keo Piece 1 */}
                     <CrescentKeoPiece
                       side={landingResult ? landingResult.piece1 : "duong"}
@@ -988,12 +1107,22 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                   <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs text-muted">
                     <span className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.6)]" />
-                      <span><strong className="text-ink">Mặt cong (Dương / Úp):</strong> Lưng vòm cong</span>
+                      <span>
+                        <strong className="text-ink">
+                          Mặt cong (Dương / Úp):
+                        </strong>{" "}
+                        Lưng vòm cong
+                      </span>
                     </span>
                     <span className="text-line">•</span>
                     <span className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.6)]" />
-                      <span><strong className="text-ink">Mặt phẳng (Âm / Ngửa):</strong> Thớ gỗ phẳng</span>
+                      <span>
+                        <strong className="text-ink">
+                          Mặt phẳng (Âm / Ngửa):
+                        </strong>{" "}
+                        Thớ gỗ phẳng
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -1003,27 +1132,35 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
               <div className="text-center">
                 <button
                   type="button"
-                  onClick={handleCastKeo}
+                  onClick={requiresLogin ? onGoToLogin : handleCastKeo}
                   disabled={
                     isCasting ||
                     isRequestingKeo ||
                     sessionLoading ||
                     !sessionReady ||
-                    throwCount >= 3
+                    throwCount >= 3 ||
+                    (requiresLogin && !onGoToLogin)
                   }
                   className="w-full h-13 sm:h-14 rounded-full font-bold text-sm sm:text-base text-white bg-gradient-to-r from-amber-800 via-amber-700 to-amber-800 hover:from-amber-700 hover:to-amber-700 shadow-md shadow-amber-950/20 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 transition-all active:scale-[0.99] relative overflow-hidden group"
                 >
-                  <Sparkles className={`w-5 h-5 text-amber-200 ${isCasting ? "animate-spin" : ""}`} />
+                  <Sparkles
+                    className={`w-5 h-5 text-amber-200 ${isCasting ? "animate-spin" : ""}`}
+                  />
                   <span>
                     {isCasting
                       ? "Đang gieo keo trong chánh niệm..."
-                      : castResult
-                      ? "Gieo lại lần khác"
-                      : "Gieo keo âm dương"}
+                      : requiresLogin
+                        ? "Đăng nhập để gieo"
+                        : castResult
+                          ? throwCount < 3
+                            ? `Gieo tiếp lượt ${throwCount + 1}/3`
+                            : "Bắt đầu phiên mới (Hết lượt)"
+                          : "Gieo keo âm dương"}
                   </span>
                 </button>
                 <p className="text-xs text-muted mt-2.5">
-                  Chạm để gieo — Hãy hít một hơi thật sâu và buông lỏng tâm trí trước khi bắt đầu
+                  Chạm để gieo — Hãy hít một hơi thật sâu và buông lỏng tâm trí
+                  trước khi bắt đầu
                 </p>
               </div>
             </div>
@@ -1031,71 +1168,170 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
         </div>
 
         {/* Step 3: Result Display or Reference of 3 States */}
-        <section className="mb-12">
+        <section
+          id="keo-result"
+          aria-live="polite"
+          className="mb-12 scroll-mt-24"
+        >
           {castResult ? (
             /* ================= ACTIVE RESULT: SEAMLESS LITERARY ESSAY ================= */
-            <div className="p-8 sm:p-12 rounded-2xl bg-surface border border-accent/30 shadow-card">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-line mb-8">
+            <div className="p-6 sm:p-10 rounded-3xl bg-surface border-2 border-amber-600/30 shadow-card relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-line mb-6">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent">
                   <span className="w-5 h-5 rounded-full bg-action text-white flex items-center justify-center text-xs font-bold">
                     3
                   </span>
                   <span>ĐỐI THOẠI NỘI TÂM • KẾT QUẢ CHIÊM NGHIỆM</span>
                 </div>
-                <Badge className={`text-xs px-3.5 py-1 font-semibold ${castResult.badgeColor}`}>
+                <Badge
+                  className={`text-xs px-3.5 py-1 font-semibold ${castResult.badgeColor}`}
+                >
                   {castResult.statusLabel}
                 </Badge>
               </div>
 
               <div className="max-w-3xl">
-                <div className="flex items-baseline gap-3 mb-4">
-                  <h3 className="font-display font-bold text-2xl sm:text-3xl text-ink">
-                    {castResult.title}
-                  </h3>
-                  <span className="text-xs text-muted font-medium">({castResult.subTitle})</span>
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <div className="flex flex-wrap items-baseline gap-2.5">
+                    <h3 className="font-display font-bold text-2xl sm:text-3xl text-ink">
+                      {castResult.title}
+                    </h3>
+                    <span className="text-xs text-muted font-medium">
+                      ({castResult.subTitle})
+                    </span>
+                  </div>
+
+                  {/* Triện son phong thủy (Seal Stamp) - Dòng chảy tự nhiên, không bị đè */}
+                  <div className="inline-flex items-center justify-center select-none rotate-2">
+                    <div className="px-3 py-1 rounded-xl border-2 border-red-700/70 bg-red-700/[0.05] shadow-2xs">
+                      <div className="border border-dashed border-red-700/50 rounded-lg px-2.5 py-0.5 flex items-center gap-2">
+                        <span className="font-serif font-black text-xs text-red-700 tracking-widest uppercase">
+                          {castResult.type === "nhat-am-nhat-duong"
+                            ? "ĐẮC KEO"
+                            : castResult.type === "nhi-duong"
+                              ? "KEO TIẾU"
+                              : "TỊNH TRÍ"}
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-red-700/50" />
+                        <span className="text-[10px] font-serif font-bold text-red-700/80 tracking-wider">
+                          {castResult.type === "nhat-am-nhat-duong"
+                            ? "HÒA HỢP"
+                            : castResult.type === "nhi-duong"
+                              ? "HOAN HỶ"
+                              : "QUY TÂM"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <p className="text-base sm:text-lg text-ink leading-relaxed mb-6 first-letter:text-4xl first-letter:font-serif first-letter:font-bold first-letter:mr-2.5 first-letter:float-left first-letter:text-accent first-letter:leading-none">
-                  {castResult.meaning}
-                </p>
+                {/* Poetic Couplet / Seal Message */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/[0.04] to-transparent border-l-4 border-amber-600 mb-6">
+                  <div className="flex items-center gap-2 mb-1.5 text-xs font-serif font-bold uppercase tracking-wider text-accent">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Thông điệp khai mở</span>
+                  </div>
+                  <p className="font-serif text-base sm:text-lg text-ink font-medium leading-relaxed italic">
+                    {castResult.type === "nhat-am-nhat-duong"
+                      ? "“Một mảnh ngửa, một mảnh úp — Âm dương hòa hợp, trời đất giao thoa. Vạn sự khởi từ tâm, tâm an ắt vạn sự định.”"
+                      : castResult.type === "nhi-duong"
+                        ? "“Hai mảnh cùng sấp — Nụ cười hoan hỷ nhưng duyên cơ chưa hội đủ. Hãy lắng lòng suy xét, chớ nóng vội bước vội.”"
+                        : "“Hai mảnh cùng ngửa — Vạn vật quy tịnh, tiền nhân khuyên ta tạm dừng chân soi xét kỹ lưỡng trước khi quyết định.”"}
+                  </p>
+                </div>
 
-                <div className="p-5 sm:p-6 rounded-panel bg-surface-soft border border-line text-sm sm:text-base text-ink leading-relaxed mb-8">
-                  <strong className="text-accent font-bold block mb-1">
-                    Gợi mở tâm thế hôm nay:
-                  </strong>
-                  {castResult.guidance}
+                {/* Sacred Intention & Reflection Box */}
+                <div className="p-5 sm:p-6 rounded-2xl bg-surface-soft border border-line/80 shadow-2xs text-sm sm:text-base text-ink leading-relaxed mb-6 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line/60 pb-3">
+                    <span className="text-xs font-semibold text-muted flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      <span>
+                        Chủ đề chiêm nghiệm:{" "}
+                        <strong className="text-ink">{selectedTopicLabel}</strong>
+                      </span>
+                    </span>
+                    <span className="text-xs text-muted font-serif">
+                      Lượt gieo: {throwCount}/3
+                    </span>
+                  </div>
+
+                  {reflectionText.trim() && (
+                    <div className="p-3.5 rounded-xl bg-surface border border-line text-xs sm:text-sm text-ink/90 leading-relaxed">
+                      <span className="text-accent font-bold block mb-1">
+                        Nỗi niềm bạn gửi gắm:
+                      </span>
+                      <p className="italic text-ink/80 whitespace-pre-wrap break-words">
+                        “{reflectionText.trim()}”
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="pt-1">
+                    <strong className="text-accent font-bold block mb-1 font-serif text-sm">
+                      Gợi mở từ kết quả và chủ đề:
+                    </strong>
+                    <p className="text-sm text-ink/90 leading-relaxed">
+                      {castResult.guidance}
+                    </p>
+                  </div>
+
                   {castResult.proverb && (
-                    <div className="mt-4 pt-4 border-t border-line">
-                      <strong className="text-accent font-bold block mb-1">
-                        Thành ngữ hoặc tục ngữ đi cùng lần gieo:
+                    <div className="mt-4 pt-3.5 border-t border-line/60">
+                      <strong className="text-accent font-bold block mb-1 font-serif text-xs uppercase tracking-wider">
+                        Lời vàng tiền nhân (Thành ngữ / Ca dao):
                       </strong>
-                      <blockquote>“{castResult.proverb.content}”</blockquote>
-                      <p className="mt-1 text-muted">{castResult.proverb.meaning}</p>
+                      <blockquote className="italic font-serif text-ink text-sm sm:text-base">
+                        “{castResult.proverb.content}”
+                      </blockquote>
+                      <p className="mt-1 text-xs text-muted leading-relaxed">
+                        {castResult.proverb.meaning}
+                      </p>
                     </div>
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={handleCastKeo}
-                    disabled={isCasting}
-                    className="h-11 px-5 rounded-full text-xs sm:text-sm font-semibold gap-2 bg-action text-white cursor-pointer"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    <span>Gieo lại lần khác</span>
-                  </Button>
+                {/* Secondary Actions (Non-duplicated) */}
+                <div className="flex flex-wrap items-center gap-3 mb-6">
+                  {throwCount >= 3 ? (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleNewSession}
+                      disabled={isCasting || isRequestingKeo}
+                      className="h-11 px-5 rounded-full text-xs sm:text-sm font-semibold gap-2 bg-action text-white cursor-pointer shadow-xs"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      <span>Bắt đầu phiên mới (Đã hết 3 lượt)</span>
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const trayEl = document.getElementById("keo-altar-tray");
+                        if (trayEl) {
+                          trayEl.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center",
+                          });
+                        }
+                      }}
+                      className="h-11 px-5 rounded-full text-xs sm:text-sm font-semibold gap-2 border-accent/40 bg-accent/5 hover:bg-accent/10 text-accent cursor-pointer shadow-2xs"
+                    >
+                      <Sparkles className="w-4 h-4 text-accent" />
+                      <span>Cuộn lên khay đĩa để gieo lượt {throwCount + 1}/3 ↑</span>
+                    </Button>
+                  )}
 
                   {onGoToCulture && (
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={onGoToCulture}
-                      className="h-11 px-5 rounded-full text-xs sm:text-sm font-semibold border-line text-ink hover:text-accent cursor-pointer"
+                      className="h-11 px-5 rounded-full text-xs sm:text-sm font-semibold border-line text-ink hover:text-accent cursor-pointer shadow-2xs"
                     >
                       <BookOpen className="w-4 h-4 text-accent" />
-                      <span>Đọc bài khảo cứu phong tục</span>
+                      <span>Đọc bài khảo cứu tục gieo keo</span>
                     </Button>
                   )}
                 </div>
@@ -1106,91 +1342,92 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
                     kind="keo"
                     resultId={castResultId}
                     onInterpretation={async () => {
-                      if (!castResult.resultToken) throw new Error("Thiếu mã kết quả Xin keo do máy chủ ký.");
-                      const result = await interpretDemoXinKeo(castResult.resultToken);
+                      if (!castResult.resultToken)
+                        throw new Error(
+                          "Thiếu mã kết quả Xin keo do máy chủ ký.",
+                        );
+                      const result = await interpretDemoXinKeo(
+                        castResult.resultToken,
+                      );
                       return [
-                        { title: "Tổng quan", content: result.summary },
-                        { title: "Ý nghĩa và biểu tượng", content: `${result.traditionalMeaning}\n\n${result.symbolicAnalysis}` },
-                        { title: "Liên hệ câu hỏi", content: result.contextualInterpretation },
-                        ...result.practicalAdvice.map((content, index) => ({ title: `Gợi ý thực tế ${index + 1}`, content })),
-                        ...result.cautions.map((content, index) => ({ title: `Điều cần lưu ý ${index + 1}`, content })),
+                        { title: "Tổng quan", content: cleanKeoInterpretationText(result.summary) },
+                        {
+                          title: "Ý nghĩa và biểu tượng",
+                          content: cleanKeoInterpretationText(`${result.traditionalMeaning}\n\n${result.symbolicAnalysis}`),
+                        },
+                        {
+                          title: "Liên hệ câu hỏi",
+                          content: cleanKeoInterpretationText(result.contextualInterpretation),
+                        },
+                        ...result.practicalAdvice.map((content, index) => ({
+                          title: `Gợi ý thực tế ${index + 1}`,
+                          content: cleanKeoInterpretationText(content),
+                        })),
+                        ...result.cautions.map((content, index) => ({
+                          title: `Điều cần lưu ý ${index + 1}`,
+                          content: cleanKeoInterpretationText(content),
+                        })),
                       ];
                     }}
                     sections={[
-                      { title: "Kết quả lượt gieo", content: `${castResult.title} — ${castResult.statusLabel}. ${castResult.meaning}` },
-                      { title: "Ý nghĩa biểu tượng văn hóa", content: `Hai mặt keo tạo nên thế ${castResult.piece1 === "am" ? "âm" : "dương"} — ${castResult.piece2 === "am" ? "âm" : "dương"}, biểu trưng cho sự hòa hợp và cân bằng giữa các yếu tố. Đây là hình ảnh gợi mở để tự soi chiếu lòng mình, không mang tính phán xét hay quyết định sự việc.` },
-                      { title: "Cách diễn giải theo kết quả", content: castResult.type === "nhat-am-nhat-duong" ? "Có thể dùng hình ảnh hai mặt khác nhau để tự hỏi mình đã cân nhắc đủ các góc nhìn chưa; kết quả không thay cho trao đổi hoặc quyết định dựa trên dữ kiện." : castResult.type === "nhi-duong" ? "Lượt gieo có hai mặt dương. Phần suy ngẫm có thể tập trung vào việc kiểm tra giả định và chuẩn bị phương án dự phòng, không xem đây là dấu hiệu chắc chắn thuận lợi." : "Lượt gieo có hai mặt âm. Có thể tạm dừng để làm rõ điều còn thiếu; kết quả không dự báo bất lợi hay khẳng định điều gì sẽ xảy ra." },
-                      { title: "Điều nên cân nhắc", content: castResult.guidance },
-                      { title: "Gợi ý suy ngẫm", content: "Thông tin thực tế nào sẽ giúp bạn đánh giá câu hỏi này rõ hơn trước khi chọn bước tiếp theo?" },
+                      {
+                        title: "Kết quả lượt gieo",
+                        content: `${castResult.title} — ${castResult.statusLabel}. ${castResult.meaning}`,
+                      },
+                      {
+                        title: "Gợi mở theo phương diện đã chọn",
+                        content: castResult.guidance,
+                      },
                     ]}
                   />
                 )}
               </div>
             </div>
           ) : (
-            /* ================= REFERENCE GUIDE (WHEN NOT YET CAST) ================= */
             <div className="p-6 sm:p-8 rounded-card bg-surface border border-line shadow-xs">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent mb-3">
-                <span className="w-5 h-5 rounded-full bg-action text-white flex items-center justify-center text-xs font-bold">
-                  3
+                <span className="w-5 h-5 rounded-full bg-accent/15 text-accent flex items-center justify-center">
+                  <BookOpen className="w-3 h-3" />
                 </span>
-                <span>BA THẾ KEO DÂN GIAN • Ý NGHĨA BIỂU TƯỢNG</span>
+                <span>KIẾN THỨC DÂN GIAN • Ý NGHĨA BA THẾ KEO</span>
               </div>
-
-                <p className="text-sm text-muted leading-relaxed mb-6">
-                Dưới đây là ba tổ hợp có trong ứng dụng. Tên gọi mô tả mặt keo xuất hiện; chúng không dự báo tương lai hoặc quyết định thay bạn:
+              <p className="text-sm text-muted leading-relaxed mb-6">
+                Mỗi lượt gieo tạo thành một trong ba thế keo. Nội dung ý nghĩa
+                được tải từ máy chủ.
               </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-                {/* Card 1 */}
-                <div className="p-5 rounded-panel border border-line bg-surface/80">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-display font-bold text-sm text-ink">
-                      Nhất Âm Nhất Dương
-                    </h4>
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-success-soft text-success border border-success/30">
-                      1 Ngửa + 1 Úp
-                    </span>
-                  </div>
-                  <p className="text-xs text-ink/80 leading-relaxed">
-                    Đây là tổ hợp một mặt ngửa và một mặt úp. Hãy tự cân nhắc các dữ kiện liên quan trước khi quyết định.
-                  </p>
+              {catalogError ? (
+                <p className="text-sm text-muted" role="status">
+                  {catalogError}
+                </p>
+              ) : outcomeCatalog.length === 0 ? (
+                <p className="text-sm text-muted" role="status">
+                  Đang tải nội dung các thế keo…
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {outcomeCatalog.map((outcome) => (
+                    <div
+                      key={outcome.result}
+                      className="p-5 rounded-panel border border-line bg-surface/80"
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <h4 className="font-display font-bold text-sm text-ink">
+                          {outcome.title}
+                        </h4>
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-surface-soft text-muted border border-line">
+                          {outcome.subTitle || outcome.statusLabel}
+                        </span>
+                      </div>
+                      <p className="text-xs text-ink/80 leading-relaxed">
+                        {outcome.meaning}
+                      </p>
+                      <p className="text-xs text-muted leading-relaxed mt-3">
+                        {outcome.guidance}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-
-                {/* Card 2 */}
-                <div className="p-5 rounded-panel border border-line bg-surface/80">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-display font-bold text-sm text-ink">
-                      Nhị Dương (Keo Tiếu)
-                    </h4>
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gold-soft text-gold border border-gold/40">
-                      Cùng Sấp
-                    </span>
-                  </div>
-                  <p className="text-xs text-ink/80 leading-relaxed">
-                    Đây là tổ hợp hai mặt úp. Tên gọi chỉ mô tả kết quả gieo, không phải lời khuyên hành động.
-                  </p>
-                </div>
-
-                {/* Card 3 */}
-                <div className="p-5 rounded-panel border border-line bg-surface/80">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-display font-bold text-sm text-ink">
-                      Nhị Âm
-                    </h4>
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-surface-soft text-muted border border-line">
-                      Cùng Ngửa
-                    </span>
-                  </div>
-                  <p className="text-xs text-ink/80 leading-relaxed">
-                    Đây là tổ hợp hai mặt ngửa. Tên gọi chỉ mô tả kết quả gieo, không dự báo thuận lợi hay bất lợi.
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-panel bg-surface-soft border border-line text-xs text-ink/80 italic leading-relaxed text-center">
-                “Kết quả gieo không phải lời phán quyết của thần linh hay số phận. Hãy dựa vào dữ kiện thực tế và lựa chọn của chính bạn.”
-              </div>
+              )}
             </div>
           )}
         </section>
@@ -1199,12 +1436,15 @@ export const XinKeoScreen: React.FC<XinKeoScreenProps> = ({
         <div className="p-4 rounded-panel bg-surface/80 border border-line flex items-start gap-3.5 text-xs text-muted leading-relaxed mb-10">
           <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
           <div>
-            <span className="font-bold text-ink">Lưu ý từ Tin Lắm Tâm Linh: </span>
-            Đây là hoạt động tương tác mang tính biểu tượng văn hóa dân gian. Nền tảng tôn trọng tự do tâm thức, không khuyến khích mê tín, không dự đoán tương lai và không bao giờ yêu cầu trả phí để gieo lại.
+            <span className="font-bold text-ink">
+              Lưu ý từ Tin Lắm Tâm Linh:{" "}
+            </span>
+            Đây là hoạt động tương tác mang tính biểu tượng văn hóa dân gian.
+            Nền tảng tôn trọng tự do tâm thức, không khuyến khích mê tín, không
+            dự đoán tương lai và không bao giờ yêu cầu trả phí để gieo lại.
           </div>
         </div>
       </main>
     </div>
   );
 };
-

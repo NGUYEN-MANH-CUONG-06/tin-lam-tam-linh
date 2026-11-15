@@ -52,6 +52,13 @@ async function getXamAvailability(req, res) {
   });
 }
 
+async function getXamOptions(req, res) {
+  return sendSuccess(res, {
+    message: "Xin xam options retrieved",
+    data: reflectionService.getXamOptions(),
+  });
+}
+
 async function getKeoSession(req, res) {
   const session = await xinKeoService.getSession(
     req.user.id,
@@ -66,6 +73,7 @@ async function getKeoSession(req, res) {
 
 module.exports = {
   getXamAvailability,
+  getXamOptions,
   drawXam,
   saveXam,
   listXam,

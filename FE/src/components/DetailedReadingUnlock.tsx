@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   Sparkles,
   Crown,
-  CheckCircle2,
   X,
   ChevronDown,
   ChevronUp,
@@ -10,6 +9,7 @@ import {
   ShieldCheck,
   ArrowRight,
   BookOpen,
+  AlertCircle,
 } from "lucide-react";
 import { AppDialog } from "./AppDialog";
 import { Button } from "./ui/button";
@@ -32,6 +32,23 @@ export interface DetailedReadingSection {
   content: string;
 }
 
+function sanitizeCulturalCopy(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/\bquẻ thuận lợi\s*\(YES\)/gi, "thế quẻ Âm Dương Hòa Hợp (Đắc keo)")
+    .replace(/\bquẻ bất lợi\s*\(NO\)/gi, "thế quẻ Nhị Âm (Chưa thuận)")
+    .replace(/\bquẻ không rõ\s*\(UNCLEAR\)/gi, "thế quẻ Nhị Dương (Keo Tiếu)")
+    .replace(/\(YES\)/g, "(Đắc keo)")
+    .replace(/\(NO\)/g, "(Chưa thuận)")
+    .replace(/\(UNCLEAR\)/g, "(Keo Tiếu)")
+    .replace(
+      /các đấng bề trên hoặc thế giới tâm linh,\s*cho thấy con đường phía trước có sự nâng đỡ,\s*thuận buồm xuôi gió/gi,
+      "sự tương hòa giữa thiên thời và nhân tâm, là lời động viên tinh thần để bạn thêm tự tin vững bước",
+    )
+    .replace(/các đấng bề trên hoặc thế giới tâm linh/gi, "triết lý văn hóa âm dương")
+    .replace(/thế giới tâm linh/gi, "triết lý nhân sinh");
+}
+
 interface DetailedReadingUnlockProps {
   kind: "xam" | "keo";
   resultId: string;
@@ -39,43 +56,49 @@ interface DetailedReadingUnlockProps {
   onInterpretation?: () => Promise<DetailedReadingSection[]>;
 }
 
-const DEMO_READING_NOTICE =
-  "Lời luận giải được máy chủ tạo từ kết quả và chủ đề của lượt này qua Gemini. Nội dung mang tính chiêm nghiệm văn hóa, không dự đoán chắc chắn tương lai hay thay thế quyết định chuyên môn.";
-
 export function DetailedReadingUnlock({
   kind,
   resultId,
   sections,
   onInterpretation,
 }: DetailedReadingUnlockProps) {
-  const sku =
-    kind === "xam" ? "XAM_DETAILED_READING" : "KEO_DETAILED_READING";
+  const sku = kind === "xam" ? "XAM_DETAILED_READING" : "KEO_DETAILED_READING";
   const initialState = loadDemoCommerceState();
   const [commerceState, setCommerceState] =
     useState<DemoCommerceState>(initialState);
   const [unlocked, setUnlocked] = useState(() =>
-    isDemoReadingUnlocked(kind, resultId, initialState)
+    isDemoReadingUnlocked(kind, resultId, initialState),
   );
   const [expanded, setExpanded] = useState(() =>
-    isDemoReadingUnlocked(kind, resultId, initialState)
+    isDemoReadingUnlocked(kind, resultId, initialState),
   );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [checkoutStage, setCheckoutStage] = useState(false);
+  const [showOtherPurchaseOptions, setShowOtherPurchaseOptions] =
+    useState(false);
   const [message, setMessage] = useState("");
   const busyRef = useRef(false);
   const requestIdRef = useRef<string | null>(null);
   const interpretationStartedRef = useRef(false);
   const interpretationStorageKey = `ai-reading:${kind}:${resultId}`;
   const interpretationAttemptStorageKey = `ai-reading-attempted:${kind}:${resultId}`;
-  const [generatedSections, setGeneratedSections] = useState<DetailedReadingSection[] | null>(
-    () => readDemoValue<DetailedReadingSection[] | null>(interpretationStorageKey, null),
+  const [generatedSections, setGeneratedSections] = useState<
+    DetailedReadingSection[] | null
+  >(() =>
+    readDemoValue<DetailedReadingSection[] | null>(
+      interpretationStorageKey,
+      null,
+    ),
   );
-  const [interpretationAttempted, setInterpretationAttempted] = useState(
-    () => readDemoValue<boolean>(interpretationAttemptStorageKey, false),
+  const [interpretationAttempted, setInterpretationAttempted] = useState(() =>
+    readDemoValue<boolean>(interpretationAttemptStorageKey, false),
   );
   const [interpretationError, setInterpretationError] = useState(() =>
-    readDemoValue<boolean>(interpretationAttemptStorageKey, false)
-      && !readDemoValue<DetailedReadingSection[] | null>(interpretationStorageKey, null)
+    readDemoValue<boolean>(interpretationAttemptStorageKey, false) &&
+    !readDemoValue<DetailedReadingSection[] | null>(
+      interpretationStorageKey,
+      null,
+    )
       ? "Lượt luận giải trước chưa hoàn tất. Kết quả vẫn được giữ nguyên; bạn có thể thử lại."
       : "",
   );
@@ -95,14 +118,28 @@ export function DetailedReadingUnlock({
       writeDemoValue(interpretationStorageKey, result);
     } catch (error) {
       const serverMessage = error instanceof Error ? error.message.trim() : "";
-      setInterpretationError(serverMessage || "Không kết nối được dịch vụ luận giải. Kết quả gieo vẫn được giữ nguyên; bạn có thể thử lại.");
+      const isRateLimited = /429|đang giới hạn|rate limit|quota/i.test(
+        serverMessage,
+      );
+      setInterpretationError(
+        isRateLimited
+          ? "Luận giải AI đang quá tải. Nội dung quẻ đã xác minh vẫn ở bên dưới; bạn có thể thử lại sau."
+          : serverMessage ||
+              "Chưa kết nối được dịch vụ luận giải. Nội dung quẻ đã xác minh vẫn ở bên dưới; bạn có thể thử lại.",
+      );
     } finally {
       setInterpretationLoading(false);
     }
   };
 
   useEffect(() => {
-    if (unlocked && onInterpretation && !generatedSections && !interpretationAttempted && !interpretationStartedRef.current) {
+    if (
+      unlocked &&
+      onInterpretation &&
+      !generatedSections &&
+      !interpretationAttempted &&
+      !interpretationStartedRef.current
+    ) {
       void loadInterpretation();
     }
   }, [unlocked, onInterpretation, generatedSections, interpretationAttempted]);
@@ -119,6 +156,7 @@ export function DetailedReadingUnlock({
   const openPurchaseDialog = () => {
     setMessage("");
     setCheckoutStage(false);
+    setShowOtherPurchaseOptions(false);
     requestIdRef.current = null;
     setDialogOpen(true);
   };
@@ -138,7 +176,7 @@ export function DetailedReadingUnlock({
         requestIdRef.current,
         kind,
         resultId,
-        outcome
+        outcome,
       );
       setCommerceState(result.state);
       if (
@@ -153,17 +191,21 @@ export function DetailedReadingUnlock({
         setMessage("");
       } else if (outcome === "failed") {
         setMessage(
-          "Thanh toán mô phỏng chưa thành công. Kết quả vẫn đang được khóa, bạn có thể thử lại bất cứ lúc nào."
+          "Thanh toán mô phỏng chưa thành công. Kết quả vẫn đang được khóa, bạn có thể thử lại bất cứ lúc nào.",
         );
         setCheckoutStage(false);
       } else {
         setDialogOpen(false);
         setCheckoutStage(false);
-        setMessage("Giao dịch đã được hủy. Kết quả vẫn được giữ nguyên trạng thái khóa.");
+        setMessage(
+          "Giao dịch đã được hủy. Kết quả vẫn được giữ nguyên trạng thái khóa.",
+        );
       }
       requestIdRef.current = null;
     } catch {
-      setMessage("Chưa hoàn tất được thao tác thử nghiệm. Quyền lợi tài khoản không bị ảnh hưởng.");
+      setMessage(
+        "Chưa hoàn tất được thao tác thử nghiệm. Quyền lợi tài khoản không bị ảnh hưởng.",
+      );
     } finally {
       busyRef.current = false;
     }
@@ -180,7 +222,9 @@ export function DetailedReadingUnlock({
       setDialogOpen(false);
       setMessage("");
     } catch {
-      setMessage("Không thể kích hoạt lượt Premium lúc này. Số dư lượt vẫn được bảo lưu.");
+      setMessage(
+        "Không thể kích hoạt lượt Premium lúc này. Số dư lượt vẫn được bảo lưu.",
+      );
     } finally {
       busyRef.current = false;
     }
@@ -191,7 +235,7 @@ export function DetailedReadingUnlock({
       className="my-6 rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-50/60 via-surface to-amber-50/30 dark:from-amber-950/20 dark:via-surface dark:to-surface p-5 sm:p-6 shadow-sm"
       aria-labelledby={`detailed-reading-${kind}-title`}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col gap-4">
         {/* Left: Info */}
         <div className="flex items-start gap-3.5 min-w-0 flex-1">
           <span
@@ -216,13 +260,14 @@ export function DetailedReadingUnlock({
               )}
             </div>
             <p className="text-xs sm:text-sm text-muted leading-relaxed">
-              Khám phá trọn vẹn 5 góc nhìn văn hóa, biểu tượng và bài học chiêm nghiệm.
+              Khám phá trọn vẹn 5 góc nhìn văn hóa, biểu tượng và bài học chiêm
+              nghiệm.
             </p>
           </div>
         </div>
 
         {/* Right: Action Button */}
-        <div className="shrink-0 sm:self-center">
+        <div className="w-full sm:w-auto sm:self-end">
           {unlocked ? (
             <button
               type="button"
@@ -256,7 +301,9 @@ export function DetailedReadingUnlock({
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-amber-200" />
-                  <span>Mở khóa — {quote.totalVnd.toLocaleString("vi-VN")}đ</span>
+                  <span>
+                    Mở khóa — {quote.totalVnd.toLocaleString("vi-VN")}đ
+                  </span>
                 </>
               )}
             </button>
@@ -271,34 +318,129 @@ export function DetailedReadingUnlock({
       )}
 
       {/* Expanded Reading Content */}
-      {unlocked && expanded && (
-        <div className="mt-6 space-y-3.5 border-t border-line/70 pt-6">
-          {(onInterpretation ? generatedSections || [] : sections).map((section) => (
-            <article
-              key={section.title}
-              className="p-4 rounded-xl bg-surface border border-line/80 shadow-2xs"
-            >
-              <h4 className="font-semibold text-sm text-ink flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" />
-                <span>{section.title}</span>
-              </h4>
-              <p className="mt-2 text-xs sm:text-sm leading-relaxed text-muted">
-                {section.content}
-              </p>
-            </article>
-          ))}
-          {onInterpretation && !generatedSections && (
-            <div role="status" className="rounded-xl border border-line bg-surface/70 p-3.5 text-sm text-muted">
-              {interpretationLoading ? "Đang lấy lời luận giải từ máy chủ…" : interpretationError || "Lời luận giải AI chưa được tạo."}
-              {!interpretationLoading && <button type="button" className="ml-2 underline" onClick={() => void loadInterpretation(true)}>Thử lại</button>}
+      {unlocked &&
+        expanded &&
+        (() => {
+          const activeSections = generatedSections || sections;
+          const practicalAdvices = activeSections.filter((s) =>
+            s.title.toLowerCase().startsWith("gợi ý thực tế"),
+          );
+          const cautions = activeSections.filter((s) =>
+            s.title.toLowerCase().startsWith("điều cần lưu ý"),
+          );
+          const regularSections = activeSections.filter(
+            (s) =>
+              !s.title.toLowerCase().startsWith("gợi ý thực tế") &&
+              !s.title.toLowerCase().startsWith("điều cần lưu ý"),
+          );
+
+          return (
+            <div className="mt-6 space-y-4 border-t border-line/70 pt-6">
+              {/* 1. Các mục luận giải chính */}
+              {regularSections.map((section) => (
+                <article
+                  key={section.title}
+                  className="p-4 sm:p-5 rounded-2xl bg-surface border border-line/80 shadow-2xs space-y-2"
+                >
+                  <h4 className="font-semibold text-sm sm:text-base text-ink flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-accent inline-block shrink-0" />
+                    <span className="font-serif">{section.title}</span>
+                  </h4>
+                  <p className="text-xs sm:text-sm leading-relaxed text-muted font-sans whitespace-pre-line">
+                    {sanitizeCulturalCopy(section.content)}
+                  </p>
+                </article>
+              ))}
+
+              {/* 2. Gom nhóm: Gợi ý hành động thực tế */}
+              {practicalAdvices.length > 0 && (
+                <article className="p-4 sm:p-5 rounded-2xl bg-surface border border-line/80 shadow-2xs space-y-3">
+                  <h4 className="font-semibold text-sm sm:text-base text-ink flex items-center gap-2 border-b border-line/60 pb-2.5">
+                    <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span className="font-serif">
+                      Gợi ý chiêm nghiệm & Hành động thực tế
+                    </span>
+                  </h4>
+                  <ul className="space-y-2.5 text-xs sm:text-sm text-muted leading-relaxed">
+                    {practicalAdvices.map((advice, idx) => (
+                      <li key={idx} className="flex items-start gap-2.5">
+                        <span className="w-5 h-5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                          {idx + 1}
+                        </span>
+                        <span className="text-ink/90 flex-1">
+                          {sanitizeCulturalCopy(advice.content)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              )}
+
+              {/* 3. Gom nhóm: Điều cần lưu ý & Giữ tâm an */}
+              {cautions.length > 0 && (
+                <article className="p-4 sm:p-5 rounded-2xl bg-amber-500/[0.06] border border-amber-500/25 shadow-2xs space-y-3">
+                  <h4 className="font-semibold text-sm sm:text-base text-amber-950 dark:text-amber-200 flex items-center gap-2 border-b border-amber-500/20 pb-2.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span className="font-serif">
+                      Điều cần lưu ý & Giữ tâm an
+                    </span>
+                  </h4>
+                  <ul className="space-y-2 text-xs sm:text-sm text-muted leading-relaxed">
+                    {cautions.map((caution, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-600 dark:bg-amber-400 shrink-0 mt-2" />
+                        <span className="text-ink/90 flex-1">
+                          {sanitizeCulturalCopy(caution.content)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              )}
+
+              {onInterpretation && !generatedSections && (
+                <div
+                  role="status"
+                  className="rounded-xl border border-line bg-surface/70 p-3.5 text-sm text-muted"
+                >
+                  {interpretationLoading
+                    ? "Đang lấy lời luận giải từ máy chủ…"
+                    : interpretationError || "Lời luận giải AI chưa được tạo."}
+                  {!interpretationLoading && (
+                    <button
+                      type="button"
+                      className="ml-2 underline font-semibold text-accent cursor-pointer"
+                      onClick={() => void loadInterpretation(true)}
+                    >
+                      Thử lại
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Nút thu gọn ở chân danh sách để người dùng không phải cuộn ngược lên đầu */}
+              <div className="flex items-center justify-center pt-2 pb-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExpanded(false);
+                    const titleEl = document.getElementById(
+                      `detailed-reading-${kind}-title`,
+                    );
+                    titleEl?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center",
+                    });
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-line bg-surface hover:bg-surface-soft text-xs text-muted hover:text-ink font-semibold transition-all shadow-2xs cursor-pointer hover:border-amber-500/40 active:scale-95"
+                >
+                  <ChevronUp className="w-3.5 h-3.5 text-muted" />
+                  <span>Thu gọn luận giải</span>
+                </button>
+              </div>
             </div>
-          )}
-          <div className="rounded-xl border border-line bg-surface/70 p-3.5 text-xs leading-relaxed text-muted flex items-start gap-2.5">
-            <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-            <span>{DEMO_READING_NOTICE}</span>
-          </div>
-        </div>
-      )}
+          );
+        })()}
 
       {/* Modal Dialog */}
       {dialogOpen && (
@@ -324,7 +466,8 @@ export function DetailedReadingUnlock({
                 </h2>
               </div>
               <p className="text-xs sm:text-sm leading-relaxed text-muted max-w-md">
-                Đào sâu các biểu tượng ẩn tàng, cội nguồn văn hóa và lời khuyên ứng biến tâm an cho {kindLabel} này.
+                Đào sâu các biểu tượng ẩn tàng, cội nguồn văn hóa và lời khuyên
+                ứng biến tâm an cho {kindLabel} này.
               </p>
             </div>
             <button
@@ -339,106 +482,212 @@ export function DetailedReadingUnlock({
 
           {/* Modal Body */}
           <div className="mt-5 space-y-4">
-            {/* STAGE: NORMAL SELECTION */}
+            {/* STAGE: NORMAL SELECTION (ADAPTIVE USER STATE) */}
             {!checkoutStage ? (
               <>
-                {/* 1. HERO OPTION IF USER HAS PREMIUM CREDITS */}
-                {creditCount > 0 && (
-                  <div className="rounded-2xl border-2 border-amber-500/50 bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-surface p-5 shadow-sm relative overflow-hidden">
-                    <div className="flex items-center justify-between gap-3 mb-2.5">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs font-bold">
-                        <Crown className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                        <span>Đặc quyền Premium khả dụng</span>
+                {/* STATE A: USER HAS AVAILABLE CREDITS */}
+                {creditCount > 0 ? (
+                  <div className="space-y-3.5">
+                    <div className="rounded-2xl border-2 border-amber-500/50 bg-gradient-to-b from-amber-500/12 via-amber-500/5 to-surface p-5 sm:p-6 shadow-sm relative overflow-hidden">
+                      <div className="flex items-center justify-between gap-3 mb-3">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs font-bold font-serif">
+                          <Crown className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                          <span>Đặc quyền Hội viên khả dụng</span>
+                        </div>
+                        <span className="text-xs font-bold text-amber-700 dark:text-amber-300 font-serif">
+                          Còn {creditCount} lượt
+                        </span>
                       </div>
-                      <span className="text-xs font-bold text-amber-700 dark:text-amber-300">
-                        Còn {creditCount} lượt
-                      </span>
+
+                      <h3 className="font-display font-bold text-lg text-ink mb-1.5">
+                        Sử dụng 1 lượt có sẵn trong tài khoản
+                      </h3>
+                      <p className="text-xs sm:text-sm text-muted leading-relaxed mb-5">
+                        Bạn đang có {creditCount} lượt khả dụng. Bấm vào nút bên
+                        dưới để mở trọn vẹn 5 góc nhìn văn hóa, biểu tượng và
+                        bài học chiêm nghiệm ngay lập tức mà không cần thanh
+                        toán thêm.
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={usePremiumCredit}
+                        className="w-full h-12 sm:h-13 rounded-full font-bold text-sm text-white bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-600 shadow-md shadow-amber-900/15 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99]"
+                      >
+                        <Sparkles className="w-4 h-4 text-amber-200" />
+                        <span>Khai mở ngay bằng 1 lượt có sẵn</span>
+                      </button>
                     </div>
 
-                    <h3 className="font-display font-bold text-base text-ink mb-1">
-                      Sử dụng 1 lượt có sẵn trong tài khoản
-                    </h3>
-                    <p className="text-xs text-muted leading-relaxed mb-4">
-                      Bạn không cần thanh toán thêm. Bấm vào đây để mở trọn vẹn kết quả ngay lập tức.
-                    </p>
+                    {/* Secondary Discreet Toggle for Extra Options */}
+                    <div className="text-center pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setShowOtherPurchaseOptions((v) => !v)}
+                        className="text-xs text-muted hover:text-ink underline underline-offset-4 transition-colors cursor-pointer"
+                      >
+                        {showOtherPurchaseOptions
+                          ? "Thu gọn tùy chọn khác"
+                          : "Tùy chọn thỉnh lẻ thêm hoặc nâng cấp gói →"}
+                      </button>
+                    </div>
 
-                    <button
-                      type="button"
-                      onClick={usePremiumCredit}
-                      className="w-full h-12 rounded-full font-bold text-sm text-white bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-600 shadow-md shadow-amber-900/15 flex items-center justify-center gap-2 cursor-pointer transition-all"
-                    >
-                      <Sparkles className="w-4 h-4 text-amber-200" />
-                      <span>Dùng 1 lượt Premium mở khóa ngay</span>
-                    </button>
-                  </div>
-                )}
+                    {showOtherPurchaseOptions && (
+                      <div className="space-y-4 pt-2">
+                        {/* PURCHASE SINGLE PASS */}
+                        <div className="rounded-2xl border border-line bg-surface-soft p-4 sm:p-5">
+                          <div className="flex items-center justify-between gap-3 mb-2">
+                            <span className="text-xs font-bold uppercase tracking-wider text-muted font-serif">
+                              Thỉnh riêng lẻ quẻ này
+                            </span>
+                            {quote.discountVnd > 0 && (
+                              <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                                Ưu đãi Hội viên −
+                                {quote.discountVnd.toLocaleString("vi-VN")}đ
+                              </span>
+                            )}
+                          </div>
 
-                {/* 2. PURCHASE SINGLE PASS */}
-                <div className="rounded-2xl border border-line bg-surface-soft p-4 sm:p-5">
-                  <div className="flex items-center justify-between gap-3 mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-muted">
-                      {creditCount > 0 ? "Hoặc thỉnh riêng lẻ quẻ này" : "Thỉnh một lượt luận giải riêng lẻ"}
-                    </span>
-                    {quote.discountVnd > 0 && (
-                      <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                        Ưu đãi Hội viên −{quote.discountVnd.toLocaleString("vi-VN")}đ
-                      </span>
+                          <div className="space-y-1.5 py-1 text-sm">
+                            <div className="flex items-center justify-between text-muted text-xs">
+                              <span>Đơn giá chuẩn:</span>
+                              <span>
+                                {quote.subtotalVnd.toLocaleString("vi-VN")}đ
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between border-t border-line/60 pt-2 font-semibold">
+                              <span className="text-ink">Chi phí thỉnh:</span>
+                              <span className="font-display text-lg font-bold text-accent">
+                                {quote.totalVnd.toLocaleString("vi-VN")}đ
+                              </span>
+                            </div>
+                          </div>
+
+                          <p className="mt-2 text-[11px] leading-relaxed text-muted">
+                            Quyền truy cập được lưu cố định cho kết quả này.
+                          </p>
+
+                          <button
+                            type="button"
+                            onClick={beginMockCheckout}
+                            className="mt-4 w-full h-11 rounded-full font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-2 border border-line hover:border-amber-500/40 bg-surface hover:bg-surface-soft text-ink"
+                          >
+                            <span>
+                              Tiếp tục thanh toán —{" "}
+                              {quote.totalVnd.toLocaleString("vi-VN")}đ
+                            </span>
+                          </button>
+                        </div>
+
+                        {/* MEMBERSHIP INVITATION */}
+                        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-700 dark:text-amber-300 shrink-0">
+                              <Crown className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-xs sm:text-sm text-ink">
+                                Gói Hội viên Tĩnh Lạc
+                              </h4>
+                              <p className="text-[11px] text-muted">
+                                Mở khóa trọn bộ mọi quẻ xăm, keo và đặc quyền
+                                hoa đăng
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDialogOpen(false);
+                              openDemoPremiumPurchase();
+                            }}
+                            className="h-9 px-3.5 rounded-full text-xs font-bold text-amber-800 dark:text-amber-200 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 transition-all shrink-0 cursor-pointer inline-flex items-center gap-1"
+                          >
+                            <span>Khám phá</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
+                ) : (
+                  /* STATE B: USER HAS 0 CREDITS */
+                  <div className="space-y-4">
+                    {/* PURCHASE SINGLE PASS */}
+                    <div className="rounded-2xl border border-line bg-surface-soft p-4 sm:p-5">
+                      <div className="flex items-center justify-between gap-3 mb-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-muted font-serif">
+                          Thỉnh một lượt luận giải riêng lẻ
+                        </span>
+                        {quote.discountVnd > 0 && (
+                          <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                            Ưu đãi Hội viên −
+                            {quote.discountVnd.toLocaleString("vi-VN")}đ
+                          </span>
+                        )}
+                      </div>
 
-                  <div className="space-y-1.5 py-1 text-sm">
-                    <div className="flex items-center justify-between text-muted text-xs">
-                      <span>Đơn giá chuẩn:</span>
-                      <span>{quote.subtotalVnd.toLocaleString("vi-VN")}đ</span>
+                      <div className="space-y-1.5 py-1 text-sm">
+                        <div className="flex items-center justify-between text-muted text-xs">
+                          <span>Đơn giá chuẩn:</span>
+                          <span>
+                            {quote.subtotalVnd.toLocaleString("vi-VN")}đ
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between border-t border-line/60 pt-2 font-semibold">
+                          <span className="text-ink">Chi phí thỉnh:</span>
+                          <span className="font-display text-lg font-bold text-accent">
+                            {quote.totalVnd.toLocaleString("vi-VN")}đ
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="mt-2 text-[11px] leading-relaxed text-muted">
+                        Quyền truy cập được lưu cố định cho kết quả này.
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={beginMockCheckout}
+                        className="mt-4 w-full h-11 rounded-full font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-600 shadow-md shadow-amber-900/15 transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <span>
+                          Tiếp tục thanh toán —{" "}
+                          {quote.totalVnd.toLocaleString("vi-VN")}đ
+                        </span>
+                      </button>
                     </div>
-                    <div className="flex items-center justify-between border-t border-line/60 pt-2 font-semibold">
-                      <span className="text-ink">Chi phí thỉnh:</span>
-                      <span className="font-display text-lg font-bold text-accent">
-                        {quote.totalVnd.toLocaleString("vi-VN")}đ
-                      </span>
+
+                    {/* MEMBERSHIP INVITATION */}
+                    <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-700 dark:text-amber-300 shrink-0">
+                          <Crown className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-xs sm:text-sm text-ink">
+                            Gói Hội viên Tĩnh Lạc
+                          </h4>
+                          <p className="text-[11px] text-muted">
+                            Mở khóa trọn bộ mọi quẻ xăm, keo và đặc quyền hoa
+                            đăng
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDialogOpen(false);
+                          openDemoPremiumPurchase();
+                        }}
+                        className="h-9 px-3.5 rounded-full text-xs font-bold text-amber-800 dark:text-amber-200 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 transition-all shrink-0 cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <span>Khám phá</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
                     </div>
                   </div>
-
-                  <p className="mt-2 text-[11px] leading-relaxed text-muted">
-                    Quyền truy cập được lưu cố định cho kết quả này.
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={beginMockCheckout}
-                    className={`mt-4 w-full h-11 rounded-full font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                      creditCount > 0
-                        ? "border border-line hover:border-amber-500/40 bg-surface hover:bg-surface-soft text-ink"
-                        : "text-white bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-600 shadow-md shadow-amber-900/15"
-                    }`}
-                  >
-                    <span>Tiếp tục thanh toán — {quote.totalVnd.toLocaleString("vi-VN")}đ</span>
-                  </button>
-                </div>
-
-                {/* 3. PREMIUM MEMBERSHIP INVITATION */}
-                <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-700 dark:text-amber-300 shrink-0">
-                      <Crown className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-xs sm:text-sm text-ink">Gói Hội viên Tĩnh Lạc</h4>
-                      <p className="text-[11px] text-muted">Mở khóa trọn bộ mọi quẻ xăm, keo và đặc quyền hoa đăng</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDialogOpen(false);
-                      openDemoPremiumPurchase();
-                    }}
-                    className="h-9 px-3.5 rounded-full text-xs font-bold text-amber-800 dark:text-amber-200 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 transition-all shrink-0 cursor-pointer inline-flex items-center gap-1"
-                  >
-                    <span>Khám phá</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
-                </div>
+                )}
               </>
             ) : (
               /* STAGE: MOCK CHECKOUT */
@@ -446,26 +695,36 @@ export function DetailedReadingUnlock({
                 <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-2.5 text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
                   <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold block mb-0.5">Không gian thử nghiệm (Sandbox Demo)</span>
-                    Dự án đang trong giai đoạn trải nghiệm. Thao tác này hoàn toàn miễn phí và không yêu cầu thông tin ngân hàng thật.
+                    <span className="font-bold block mb-0.5">
+                      Trải nghiệm mô phỏng (Hoàn toàn miễn phí)
+                    </span>
+                    Dự án đang trong giai đoạn thử nghiệm. Thao tác mở khóa này
+                    mang tính mô phỏng, không yêu cầu thẻ hay trừ tiền thật.
                   </div>
                 </div>
 
                 <div className="p-4 rounded-xl bg-surface border border-line flex items-center justify-between text-sm">
-                  <span className="font-medium text-muted">Chi phí mở khóa quẻ:</span>
-                  <span className="font-display font-bold text-lg text-accent">
-                    {quote.totalVnd.toLocaleString("vi-VN")}đ
+                  <span className="font-medium text-muted">
+                    Chi phí thỉnh quẻ:
                   </span>
+                  <div className="text-right">
+                    <span className="font-display font-bold text-lg text-accent block">
+                      {quote.totalVnd.toLocaleString("vi-VN")}đ
+                    </span>
+                    <span className="text-[11px] text-muted block -mt-0.5">
+                      Mô phỏng 0đ thực thu
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-2.5 pt-2">
                   <button
                     type="button"
                     onClick={() => finishMockCheckout("succeeded")}
-                    className="w-full h-12 rounded-full font-bold text-sm text-white bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 hover:from-emerald-600 hover:to-emerald-600 shadow-md shadow-emerald-900/15 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                    className="w-full h-12 rounded-full font-bold text-sm text-white bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-500 shadow-md shadow-amber-900/20 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]"
                   >
-                    <CheckCircle2 className="w-4 h-4 text-emerald-200" />
-                    <span>Xác nhận thanh toán mô phỏng (Thành công)</span>
+                    <Sparkles className="w-4 h-4 text-amber-200" />
+                    <span>Khai mở luận giải ngay (Miễn phí)</span>
                   </button>
 
                   <button
@@ -473,7 +732,7 @@ export function DetailedReadingUnlock({
                     onClick={() => finishMockCheckout("failed")}
                     className="w-full h-11 rounded-full font-medium text-xs text-stone-600 dark:text-stone-300 hover:text-danger bg-surface hover:bg-surface-soft border border-line hover:border-danger/30 transition-all cursor-pointer"
                   >
-                    Thử kịch bản thanh toán thất bại
+                    Thử trường hợp giao dịch gián đoạn
                   </button>
 
                   <button
@@ -481,7 +740,7 @@ export function DetailedReadingUnlock({
                     onClick={() => setCheckoutStage(false)}
                     className="w-full h-10 rounded-full text-xs text-muted hover:text-ink transition-colors cursor-pointer"
                   >
-                    ← Quay lại lựa chọn
+                    ← Quay lại lựa chọn trước
                   </button>
                 </div>
               </div>
@@ -497,11 +756,13 @@ export function DetailedReadingUnlock({
           {/* Privacy & Cultural Reassurance Footnote */}
           <div className="mt-5 pt-3 border-t border-line/60 flex items-center gap-2 text-[11px] text-muted">
             <ShieldCheck className="w-3.5 h-3.5 text-accent shrink-0" />
-            <span>Kết quả cơ bản luôn được mở xem miễn phí. Luận giải chi tiết mở rộng góc nhìn văn hóa.</span>
+            <span>
+              Kết quả cơ bản luôn được mở xem miễn phí. Luận giải chi tiết mở
+              rộng góc nhìn văn hóa.
+            </span>
           </div>
         </AppDialog>
       )}
     </section>
   );
 }
-

@@ -1,12 +1,19 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { validateOriginalCatalog, fingerprint } = require("./original-xam-catalog");
+const {
+  validateOriginalCatalog,
+  fingerprint,
+} = require("./original-xam-catalog");
 
-const datasetPath = path.resolve(__dirname, "../../data/xin-xam/tltl-original-100-v1.json");
+const datasetPath = path.resolve(
+  __dirname,
+  "../../data/xin-xam/tltl-original-100-v1.json",
+);
 const dataset = require(datasetPath);
 const EXPECTED_SYSTEM = "TLTL_ORIGINAL_100_V1";
 const EXPECTED_VERSION = "1.0.1-draft";
-const EXPECTED_DATASET_SHA256 = "7e81005e01fdb16e916410fa689991e92bd4368356db76849b507792c85a00bd";
+const EXPECTED_DATASET_SHA256 =
+  "f1dc825d3743b1f45f1be1c366b10f523df09db1ef51901e6661a005847b6497";
 
 function stableDemoCardId(stickNumber) {
   return `00000000-0000-4000-8000-${Number(stickNumber).toString(16).padStart(12, "0")}`;
@@ -14,7 +21,11 @@ function stableDemoCardId(stickNumber) {
 
 function buildDemoCards(source = dataset) {
   const report = validateOriginalCatalog(source);
-  if (!report.valid || report.systemId !== EXPECTED_SYSTEM || report.datasetVersion !== EXPECTED_VERSION) {
+  if (
+    !report.valid ||
+    report.systemId !== EXPECTED_SYSTEM ||
+    report.datasetVersion !== EXPECTED_VERSION
+  ) {
     const error = new Error("The Xin Xam demo catalog failed validation.");
     error.code = "DEMO_XAM_CATALOG_INVALID";
     throw error;
@@ -22,7 +33,9 @@ function buildDemoCards(source = dataset) {
   const records = source.records.map((row) => {
     const rowFingerprint = fingerprint(row);
     if (!/^[a-f0-9]{64}$/.test(rowFingerprint)) {
-      const error = new Error("The Xin Xam demo record fingerprint is invalid.");
+      const error = new Error(
+        "The Xin Xam demo record fingerprint is invalid.",
+      );
       error.code = "DEMO_XAM_CATALOG_INVALID";
       throw error;
     }
@@ -58,24 +71,36 @@ function buildDemoCards(source = dataset) {
       },
     };
   });
-  if (records.length !== 100 || new Set(records.map((card) => card.stick_number)).size !== 100) {
-    const error = new Error("The Xin Xam demo catalog must contain 100 unique cards.");
+  if (
+    records.length !== 100 ||
+    new Set(records.map((card) => card.stick_number)).size !== 100
+  ) {
+    const error = new Error(
+      "The Xin Xam demo catalog must contain 100 unique cards.",
+    );
     error.code = "DEMO_XAM_CATALOG_INVALID";
     throw error;
   }
   return records;
 }
 
-const datasetSha256 = require("node:crypto").createHash("sha256").update(fs.readFileSync(datasetPath)).digest("hex");
+const datasetSha256 = require("node:crypto")
+  .createHash("sha256")
+  .update(fs.readFileSync(datasetPath))
+  .digest("hex");
 if (datasetSha256 !== EXPECTED_DATASET_SHA256) {
-  const error = new Error("The packaged Xin Xam demo dataset fingerprint does not match the reviewed version.");
+  const error = new Error(
+    "The packaged Xin Xam demo dataset fingerprint does not match the reviewed version.",
+  );
   error.code = "DEMO_XAM_CATALOG_FINGERPRINT_MISMATCH";
   throw error;
 }
 const DEMO_CARDS = buildDemoCards();
 
 function getDemoXamCard(stickNumber) {
-  return DEMO_CARDS.find((card) => card.stick_number === Number(stickNumber)) || null;
+  return (
+    DEMO_CARDS.find((card) => card.stick_number === Number(stickNumber)) || null
+  );
 }
 
 function findDemoXamCard(xamType, stickNumber) {
@@ -84,8 +109,18 @@ function findDemoXamCard(xamType, stickNumber) {
 }
 
 function toDemoXamDraw(card, drawId, resultToken, createdAt) {
-  const classificationGroup = card.fortune_level === "THUẬN" ? "CAT" : card.fortune_level === "CẨN TRỌNG" ? "CAUTION" : "NEUTRAL";
-  const rank = classificationGroup === "CAT" ? "Thượng Xăm" : classificationGroup === "CAUTION" ? "Hạ Xăm" : "Trung Xăm";
+  const classificationGroup =
+    card.fortune_level === "THUẬN"
+      ? "CAT"
+      : card.fortune_level === "CẨN TRỌNG"
+        ? "CAUTION"
+        : "NEUTRAL";
+  const rank =
+    classificationGroup === "CAT"
+      ? "Thượng Xăm"
+      : classificationGroup === "CAUTION"
+        ? "Hạ Xăm"
+        : "Trung Xăm";
   return {
     id: drawId,
     drawId,
@@ -111,19 +146,28 @@ function toDemoXamDraw(card, drawId, resultToken, createdAt) {
         editorialStatus: "draft",
         sources: [],
         quotationVerified: false,
-        editorialNote: "Tự động kích hoạt cho môi trường Demo – chưa được duyệt phát hành chính thức.",
+        editorialNote:
+          "Tự động kích hoạt cho môi trường Demo – chưa được duyệt phát hành chính thức.",
       },
     },
     aiExplanation: null,
-    interpretation: { summary: card.meaning, recommendation: card.advice, warning: "Kết quả Demo để trải nghiệm, chưa được duyệt phát hành chính thức." },
+    interpretation: {
+      summary: card.meaning,
+      recommendation: card.advice,
+      warning:
+        "Kết quả Demo để trải nghiệm, chưa được duyệt phát hành chính thức.",
+    },
     proverb: null,
     source: null,
     verified: false,
     active: true,
     demoStatus: "DEMO_ACTIVE",
     editorialStatus: "DEMO_ACTIVE",
-    disclaimer: "Nội dung tự động kích hoạt riêng cho môi trường Demo; chưa được Admin duyệt phát hành chính thức.",
-    date: new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }).format(createdAt),
+    disclaimer:
+      "Nội dung tự động kích hoạt riêng cho môi trường Demo; chưa được Admin duyệt phát hành chính thức.",
+    date: new Intl.DateTimeFormat("vi-VN", {
+      timeZone: "Asia/Ho_Chi_Minh",
+    }).format(createdAt),
     createdAt: createdAt.getTime(),
     starred: false,
     aiInterpretation: null,

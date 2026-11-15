@@ -246,9 +246,8 @@ export const AncestorAltarScreen: React.FC<AncestorAltarScreenProps> = ({
             </p>
           )}
 
-          <JadeDecorationControl state={jadeDecoration} allowDemoChickenOffering />
-
-          <div id="ancestor-scene-panel" className="overflow-hidden rounded-2xl">
+          {/* 1. Bàn thờ 3D linh thiêng ở vị trí trung tâm */}
+          <div id="ancestor-scene-panel" className="overflow-hidden rounded-2xl border border-line shadow-sm mb-6">
             <Suspense
               fallback={
                 <div
@@ -262,71 +261,79 @@ export const AncestorAltarScreen: React.FC<AncestorAltarScreenProps> = ({
                 </div>
               }
             >
-              <SanctuaryScene decoration={jadeDecoration.decoration}>
-                <section aria-label="Gửi lời cầu nguyện" className="border-t border-line bg-surface p-4 sm:p-6">
-                  <div className="mb-3">
-                    <h2 className="font-display text-lg font-bold text-ink">
-                      Gửi lời nguyện
-                    </h2>
-                  </div>
-        
-                  <Textarea
-                    value={tribute}
-                    onChange={(event) => {
-                      setTribute(event.target.value);
-                      setSubmitted(false);
-                      setSaveError("");
-                    }}
-                    aria-label="Lời nguyện"
-                    maxLength={1000}
-                    placeholder="Viết lời cầu nguyện của bạn…"
-                    className="mb-3 min-h-24 rounded-xl border border-line bg-surface-soft/60 p-4 text-sm leading-relaxed text-ink placeholder:text-stone-500 focus:border-amber-500 focus:bg-surface focus:ring-2 focus:ring-amber-500/20 sm:text-base"
-                  />
-        
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      onClick={sendTribute}
-                      disabled={!tribute.trim() || submitted}
-                      className={`min-h-11 cursor-pointer gap-2 rounded-xl px-6 font-semibold shadow-md transition-all ${
-                        submitted
-                          ? "bg-emerald-700 text-white hover:bg-emerald-800"
-                          : "bg-gradient-to-r from-red-800 via-amber-700 to-amber-900 text-white hover:from-red-700 hover:to-amber-800"
-                      }`}
-                    >
-                      {submitted ? (
-                        <>
-                          <CheckCircle2 className="h-4 w-4 text-white" />
-                          <span>Đã gửi lời nguyện</span>
-                        </>
-                      ) : (
-                        <>
-                          <Send className="h-4 w-4 text-amber-200" />
-                          <span>{isLoggedIn ? "Gửi lời nguyện" : "Đăng nhập để gửi"}</span>
-                        </>
-                      )}
-                    </Button>
-                  </div>
-        
-                  {submitted && (
-                    <div
-                      role="status"
-                      className="mt-5 flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm font-medium text-emerald-800 animate-fadeIn dark:text-emerald-300"
-                    >
-                      <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                      <span>Lời cầu nguyện đã được lưu vào Điều ước &amp; Tri ân của bạn.</span>
-                    </div>
-                  )}
-        
-                  {saveError && (
-                    <p role="alert" className="mt-4 text-sm font-medium text-danger">
-                      {saveError}
-                    </p>
-                  )}
-                </section>
-              </SanctuaryScene>
+              <SanctuaryScene decoration={jadeDecoration.decoration} />
             </Suspense>
           </div>
+
+          {/* 2. Khay bài trí mâm lễ & vật phẩm */}
+          <JadeDecorationControl state={jadeDecoration} allowDemoChickenOffering />
+
+          {/* 3. Tâm thư nguyện cầu gia tiên */}
+          <section aria-label="Gửi lời cầu nguyện" className="mt-6 rounded-2xl border border-line bg-surface p-5 sm:p-7 shadow-xs">
+            <div className="mb-3.5">
+              <h2 className="font-display text-lg font-bold text-ink sm:text-xl flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-accent" />
+                <span>Tâm thư nguyện cầu gia tiên</span>
+              </h2>
+              <p className="text-xs text-muted mt-1 leading-relaxed">
+                Lắng lòng hướng về cội nguồn, gửi gắm lời tri ân và ước nguyện bình an đến tổ tiên.
+              </p>
+            </div>
+
+            <Textarea
+              value={tribute}
+              onChange={(event) => {
+                setTribute(event.target.value);
+                setSubmitted(false);
+                setSaveError("");
+              }}
+              aria-label="Lời nguyện"
+              maxLength={1000}
+              placeholder="Kính cẩn viết lời nguyện cầu của bạn…"
+              className="mb-4 min-h-28 rounded-xl border border-line bg-surface-soft/60 p-4 text-sm leading-relaxed text-ink placeholder:text-stone-500 focus:border-amber-500 focus:bg-surface focus:ring-2 focus:ring-amber-500/20 sm:text-base"
+            />
+
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                onClick={sendTribute}
+                disabled={!tribute.trim() || submitted}
+                className={`min-h-12 cursor-pointer gap-2 rounded-full px-7 font-bold text-sm shadow-md transition-all active:scale-95 ${
+                  submitted
+                    ? "bg-emerald-700 text-white hover:bg-emerald-800"
+                    : "bg-gradient-to-r from-amber-800 via-amber-700 to-amber-800 text-white hover:from-amber-700 hover:to-amber-600 shadow-amber-950/20"
+                }`}
+              >
+                {submitted ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 text-white" />
+                    <span>Đã kính dâng lời nguyện</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 text-amber-200" />
+                    <span>{isLoggedIn ? "Kính gửi tâm nguyện" : "Đăng nhập để dâng nguyện"}</span>
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {submitted && (
+              <div
+                role="status"
+                className="mt-5 flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm font-medium text-emerald-800 animate-fadeIn dark:text-emerald-300"
+              >
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <span>Lời cầu nguyện đã được lưu vào Điều ước &amp; Tri ân của bạn.</span>
+              </div>
+            )}
+
+            {saveError && (
+              <p role="alert" className="mt-4 text-sm font-medium text-danger">
+                {saveError}
+              </p>
+            )}
+          </section>
         </section>
 
         {recentPrayers.length > 0 && (

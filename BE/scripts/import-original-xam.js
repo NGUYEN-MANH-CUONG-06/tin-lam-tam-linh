@@ -18,11 +18,24 @@ async function main() {
 
   const databaseUrl = process.env.DATABASE_URL || "";
   const testDatabaseUrl = process.env.TEST_DATABASE_URL || "";
-  if (env.NODE_ENV !== "test" || !testDatabaseUrl || databaseUrl !== testDatabaseUrl) {
-    throw new Error("Original xam import apply requires NODE_ENV=test and DATABASE_URL exactly equal to TEST_DATABASE_URL.");
+  if (!["development", "test"].includes(env.NODE_ENV)) {
+    throw new Error("Chỉ cho phép nhập nháp trong development hoặc test.");
+  }
+
+  if (!databaseUrl) {
+    throw new Error("Thiếu DATABASE_URL.");
+  }
+
+  if (
+    env.NODE_ENV === "test" &&
+    (!testDatabaseUrl || databaseUrl !== testDatabaseUrl)
+  ) {
+    throw new Error(
+      "Môi trường test phải dùng DATABASE_URL trùng TEST_DATABASE_URL."
+    );
   }
   const createPrismaClient = require("../src/config/create-prisma-client");
-  const client = createPrismaClient(testDatabaseUrl);
+  const client = createPrismaClient(databaseUrl);
   try {
     await client.$transaction(async (tx) => {
       const xamType = `${dataset.systemId}:${dataset.datasetVersion}`;
@@ -30,12 +43,14 @@ async function main() {
       const existingByNumber = new Map(existing.map((record) => [record.stick_number, { fingerprint: record.editorial_metadata?.fingerprint }]));
       const report = planOriginalImport(dataset, existingByNumber);
       if (!report.importEligible) throw new Error(`Original xam import rejected: ${report.errors.join("; ")}`);
-      for (const row of dataset.records) {
-        if (existingByNumber.has(row.id)) continue;
-        await tx.xin_xam.create({ data: toOriginalDraftRecord(row, dataset) });
+      const rowsToCreate = dataset.records
+        .filter((row) => !existingByNumber.has(row.id))
+        .map((row) => toOriginalDraftRecord(row, dataset));
+      if (rowsToCreate.length > 0) {
+        await tx.xin_xam.createMany({ data: rowsToCreate });
       }
-    });
-    console.log("Test-only original xam drafts imported.");
+    }, { maxWait: 10_000, timeout: 30_000 });
+    console.log("Đã nhập bộ quẻ nguyên tác dưới dạng nháp.");
   } finally {
     await client.$disconnect();
   }

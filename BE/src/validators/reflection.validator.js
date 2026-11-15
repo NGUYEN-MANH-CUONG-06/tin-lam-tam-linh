@@ -1,4 +1,5 @@
 const { z } = require("zod");
+const { XIN_XAM_TOPICS } = require("../services/xin-xam-algorithm");
 
 const xinXamDrawSchema = z.object({
   drawId: z.string().uuid().optional(),
@@ -20,7 +21,7 @@ const xinXamDrawSchema = z.object({
 
 const xinXamRequestSchema = z.object({
   region: z.enum(["Bắc Bộ", "Trung Bộ", "Nam Bộ", "Toàn quốc"]),
-  topic: z.enum(["Bình an", "Gia đình", "Học tập", "Công việc"]),
+  topic: z.enum(XIN_XAM_TOPICS),
   question: z.string().trim().max(2000).optional(),
 });
 

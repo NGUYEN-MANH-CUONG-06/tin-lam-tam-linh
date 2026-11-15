@@ -49,6 +49,10 @@ router.use(
   require("./digital-shop.routes")
 );
 router.get(
+  "/xam/options",
+  reflectionController.getXamOptions,
+);
+router.get(
   "/xam/availability",
   validate(xinXamRequestSchema, "query"),
   reflectionController.getXamAvailability,

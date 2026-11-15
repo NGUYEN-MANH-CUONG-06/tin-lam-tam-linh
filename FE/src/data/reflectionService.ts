@@ -1,7 +1,6 @@
 import { apiBackendRequest, apiRequest } from "../lib/api";
 import { isDemoMode } from "./demoMode";
 import { readDemoValue, writeDemoValue } from "./demoStorage";
-import { DEMO_PUBLIC_SOURCES } from "./demoContent";
 import type { RegionType, TopicType } from "./xinXamData";
 import { trackProductEvent } from "./productAnalytics";
 import type { SavedWishItem, SavedXinXamItem } from "../screens/AccountScreen";
@@ -30,10 +29,12 @@ export function saveXam(result: {
   category?: string;
   fortuneType?: string;
   sealText?: string;
+  source?: string;
+  verified?: boolean;
   quote: string;
 }): Promise<SavedXinXamItem> {
   if (isDemoMode()) {
-    const item: SavedXinXamItem = { id: `demo-saved-xam-${crypto.randomUUID()}`, drawId: result.drawId, resultToken: result.resultToken, stickNumber: result.stickNumber, fortuneType: result.fortuneType || result.sealText || "Bình", category: result.category || result.topic, region: result.region, quote: result.quote, date: new Date().toISOString(), createdAt: Date.now(), starred: false, source: DEMO_PUBLIC_SOURCES.xinXamPractice, verified: false };
+    const item: SavedXinXamItem = { id: `demo-saved-xam-${crypto.randomUUID()}`, drawId: result.drawId, resultToken: result.resultToken, stickNumber: result.stickNumber, fortuneType: result.fortuneType || result.sealText || "", category: result.category || result.topic, region: result.region, quote: result.quote, date: new Date().toISOString(), createdAt: Date.now(), starred: false, source: result.source || "", verified: result.verified === true };
     writeDemoValue("saved-xam", [item, ...readDemoValue<SavedXinXamItem[]>("saved-xam", [])]);
     return Promise.resolve(item);
   }
@@ -56,6 +57,15 @@ export interface XinXamDrawResponse extends SavedXinXamItem {
   active: boolean;
   demoStatus?: "DEMO_ACTIVE";
   xamType: string;
+  editorialStatus?: string;
+  editorialMetadata?: {
+    systemId?: string;
+    contentType?: string;
+    authoringMethod?: string;
+    contentVersion?: string;
+    reviewStatus?: string;
+    humanApproved?: boolean;
+  };
   classification: string;
   rank: "Thượng Xăm" | "Trung Xăm" | "Hạ Xăm";
   classificationGroup: "CAT" | "NEUTRAL" | "CAUTION";
@@ -88,6 +98,17 @@ export interface XinXamAvailability {
   available: boolean;
 }
 
+export interface XinXamOptions {
+  topics: string[];
+  regions: string[];
+  defaultRegion: string;
+}
+
+export function loadXinXamOptions(): Promise<XinXamOptions> {
+  const request = isDemoMode() ? apiBackendRequest : apiRequest;
+  return request<XinXamOptions>("/xam/options");
+}
+
 export function loadXinXamAvailability(
   region: string,
   topic: string,
@@ -100,7 +121,7 @@ export function loadXinXamAvailability(
 
   const demo = isDemoMode();
   const request = demo ? apiBackendRequest : apiRequest;
-  const endpoint = demo ? "/demo/reflections/xin-xam/availability" : "/xam/availability";
+  const endpoint = "/xam/availability";
   return request<XinXamAvailability>(
     `${endpoint}?${params.toString()}`,
     {
@@ -116,24 +137,16 @@ export function drawXinXam(
   options: { signal?: AbortSignal } = {},
 ): Promise<XinXamDrawResponse> {
   const demo = isDemoMode();
-  const inputKey = JSON.stringify({ region, topic, question: question || "" });
-  const storedRequest = demo
-    ? readDemoValue<{ inputKey: string; requestId: string } | null>("xin-xam-pending-request-v1", null)
-    : null;
-  const requestId = demo && storedRequest?.inputKey === inputKey ? storedRequest.requestId : crypto.randomUUID();
-  if (demo) writeDemoValue("xin-xam-pending-request-v1", { inputKey, requestId });
   const request = demo ? apiBackendRequest : apiRequest;
-  return request<XinXamDrawResponse>(demo ? "/demo/reflections/xin-xam/draw" : "/xam/draw", {
+  return request<XinXamDrawResponse>("/xam/draw", {
     method: "POST",
     body: JSON.stringify({
-      ...(demo ? { requestId } : {}),
       region,
       topic,
       question,
     }),
     signal: options.signal,
   }).then((result) => {
-    if (demo) writeDemoValue("xin-xam-pending-request-v1", null);
     trackProductEvent("xam_draw_completed");
     return result;
   });
@@ -216,10 +229,29 @@ export interface XinKeoCast {
   piece2: "am" | "duong";
   proverb: SourcedProverb | null;
   resultToken?: string;
-  title?: string;
-  statusLabel?: string;
-  meaning?: string;
-  guidance?: string;
+  title: string;
+  subTitle: string;
+  statusLabel: string;
+  meaning: string;
+  guidance: string;
+  guidanceBasis?: "OUTCOME" | "TOPIC";
+}
+
+export interface XinKeoOutcomeCatalogItem {
+  result: "YES" | "UNCLEAR" | "NO";
+  type: XinKeoCast["type"];
+  title: string;
+  subTitle: string;
+  statusLabel: string;
+  meaning: string;
+  guidance: string;
+  guidanceBasis?: "OUTCOME" | "TOPIC";
+}
+
+export function loadXinKeoOutcomeCatalog(): Promise<XinKeoOutcomeCatalogItem[]> {
+  return apiBackendRequest<{
+    xinKeo: { outcomes: XinKeoOutcomeCatalogItem[] };
+  }>("/demo/reflections/status").then((status) => status.xinKeo.outcomes);
 }
 
 export interface XinKeoSession {

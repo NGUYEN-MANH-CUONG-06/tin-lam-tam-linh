@@ -39,14 +39,12 @@ import {
   normalizeXamPoemLines,
 } from "../../../shared/xin-xam-publication.mjs";
 import { loadAdminList, type AdminRecord } from "../data/adminService";
+import { loadXinXamOptions } from "../data/reflectionService";
 import { pushAdminOverlay } from "./adminNavigation";
 import { useTheme } from "../hooks/useTheme";
 import { toast } from "../components/ui/Toast";
 import {
-  XIN_XAM_REGIONS,
-  XIN_XAM_TOPICS,
   type RegionType,
-  type TopicType,
 } from "../data/xinXamData";
 
 export type Kind = "culture" | "calendar" | "xam" | "rituals" | "prayers";
@@ -112,12 +110,12 @@ const CULTURE_CATEGORIES = [
   "Tín ngưỡng dân gian",
 ];
 
-function isCompatibleXamType(value: string): boolean {
+function isCompatibleXamType(value: string, regions: string[], topics: string[]): boolean {
   const [region, topic, ...extra] = value.split(":");
   return (
     extra.length === 0 &&
-    XIN_XAM_REGIONS.includes(region as RegionType) &&
-    XIN_XAM_TOPICS.includes(topic as TopicType)
+    regions.includes(region) &&
+    topics.includes(topic)
   );
 }
 
@@ -171,6 +169,8 @@ export function ContentEditor({
   onSaved: (result: { id: string; submittedForReview: boolean }) => void;
 }) {
   const { dark, toggleTheme } = useTheme();
+  const [xamRegions, setXamRegions] = useState<string[]>([]);
+  const [xamTopics, setXamTopics] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<
     "info" | "content" | "media" | "preview"
   >("info");
@@ -374,6 +374,24 @@ export function ContentEditor({
 
   const meta = KIND_META[kind];
   // Load rituals if kind is prayers
+  useEffect(() => {
+    let active = true;
+    if (kind === "xam") {
+      void loadXinXamOptions()
+        .then(({ regions, topics, defaultRegion }) => {
+          if (!active) return;
+          setXamRegions(regions.filter((region) => region !== defaultRegion));
+          setXamTopics(topics);
+        })
+        .catch(() => {
+          if (active) setError("Không tải được danh mục Xin xăm từ máy chủ.");
+        });
+    }
+    return () => {
+      active = false;
+    };
+  }, [kind]);
+
   useEffect(() => {
     let active = true;
     if (kind === "prayers") {
@@ -954,7 +972,7 @@ export function ContentEditor({
       return;
     }
     if (kind === "xam") {
-      if (!isCompatibleXamType(values.xam_type)) {
+      if (!isCompatibleXamType(values.xam_type, xamRegions, xamTopics)) {
         setError(
           "Hãy chọn đúng tổ hợp vùng miền và chủ đề đang có trên màn xin xăm.",
         );
@@ -1929,8 +1947,8 @@ export function ContentEditor({
                             onChange={(e) => set("xam_type", e.target.value)}
                           >
                             <option value="">Chọn vùng miền · chủ đề</option>
-                            {XIN_XAM_REGIONS.flatMap((region) =>
-                              XIN_XAM_TOPICS.map((topic) => {
+                            {xamRegions.flatMap((region) =>
+                              xamTopics.map((topic) => {
                                 const value = `${region}:${topic}`;
                                 return (
                                   <option key={value} value={value}>
@@ -1945,7 +1963,7 @@ export function ContentEditor({
                             dùng rút thẻ theo đúng tổ hợp này.
                           </p>
                           {values.xam_type &&
-                            !isCompatibleXamType(values.xam_type) && (
+                            !isCompatibleXamType(values.xam_type, xamRegions, xamTopics) && (
                               <p
                                 className="admin-editor-label-hint"
                                 role="status"

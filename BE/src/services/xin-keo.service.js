@@ -6,10 +6,29 @@ const { castPieces } = require("./xin-keo-algorithm");
 const fortuneInterpretationService = require("./fortune-interpretation.service");
 
 const OUTCOMES = {
-  YES: { type: "nhat-am-nhat-duong", title: "Nhất Âm Nhất Dương", statusLabel: "Một âm · Một dương", meaning: "Lượt gieo này cho kết quả một mặt âm và một mặt dương.", guidance: "Hãy xem đây là lời nhắc để cân nhắc câu hỏi từ nhiều phía. Kết quả gieo ngẫu nhiên không xác nhận quyết định nào là đúng; hãy dựa vào thông tin thực tế và trao đổi với người bạn tin cậy." },
-  UNCLEAR: { type: "nhi-duong", title: "Nhị Dương", statusLabel: "Hai mặt dương", meaning: "Lượt gieo này cho kết quả hai mặt dương.", guidance: "Nếu câu hỏi vẫn còn băn khoăn, hãy dành thời gian kiểm tra giả định, rủi ro và phương án dự phòng trước khi quyết định." },
-  NO: { type: "nhi-am", title: "Nhị Âm", statusLabel: "Hai mặt âm", meaning: "Lượt gieo này cho kết quả hai mặt âm.", guidance: "Kết quả này không dự báo điều xấu. Hãy xem lại điều mình biết, điều còn chưa rõ và người có thể giúp bạn đánh giá tình huống." },
+  YES: { type: "nhat-am-nhat-duong", title: "Nhất Âm Nhất Dương", subTitle: "Một Ngửa (Âm) • Một Úp (Dương)", statusLabel: "Một âm · Một dương", meaning: "Lượt gieo này cho kết quả một mặt âm và một mặt dương.", guidance: "Một âm, một dương có thể gợi bạn cân nhắc vấn đề từ nhiều phía." },
+  UNCLEAR: { type: "nhi-duong", title: "Nhị Dương", subTitle: "Cùng Sấp • Hai mặt cong úp xuống", statusLabel: "Hai mặt dương", meaning: "Lượt gieo này cho kết quả hai mặt dương.", guidance: "Hai mặt dương có thể nhắc bạn tập trung vào điều mình chủ động chuẩn bị." },
+  NO: { type: "nhi-am", title: "Nhị Âm", subTitle: "Cùng Ngửa • Hai mặt phẳng ngửa lên", statusLabel: "Hai mặt âm", meaning: "Lượt gieo này cho kết quả hai mặt âm.", guidance: "Hai mặt âm có thể nhắc bạn chậm lại và xem điều gì còn cần làm rõ." },
 };
+
+const TOPIC_GUIDANCE = {
+  "Học tập & Thi cử": "Với điều bạn mong trong học tập, hãy xác định một bước chuẩn bị cụ thể nằm trong khả năng của mình.",
+  "Công việc & Sự nghiệp": "Với điều bạn mong trong công việc, hãy chọn một việc thực tế mà bạn có thể chủ động làm.",
+  "Gia đình & Người thân": "Với điều bạn mong cho gia đình, hãy cân nhắc một cách quan tâm hoặc hỗ trợ thiết thực phù hợp với tình huống.",
+  "Bình an & Tâm trí": "Với điều bạn đang băn khoăn, hãy chọn việc cần xử lý trước và cho mình thời gian nghỉ ngơi phù hợp.",
+};
+
+function getOutcome(result, question = "") {
+  const outcome = OUTCOMES[result];
+  if (!outcome) return null;
+
+  const topic = Object.keys(TOPIC_GUIDANCE).find((label) => question.includes(label));
+  return {
+    ...outcome,
+    guidance: `${outcome.guidance}${topic ? ` ${TOPIC_GUIDANCE[topic]}` : ""}`,
+    guidanceBasis: topic ? "TOPIC" : "OUTCOME",
+  };
+}
 
 function parseInterpretations(value) {
   try {
@@ -20,15 +39,15 @@ function parseInterpretations(value) {
   }
 }
 
-function toPublicThrow(item, interpretation) {
+function toPublicThrow(item, interpretation, question = "") {
   let aiExplanation = null;
   try { aiExplanation = interpretation ? JSON.parse(interpretation).interpretation || null : null; } catch { /* Ignore legacy cached text. */ }
-  return { id: item.id, throwNumber: item.throw_number, piece1: item.left_side, piece2: item.right_side, result: item.result, ...OUTCOMES[item.result], proverb: toProverbDto(item.proverbs), aiExplanation, disclaimer: "Kết quả chỉ dùng để chiêm nghiệm văn hóa, không phải dự đoán hay quyết định thay bạn." };
+  return { id: item.id, throwNumber: item.throw_number, piece1: item.left_side, piece2: item.right_side, result: item.result, ...getOutcome(item.result, question), proverb: toProverbDto(item.proverbs), aiExplanation, disclaimer: "Kết quả chỉ dùng để chiêm nghiệm văn hóa, không phải dự đoán hay quyết định thay bạn." };
 }
 
 function toPublicSession(session) {
   const interpretations = parseInterpretations(session.ai_explanation);
-  return { id: session.id, question: session.question, drawId: session.draw_id || null, finalResult: session.final_result, createdAt: session.created_at, throws: session.xin_keo_throws.map((item) => toPublicThrow(item, interpretations[item.id])) };
+  return { id: session.id, question: session.question, drawId: session.draw_id || null, finalResult: session.final_result, createdAt: session.created_at, throws: session.xin_keo_throws.map((item) => toPublicThrow(item, interpretations[item.id], session.question)) };
 }
 
 async function createSession(userId, question, drawId) {
@@ -56,7 +75,7 @@ async function throwKeo(userId, sessionId, requestId) {
     : null;
 
   if (existing) {
-    return toPublicThrow(existing);
+    return toPublicThrow(existing, null, session.question);
   }
 
   if (session.xin_keo_throws.length >= 3) {
@@ -82,7 +101,7 @@ async function throwKeo(userId, sessionId, requestId) {
         }
       );
 
-    return toPublicThrow(item);
+    return toPublicThrow(item, null, session.question);
   } catch (error) {
     if (error?.code === "SESSION_MAX_THROWS") {
       throw new ApiError(
@@ -143,8 +162,13 @@ async function interpretThrow(userId, sessionId, throwId, input = {}) {
     if (error.code === "INVALID_INTERPRETATION_INPUT" || error.code === "INVALID_INTERPRETATION_RESULT") throw new ApiError(400, error.message);
     if (error.code === "INTERPRETATION_RATE_LIMITED") throw new ApiError(429, error.message);
     if (error.code === "AI_ENTITLEMENT_UNAVAILABLE") throw new ApiError(503, error.message);
-    throw new ApiError(error.code === "GEMINI_TIMEOUT" ? 504 : 502, error.message, [{ code: error.code }]);
+    const providerError = error.code?.startsWith("GEMINI_") || error.code?.startsWith("GROQ_");
+    if (providerError) {
+      const status = error.status === 429 ? 429 : error.code.endsWith("TIMEOUT") ? 504 : 502;
+      throw new ApiError(status, "Dịch vụ luận giải đang tạm thời bận. Hãy thử lại sau.", [{ code: error.code, ...(Number.isFinite(error.status) ? { providerStatus: error.status } : {}), ...(typeof error.model === "string" ? { model: error.model } : {}) }]);
+    }
+    throw new ApiError(502, error.message, [{ code: error.code }]);
   }
 }
 
-module.exports = { OUTCOMES, createSession, throwKeo, getSession, listSessions, interpretThrow };
+module.exports = { OUTCOMES, getOutcome, createSession, throwKeo, getSession, listSessions, interpretThrow };
