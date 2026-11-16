@@ -1,4 +1,3 @@
-const fs = require("node:fs");
 const path = require("node:path");
 const {
   validateOriginalCatalog,
@@ -13,7 +12,7 @@ const dataset = require(datasetPath);
 const EXPECTED_SYSTEM = "TLTL_ORIGINAL_100_V1";
 const EXPECTED_VERSION = "1.0.1-draft";
 const EXPECTED_DATASET_SHA256 =
-  "f1dc825d3743b1f45f1be1c366b10f523df09db1ef51901e6661a005847b6497";
+  "f96fdb9f0e3f5423963ce1d3ba59c6f6d91862c65e11f58a531cc68371afb965";
 
 function stableDemoCardId(stickNumber) {
   return `00000000-0000-4000-8000-${Number(stickNumber).toString(16).padStart(12, "0")}`;
@@ -86,7 +85,7 @@ function buildDemoCards(source = dataset) {
 
 const datasetSha256 = require("node:crypto")
   .createHash("sha256")
-  .update(fs.readFileSync(datasetPath))
+  .update(JSON.stringify(dataset))
   .digest("hex");
 if (datasetSha256 !== EXPECTED_DATASET_SHA256) {
   const error = new Error(
