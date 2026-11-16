@@ -11,7 +11,10 @@ type ItemCode =
   | "ROYAL_LANTERN"
   | "GOLDEN_LOTUS"
   | "INCENSE_BURNER"
-  | "BOILED_CHICKEN";
+  | "BOILED_CHICKEN"
+  | "FRUIT_PLATE"
+  | "WATERMELON"
+  | "STICKY_RICE";
 
 interface Item {
   code: ItemCode;
@@ -52,6 +55,9 @@ const itemCodes: ItemCode[] = [
   "GOLDEN_LOTUS",
   "INCENSE_BURNER",
   "BOILED_CHICKEN",
+  "FRUIT_PLATE",
+  "WATERMELON",
+  "STICKY_RICE",
 ];
 
 function readAttempt(key: string): Attempt | null {
@@ -131,10 +137,13 @@ export function DigitalShop({ email }: { email?: string }) {
             checkoutAvailable: true,
             currency: "VND",
             items: [
+              { code: "BOILED_CHICKEN", name: "Đĩa gà luộc", kind: "PERMANENT", description: "Gà trống thiến luộc vàng óng ngậm hoa hồng, bày trang nghiêm ở tiền bái bên trái.", price: 10000, quantity: 1 },
+              { code: "FRUIT_PLATE", name: "Đĩa trái cây (Mâm ngũ quả)", kind: "PERMANENT", description: "Mâm ngũ quả tươi ngon biểu trưng ngũ hành sung túc hai bên bàn thờ.", price: 10000, quantity: 1 },
+              { code: "WATERMELON", name: "Cặp dưa hấu khắc chữ", kind: "PERMANENT", description: "Cặp dưa hấu xanh mướt lòng đỏ ngọt lành trên đế gỗ trang nghiêm.", price: 8000, quantity: 1 },
+              { code: "STICKY_RICE", name: "Đĩa xôi gấc hoa mai", kind: "PERMANENT", description: "Đĩa xôi gấc tạo hình hoa mai 5 cánh, điểm nhụy vàng dâng cúng tổ tiên.", price: 6000, quantity: 1 },
               { code: "ROYAL_LANTERN", name: "Đèn Tâm An", kind: "PERMANENT", description: "Vật phẩm trang trí không gian 3D.", price: 49000, quantity: 1 },
               { code: "GOLDEN_LOTUS", name: "Sen vàng", kind: "PERMANENT", description: "Biểu tượng thanh tịnh để trang trí bàn thờ ảo.", price: 39000, quantity: 1 },
               { code: "INCENSE_BURNER", name: "Nén hương thành tâm", kind: "CONSUMABLE", description: "Vật phẩm dâng hương dùng thử trong bản demo.", price: 9000, quantity: 5 },
-              { code: "BOILED_CHICKEN", name: "Gà luộc mâm lễ", kind: "PERMANENT", description: "Mô hình gà luộc; sau khi mua, bạn chủ động chọn bày trên bàn thờ.", price: 10000, quantity: 1 },
             ],
           };
           const owned = readDemoValue<string[]>("owned-items", ["ROYAL_LANTERN"]);

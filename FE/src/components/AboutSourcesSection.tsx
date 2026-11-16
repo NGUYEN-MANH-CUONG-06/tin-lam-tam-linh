@@ -1,4 +1,4 @@
-import { ShieldCheck, Landmark, Compass, BookOpen, ExternalLink, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Landmark, Compass, BookOpen, ExternalLink, CheckCircle2, Box } from "lucide-react";
 
 interface SourceItem {
   title: string;
@@ -86,6 +86,19 @@ const SOURCE_CATEGORIES: SourceCategory[] = [
         subtitle: "Ca dao, Tục ngữ & Điển tích nếp nhà",
         note: "Tuyển tập ca dao tục ngữ thuần Việt đối chiếu theo nguồn nghiên cứu văn học dân gian.",
         href: "https://cadao.me/",
+      },
+    ],
+  },
+  {
+    category: "Tài sản mô hình 3D",
+    icon: Box,
+    badge: "CC BY 4.0",
+    items: [
+      {
+        title: "Mô hình đĩa xôi gấc hoa bốn cánh",
+        subtitle: "Tạo bằng Meshy AI, đã tô lại màu cho web",
+        note: "Mô hình do Tin Lắm Tâm Linh tạo từ ảnh tham chiếu với Meshy 6 Lite và điều chỉnh trong ứng dụng. Ghi công Meshy AI theo CC BY 4.0.",
+        href: "https://creativecommons.org/licenses/by/4.0/",
       },
     ],
   },

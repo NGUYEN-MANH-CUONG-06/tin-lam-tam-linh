@@ -5,11 +5,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import {
-  Flame,
-  RotateCcw,
-  Compass,
-} from "lucide-react";
+import { Flame, RotateCcw, Compass, Volume2, VolumeX } from "lucide-react";
 import {
   createDigitalDecoration,
   disposeDigitalDecoration,
@@ -18,6 +14,10 @@ import {
 
 interface SanctuarySceneProps {
   decoration?: DecorationId | null;
+  decorations?: (DecorationId | null)[] | null;
+  triggerIncense?: number;
+  musicPlaying?: boolean;
+  onToggleMusic?: () => void;
   children?: React.ReactNode;
 }
 
@@ -25,7 +25,8 @@ function playIncenseBellSound() {
   try {
     const AudioContextClass =
       window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext;
     if (!AudioContextClass) return;
     const ctx = new AudioContextClass();
     const now = ctx.currentTime;
@@ -58,6 +59,10 @@ function playIncenseBellSound() {
 
 export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
   decoration = null,
+  decorations = null,
+  triggerIncense,
+  musicPlaying,
+  onToggleMusic,
   children,
 }) => {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -68,6 +73,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
   } | null>(null);
   const decorationControllerRef = useRef<{
     set: (id: DecorationId | null) => void;
+    setMultiple: (ids: (DecorationId | null)[]) => void;
   } | null>(null);
   const [error, setError] = useState("");
   const [sceneLoading, setSceneLoading] = useState(true);
@@ -88,8 +94,20 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     controller.light(() => {
       setIncenseLighting(false);
       setIncenseLit(true);
+      playIncenseBellSound();
     });
   };
+
+  useEffect(() => {
+    if (
+      triggerIncense &&
+      triggerIncense > 0 &&
+      !incenseLit &&
+      !incenseLighting
+    ) {
+      handleLightIncense();
+    }
+  }, [triggerIncense]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -113,12 +131,24 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     let disposed = false;
     let sceneReady = false;
     let texturesReady = false;
+    let initialDecorationStateReady = false;
+    let sceneWasRevealed = false;
+    let pendingInitialModelLoads = new Set<DecorationId>();
     let textureLoadFailed = false;
     let renderScene: (() => void) | null = null;
 
     const revealSceneWhenReady = () => {
-      if (!sceneReady || !texturesReady || contextLost || disposed) return;
+      if (
+        !sceneReady ||
+        !texturesReady ||
+        !initialDecorationStateReady ||
+        pendingInitialModelLoads.size > 0 ||
+        contextLost ||
+        disposed
+      )
+        return;
 
+      sceneWasRevealed = true;
       renderer.domElement.style.visibility = "visible";
       setSceneLoading(false);
       if (textureLoadFailed) setTextureFallbackUsed(true);
@@ -157,10 +187,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     const roomEnvironment = new RoomEnvironment();
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
 
-    const environmentTarget = pmremGenerator.fromScene(
-      roomEnvironment,
-      0.04,
-    );
+    const environmentTarget = pmremGenerator.fromScene(roomEnvironment, 0.04);
 
     scene.environment = environmentTarget.texture;
     scene.environmentIntensity = 0.48;
@@ -171,9 +198,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 50);
     camera.position.set(0.75, 2.55, 4.6);
 
-    scene.add(
-      new THREE.HemisphereLight("#fffaf1", "#6d6258", 0.88),
-    );
+    scene.add(new THREE.HemisphereLight("#fffaf1", "#6d6258", 0.88));
     scene.add(new THREE.AmbientLight("#fff8ed", 0.38));
 
     const light = new THREE.DirectionalLight("#fff8ec", 1.0);
@@ -400,9 +425,10 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
         for (let speckle = 0; speckle < 1150; speckle += 1) {
           const radius = 0.25 + random() * 0.7;
-          context.fillStyle = speckle % 3 === 0
-            ? "rgba(255, 242, 208, 0.16)"
-            : "rgba(47, 28, 16, 0.09)";
+          context.fillStyle =
+            speckle % 3 === 0
+              ? "rgba(255, 242, 208, 0.16)"
+              : "rgba(47, 28, 16, 0.09)";
           context.beginPath();
           context.arc(random() * 256, random() * 128, radius, 0, Math.PI * 2);
           context.fill();
@@ -426,19 +452,22 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       { base: "#c9763c", highlight: "#e8a557", shadow: "#96522e", seed: 6181 },
       { base: "#ae4d3e", highlight: "#d67b5d", shadow: "#7d3932", seed: 7793 },
     ];
-    const fruitMaterials = fruitSkins.map((skin, index) => new THREE.MeshPhysicalMaterial({
-      map: createFruitSkinTexture(
-        skin.base,
-        skin.highlight,
-        skin.shadow,
-        skin.seed,
-      ),
-      color: "#ffffff",
-      roughness: [0.58, 0.66, 0.8, 0.76, 0.62][index],
-      metalness: 0,
-      clearcoat: [0.07, 0.045, 0.015, 0.015, 0.05][index],
-      clearcoatRoughness: [0.62, 0.68, 0.82, 0.84, 0.68][index],
-    }));
+    const fruitMaterials = fruitSkins.map(
+      (skin, index) =>
+        new THREE.MeshPhysicalMaterial({
+          map: createFruitSkinTexture(
+            skin.base,
+            skin.highlight,
+            skin.shadow,
+            skin.seed,
+          ),
+          color: "#ffffff",
+          roughness: [0.58, 0.66, 0.8, 0.76, 0.62][index],
+          metalness: 0,
+          clearcoat: [0.07, 0.045, 0.015, 0.015, 0.05][index],
+          clearcoatRoughness: [0.62, 0.68, 0.82, 0.84, 0.68][index],
+        }),
+    );
 
     const leafMaterial = new THREE.MeshStandardMaterial({
       color: "#3e6536",
@@ -525,26 +554,18 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     // Tủ thờ mẫu: mặt trên vẫn ở độ cao 1.3,
     // để các đồ thờ hiện tại không bị thay đổi độ cao.
 
-    // Mặt tủ và hai lớp chỉ bên dưới.
-    addRoundedWood(3.9, 0.16, 1.95, 0, 1.22, 0, 0.025);
-    addRoundedWood(3.72, 0.065, 1.85, 0, 1.1075, 0, 0.012);
-    addRoundedWood(3.64, 0.045, 1.77, 0, 1.0525, 0, 0.01);
+    // Mặt tủ thờ mở rộng bề thế, chiều sâu và chiều ngang rộng rãi cho không gian tiền bái
+    addRoundedWood(4.1, 0.16, 2.15, 0, 1.22, 0.06, 0.025);
+    addRoundedWood(3.92, 0.065, 2.05, 0, 1.1075, 0.06, 0.012);
+    addRoundedWood(3.84, 0.045, 1.97, 0, 1.0525, 0.06, 0.01);
 
     // Hai vách bên.
     for (const x of [-1.72, 1.72]) {
-      addRoundedWood(
-        0.14, 0.86, 1.68,
-        x, 0.6, 0,
-        0.012,
-      );
+      addRoundedWood(0.14, 0.86, 1.68, x, 0.6, 0, 0.012);
     }
 
     // Vách sau.
-    addRoundedWood(
-      3.25, 0.86, 0.1,
-      0, 0.6, -0.72,
-      0.01,
-    );
+    addRoundedWood(3.25, 0.86, 0.1, 0, 0.6, -0.72, 0.01);
 
     // Đáy tủ và bệ chân.
     addRoundedWood(3.56, 0.1, 1.72, 0, 0.17, 0, 0.014);
@@ -552,27 +573,23 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
     // Khung mặt trước.
     for (const x of [-1.72, -0.53, 0.53, 1.72]) {
-      addRoundedWood(
-        0.085, 0.8, 0.09,
-        x, 0.61, 0.765,
-        0.008,
-      );
+      addRoundedWood(0.085, 0.8, 0.09, x, 0.61, 0.765, 0.008);
     }
 
     for (const y of [0.235, 0.985]) {
-      addRoundedWood(
-        3.45, 0.075, 0.09,
-        0, y, 0.765,
-        0.008,
-      );
+      addRoundedWood(3.45, 0.075, 0.09, 0, y, 0.765, 0.008);
     }
 
     // Ba cánh tủ đóng, có pano lõm và chỉ nổi.
     for (const centerX of [-1.05, 0, 1.05]) {
       // Tấm cánh có vân đứng, nằm lùi sau đường viền.
       const doorPanel = addRoundedWood(
-        0.94, 0.66, 0.055,
-        centerX, 0.61, 0.72,
+        0.94,
+        0.66,
+        0.055,
+        centerX,
+        0.61,
+        0.72,
         0.008,
       );
 
@@ -581,19 +598,19 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       // Hai thanh chỉ đứng.
       for (const offsetX of [-0.405, 0.405]) {
         addRoundedWood(
-          0.028, 0.56, 0.025,
-          centerX + offsetX, 0.61, 0.758,
+          0.028,
+          0.56,
+          0.025,
+          centerX + offsetX,
+          0.61,
+          0.758,
           0.005,
         );
       }
 
       // Hai thanh chỉ ngang.
       for (const y of [0.345, 0.875]) {
-        addRoundedWood(
-          0.81, 0.028, 0.025,
-          centerX, y, 0.758,
-          0.005,
-        );
+        addRoundedWood(0.81, 0.028, 0.025, centerX, y, 0.758, 0.005);
       }
     }
 
@@ -601,7 +618,11 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     const cabinetKnobGeometry = new THREE.SphereGeometry(0.028, 12, 10);
     const cabinetCarvingGeometry = new THREE.TorusGeometry(0.085, 0.009, 8, 32);
     const carvingPetalGeometry = new THREE.SphereGeometry(0.025, 10, 8);
-    geometries.push(cabinetKnobGeometry, cabinetCarvingGeometry, carvingPetalGeometry);
+    geometries.push(
+      cabinetKnobGeometry,
+      cabinetCarvingGeometry,
+      carvingPetalGeometry,
+    );
 
     for (const centerX of [-1.05, 0, 1.05]) {
       for (const offsetX of [-0.29, 0.29]) {
@@ -620,12 +641,19 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
       for (const angle of [0, Math.PI / 2, Math.PI, (Math.PI * 3) / 2]) {
         const petal = new THREE.Mesh(carvingPetalGeometry, borderMaterial);
-        petal.position.set(Math.cos(angle) * 0.048, Math.sin(angle) * 0.048, 0.002);
+        petal.position.set(
+          Math.cos(angle) * 0.048,
+          Math.sin(angle) * 0.048,
+          0.002,
+        );
         petal.scale.set(1, 1.35, 0.5);
         carving.add(petal);
       }
 
-      const carvingCenter = new THREE.Mesh(carvingPetalGeometry, borderMaterial);
+      const carvingCenter = new THREE.Mesh(
+        carvingPetalGeometry,
+        borderMaterial,
+      );
       carvingCenter.position.z = 0.005;
       carvingCenter.scale.set(0.8, 0.8, 0.5);
       carving.add(carvingCenter);
@@ -673,15 +701,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     addBox(10, 5.2, 0.12, 0, 2.6, -1.25, wallMaterial);
 
     // A low walnut skirting board gives the wall and floor a finished junction.
-    const roomSkirting = addRoundedWood(
-      10,
-      0.16,
-      0.08,
-      0,
-      0.08,
-      -1.155,
-      0.016,
-    );
+    const roomSkirting = addRoundedWood(10, 0.16, 0.08, 0, 0.08, -1.155, 0.016);
     roomSkirting.userData.excludeFromAltarBounds = true;
 
     // Two matching side walls turn the backdrop into a quiet, enclosed room.
@@ -736,20 +756,19 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       scene.add(motif);
     }
 
-
     // Hai bình gốm đặt ở hai bên, gần phía sau mặt bàn.
     const vaseProfile = [
       [0.001, 0],
-      [0.10, 0],
+      [0.1, 0],
       [0.16, 0.04],
       [0.21, 0.15],
-      [0.20, 0.27],
+      [0.2, 0.27],
       [0.13, 0.38],
       [0.075, 0.43],
       [0.065, 0.56],
-      [0.095, 0.60],
-      [0.075, 0.60],
-      [0.050, 0.55],
+      [0.095, 0.6],
+      [0.075, 0.6],
+      [0.05, 0.55],
       [0.055, 0.43],
       [0.11, 0.37],
       [0.175, 0.26],
@@ -762,13 +781,9 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     geometries.push(vaseGeometry);
 
     // Vòng hoa văn ở chân và cổ bình.
-    const footRingGeometry = new THREE.TorusGeometry(
-      0.125, 0.007, 8, 40,
-    );
+    const footRingGeometry = new THREE.TorusGeometry(0.125, 0.007, 8, 40);
 
-    const neckRingGeometry = new THREE.TorusGeometry(
-      0.068, 0.005, 8, 32,
-    );
+    const neckRingGeometry = new THREE.TorusGeometry(0.068, 0.005, 8, 32);
 
     geometries.push(footRingGeometry, neckRingGeometry);
 
@@ -823,11 +838,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
     for (const side of [-1, 1]) {
       const vaseGroup = new THREE.Group();
-      vaseGroup.position.set(
-        side * (side < 0 ? 1.31 : 1.26),
-        1.3,
-        side < 0 ? -0.4 : -0.35,
-      );
+      vaseGroup.position.set(side * 1.65, 1.3, -0.52);
       vaseGroup.rotation.z = side * 0.018;
 
       const vase = new THREE.Mesh(vaseGeometry, porcelainMaterial);
@@ -850,7 +861,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         const flowerGroup = new THREE.Group();
         flowerGroup.position.set(
           Math.sin(angle) * 0.203,
-          0.20,
+          0.2,
           Math.cos(angle) * 0.203,
         );
 
@@ -867,7 +878,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
             0,
           );
 
-          mesh.scale.set(0.018, 0.030, 0.004);
+          mesh.scale.set(0.018, 0.03, 0.004);
           mesh.rotation.z = -petalAngle;
 
           flowerGroup.add(mesh);
@@ -881,22 +892,24 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       const flowerTips = [
         [-0.25, 0.95, 0.02],
         [-0.16, 1.14, -0.04],
-        [0.02, 1.30, -0.06],
+        [0.02, 1.3, -0.06],
         [0.19, 1.16, 0],
         [0.28, 0.98, 0.04],
-        [-0.20, 0.79, 0.17],
+        [-0.2, 0.79, 0.17],
         [-0.07, 0.94, 0.19],
-        [0.10, 1.05, 0.14],
-        [0.22, 0.80, 0.18],
+        [0.1, 1.05, 0.14],
+        [0.22, 0.8, 0.18],
         [0.03, 0.75, 0.23],
         [-0.08, 1.08, -0.16],
-        [0.17, 0.90, -0.14],
+        [0.17, 0.9, -0.14],
       ];
       const sideXShifts =
         side < 0
           ? [-0.025, 0, 0.015, 0, -0.025, 0, 0.015, 0, -0.025, 0, 0.015, 0]
           : [0, 0.024, 0, -0.014, 0, 0.024, 0, -0.014, 0, 0.024, 0, -0.014];
-      const flowerYShifts = [0.02, 0, -0.015, 0.02, 0, -0.015, 0.02, 0, -0.015, 0.02, 0, -0.015];
+      const flowerYShifts = [
+        0.02, 0, -0.015, 0.02, 0, -0.015, 0.02, 0, -0.015, 0.02, 0, -0.015,
+      ];
 
       const bouquetLeafGeometry = new THREE.SphereGeometry(1, 16, 10);
       geometries.push(bouquetLeafGeometry);
@@ -924,19 +937,15 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         // Ba lớp cánh ngắn, xếp chồng thành bông.
         const petalLayers = [
           { count: 14, radius: 0.045, width: 0.022, length: 0.032 },
-          { count: 12, radius: 0.030, width: 0.019, length: 0.027 },
+          { count: 12, radius: 0.03, width: 0.019, length: 0.027 },
           { count: 9, radius: 0.016, width: 0.014, length: 0.021 },
         ];
 
         for (const [layer, config] of petalLayers.entries()) {
           for (let index = 0; index < config.count; index += 1) {
-            const angle =
-              (index / config.count) * Math.PI * 2 + layer * 0.3;
+            const angle = (index / config.count) * Math.PI * 2 + layer * 0.3;
 
-            const petal = new THREE.Mesh(
-              blossomGeometry,
-              flowerMaterial,
-            );
+            const petal = new THREE.Mesh(blossomGeometry, flowerMaterial);
 
             petal.position.set(
               Math.sin(angle) * config.radius,
@@ -944,11 +953,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
               layer * 0.012,
             );
 
-            petal.scale.set(
-              config.width,
-              config.length,
-              0.014,
-            );
+            petal.scale.set(config.width, config.length, 0.014);
 
             petal.rotation.set(
               0.12 * Math.cos(angle),
@@ -961,14 +966,9 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         }
 
         // Thay đổi kích thước nhẹ giữa các bông.
-        blossom.scale.setScalar(
-          0.9 + (Math.abs(flowerX) / 0.28) * 0.15,
-        );
+        blossom.scale.setScalar(0.9 + (Math.abs(flowerX) / 0.28) * 0.15);
 
-        const center = new THREE.Mesh(
-          blossomGeometry,
-          flowerCenterMaterial,
-        );
+        const center = new THREE.Mesh(blossomGeometry, flowerCenterMaterial);
 
         center.scale.set(0.013, 0.013, 0.012);
         center.position.z = 0.038;
@@ -982,18 +982,11 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         for (const [index, fraction] of [0.45, 0.7].entries()) {
           const side = index === 0 ? -1 : 1;
 
-          const leafDirection = new THREE.Vector3(
-            side * 0.8,
-            0.45,
-            0.2,
-          )
+          const leafDirection = new THREE.Vector3(side * 0.8, 0.45, 0.2)
             .addScaledVector(stemDirection, 0.3)
             .normalize();
 
-          const leaf = new THREE.Mesh(
-            bouquetLeafGeometry,
-            leafMaterial,
-          );
+          const leaf = new THREE.Mesh(bouquetLeafGeometry, leafMaterial);
 
           leaf.scale.set(0.025, 0.09, 0.008);
 
@@ -1024,9 +1017,9 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       [0.22, 0.025],
       [0.29, 0.055],
       [0.31, 0.075],
-      [0.30, 0.09],
+      [0.3, 0.09],
       [0.27, 0.065],
-      [0.20, 0.045],
+      [0.2, 0.045],
       [0.001, 0.04],
     ].map(([radius, height]) => new THREE.Vector2(radius, height));
 
@@ -1047,10 +1040,12 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         let verticalScale = 1;
 
         if (shape === "apple") {
-          radialScale = 1 - 0.07 * latitude + 0.025 * Math.cos(angle * 5) * latitude;
+          radialScale =
+            1 - 0.07 * latitude + 0.025 * Math.cos(angle * 5) * latitude;
           verticalScale = 0.98;
         } else if (shape === "pear") {
-          radialScale = 1 - 0.2 * y + 0.025 * Math.cos(angle * 3) * (1 - latitude);
+          radialScale =
+            1 - 0.2 * y + 0.025 * Math.cos(angle * 3) * (1 - latitude);
           verticalScale = 1.08;
         } else if (shape === "lime") {
           radialScale = 1 + 0.018 * Math.cos(angle * 8) * latitude;
@@ -1059,17 +1054,20 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
           radialScale = 1 + 0.014 * Math.cos(angle * 9) * latitude;
           verticalScale = 0.92;
         } else {
-          radialScale = 1 - 0.06 * latitude + 0.035 * Math.cos(angle * 5) * latitude;
+          radialScale =
+            1 - 0.06 * latitude + 0.035 * Math.cos(angle * 5) * latitude;
           verticalScale = 0.86;
         }
 
         const radial = Math.sqrt(x * x + z * z);
-        const topDimple = Math.max(0, (y - 0.72) / 0.28)
-          * Math.exp(-radial * radial * 28)
-          * 0.12;
-        const bottomDimple = Math.max(0, (-y - 0.78) / 0.22)
-          * Math.exp(-radial * radial * 30)
-          * 0.07;
+        const topDimple =
+          Math.max(0, (y - 0.72) / 0.28) *
+          Math.exp(-radial * radial * 28) *
+          0.12;
+        const bottomDimple =
+          Math.max(0, (-y - 0.78) / 0.22) *
+          Math.exp(-radial * radial * 30) *
+          0.07;
 
         positions.setXYZ(
           index,
@@ -1091,12 +1089,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       createFruitGeometry("persimmon"),
     ];
     const leafGeometry = new THREE.SphereGeometry(1, 12, 8);
-    const stemGeometry = new THREE.CylinderGeometry(
-      0.008,
-      0.01,
-      0.045,
-      6,
-    );
+    const stemGeometry = new THREE.CylinderGeometry(0.008, 0.01, 0.045, 6);
 
     geometries.push(
       plateGeometry,
@@ -1105,9 +1098,11 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       stemGeometry,
     );
 
+    const fruitOfferingGroups: THREE.Group[] = [];
+
     for (const side of [-1, 1]) {
       const offeringGroup = new THREE.Group();
-      offeringGroup.position.set(side * 1.5, 1.3, side < 0 ? 0.13 : 0.17);
+      offeringGroup.position.set(side * 1.65, 1.3, 0.22);
       offeringGroup.rotation.y = side < 0 ? -0.035 : 0.025;
       offeringGroup.scale.setScalar(side < 0 ? 1.24 : 1.26);
 
@@ -1118,13 +1113,16 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       const fruitPositions = [
         [-0.11, 0.15, -0.08],
         [0.11, 0.15, -0.08],
-        [-0.11, 0.15, 0.10],
-        [0.11, 0.15, 0.10],
+        [-0.11, 0.15, 0.1],
+        [0.11, 0.15, 0.1],
         [0, 0.31, 0],
       ];
 
       for (const [index, [x, y, z]] of fruitPositions.entries()) {
-        const fruit = new THREE.Mesh(fruitGeometries[index], fruitMaterials[index]);
+        const fruit = new THREE.Mesh(
+          fruitGeometries[index],
+          fruitMaterials[index],
+        );
         fruit.position.set(x, y, z);
         fruit.scale.set(
           index % 2 === 0 ? 0.92 : 1,
@@ -1161,57 +1159,47 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       }
 
       scene.add(offeringGroup);
+      fruitOfferingGroups.push(offeringGroup);
     }
 
     // Khay và ba chén gốm phía trước lư hương.
     const cupProfile = [
       [0.001, 0.005],
       [0.035, 0.005],
-      [0.040, 0.018],
-      [0.050, 0.035],
-      [0.065, 0.090],
+      [0.04, 0.018],
+      [0.05, 0.035],
+      [0.065, 0.09],
       [0.068, 0.105],
       [0.058, 0.105],
-      [0.055, 0.090],
-      [0.040, 0.038],
+      [0.055, 0.09],
+      [0.04, 0.038],
       [0.001, 0.028],
     ].map(([radius, height]) => new THREE.Vector2(radius, height));
 
     const cupGeometry = new THREE.LatheGeometry(cupProfile, 32);
 
-    const cupBandGeometry = new THREE.TorusGeometry(
-      0.060,
-      0.003,
-      8,
-      32,
-    );
+    const cupBandGeometry = new THREE.TorusGeometry(0.06, 0.003, 8, 32);
 
-    const trayGeometry = new RoundedBoxGeometry(
-      0.66,
-      0.035,
-      0.27,
-      3,
-      0.012,
-    );
+    const trayGeometry = new RoundedBoxGeometry(0.66, 0.035, 0.27, 3, 0.012);
 
     geometries.push(cupGeometry, cupBandGeometry, trayGeometry);
 
     const cupsGroup = new THREE.Group();
-    cupsGroup.position.set(0, 1.3, 0.62);
+    cupsGroup.position.set(0, 1.3, 0.68);
 
     // Đáy khay chạm mặt bàn.
     const tray = new THREE.Mesh(trayGeometry, porcelainMaterial);
     tray.position.y = 0.0175;
     cupsGroup.add(tray);
 
-    for (const x of [-0.20, 0, 0.20]) {
+    for (const x of [-0.2, 0, 0.2]) {
       const cup = new THREE.Mesh(cupGeometry, porcelainMaterial);
       cup.position.set(x, 0.035, 0);
       cupsGroup.add(cup);
 
       const band = new THREE.Mesh(cupBandGeometry, blueMaterial);
       band.rotation.x = Math.PI / 2;
-      band.position.set(x, 0.120, 0);
+      band.position.set(x, 0.12, 0);
       cupsGroup.add(band);
     }
 
@@ -1236,10 +1224,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       [0.001, 0.49],
     ].map(([radius, height]) => new THREE.Vector2(radius, height));
 
-    const censerBodyGeometry = new THREE.LatheGeometry(
-      censerProfile,
-      48,
-    );
+    const censerBodyGeometry = new THREE.LatheGeometry(censerProfile, 48);
 
     const censerLidProfile = [
       [0.001, 0],
@@ -1247,21 +1232,14 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       [0.205, 0.02],
       [0.18, 0.04],
       [0.15, 0.075],
-      [0.10, 0.105],
+      [0.1, 0.105],
       [0.045, 0.12],
       [0.001, 0.12],
     ].map(([radius, height]) => new THREE.Vector2(radius, height));
 
-    const censerLidGeometry = new THREE.LatheGeometry(
-      censerLidProfile,
-      48,
-    );
+    const censerLidGeometry = new THREE.LatheGeometry(censerLidProfile, 48);
 
-    const censerKnobGeometry = new THREE.SphereGeometry(
-      0.035,
-      16,
-      12,
-    );
+    const censerKnobGeometry = new THREE.SphereGeometry(0.035, 16, 12);
 
     const censerLegGeometry = new THREE.CylinderGeometry(
       0.035,
@@ -1270,19 +1248,9 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       12,
     );
 
-    const censerHandleGeometry = new THREE.TorusGeometry(
-      0.07,
-      0.012,
-      8,
-      24,
-    );
+    const censerHandleGeometry = new THREE.TorusGeometry(0.07, 0.012, 8, 24);
 
-    const censerRimGeometry = new THREE.TorusGeometry(
-      0.195,
-      0.009,
-      8,
-      48,
-    );
+    const censerRimGeometry = new THREE.TorusGeometry(0.195, 0.009, 8, 48);
 
     geometries.push(
       censerBodyGeometry,
@@ -1315,11 +1283,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       const angle = (index / 3) * Math.PI * 2;
 
       const leg = new THREE.Mesh(censerLegGeometry, bronze);
-      leg.position.set(
-        Math.sin(angle) * 0.14,
-        0.07,
-        Math.cos(angle) * 0.14,
-      );
+      leg.position.set(Math.sin(angle) * 0.14, 0.07, Math.cos(angle) * 0.14);
 
       coveredCenser.add(leg);
     }
@@ -1340,7 +1304,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       [0.12, 0.05],
       [0.09, 0.08],
       [0.055, 0.14],
-      [0.04, 0.20],
+      [0.04, 0.2],
       [0.035, 0.38],
       [0.055, 0.42],
       [0.055, 0.45],
@@ -1354,17 +1318,9 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       [0.001, 0.625],
     ].map(([radius, height]) => new THREE.Vector2(radius, height));
 
-    const candleStandGeometry = new THREE.LatheGeometry(
-      candleStandProfile,
-      40,
-    );
+    const candleStandGeometry = new THREE.LatheGeometry(candleStandProfile, 40);
 
-    const candleGeometry = new THREE.CylinderGeometry(
-      0.025,
-      0.03,
-      0.18,
-      16,
-    );
+    const candleGeometry = new THREE.CylinderGeometry(0.025, 0.03, 0.18, 16);
 
     geometries.push(candleStandGeometry, candleGeometry);
 
@@ -1374,9 +1330,9 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       metalness: 0,
     });
 
-    for (const x of [-0.82, 0.82]) {
+    for (const x of [-0.88, 0.88]) {
       const candleStandGroup = new THREE.Group();
-      candleStandGroup.position.set(x, 1.3, -0.42);
+      candleStandGroup.position.set(x, 1.3, -0.45);
 
       const stand = new THREE.Mesh(candleStandGeometry, bronze);
       candleStandGroup.add(stand);
@@ -1394,14 +1350,14 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     const candleFlameGeometry = new THREE.ConeGeometry(0.028, 0.11, 10);
     geometries.push(candleFlameGeometry);
 
-    for (const x of [-0.82, 0.82]) {
+    for (const x of [-0.88, 0.88]) {
       const flame = new THREE.Mesh(candleFlameGeometry, candleFlameMaterial);
-      flame.position.set(x, 2.17, -0.42);
+      flame.position.set(x, 2.17, -0.45);
       flame.userData.skipShadow = true;
       scene.add(flame);
 
       const candleGlow = new THREE.PointLight("#ffbd70", 1, 1.6, 2);
-      candleGlow.position.set(x, 2.2, -0.42);
+      candleGlow.position.set(x, 2.2, -0.45);
       scene.add(candleGlow);
     }
 
@@ -1457,7 +1413,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       [0.001, 0],
       [0.13, 0],
       [0.14, 0.025],
-      [0.10, 0.05],
+      [0.1, 0.05],
       [0.07, 0.08],
       [0.07, 0.11],
       [0.14, 0.14],
@@ -1467,18 +1423,16 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       [0.001, 0.15],
     ].map(([radius, height]) => new THREE.Vector2(radius, height));
 
-    const melonStandGeometry = new THREE.LatheGeometry(
-      melonStandProfile,
-      32,
-    );
+    const melonStandGeometry = new THREE.LatheGeometry(melonStandProfile, 32);
 
     geometries.push(melonGeometry, melonStandGeometry);
 
     const melonOfferingGroups: THREE.Group[] = [];
 
-    for (const x of [-0.62, 0.62]) {
+    // Cặp dưa hấu xếp thoáng hai bên chầu đỉnh hương, tạo khoảng cách rộng rãi, không chạm vào đĩa trái cây hay gà/xôi
+    for (const x of [-0.48, 0.48]) {
       const melonGroup = new THREE.Group();
-      melonGroup.position.set(x, 1.3, 0.22);
+      melonGroup.position.set(x, 1.3, 0.05);
 
       const stand = new THREE.Mesh(melonStandGeometry, wood);
       melonGroup.add(stand);
@@ -1498,7 +1452,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     // Lư hương mẫu trong góc tri ân.
     // Thu nhỏ quanh điểm đặt trên mặt bàn, cao 1.3.
     const incenseGroup = new THREE.Group();
-    incenseGroup.position.set(0, 1.3, 0.22);
+    incenseGroup.position.set(0, 1.3, 0.2);
     incenseGroup.scale.setScalar(0.62);
 
     // Giữ nguyên các tọa độ đã dùng trong code hiện tại.
@@ -1642,28 +1596,16 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     incenseContent.add(incenseLight);
 
     // Tấm gỗ tưởng nhớ tổ tiên.
-    addRoundedWood(
-      1.65, 1.9, 0.08,
-      0, 2.4, -1.11,
-      0.018,
-    );
+    addRoundedWood(1.65, 1.9, 0.08, 0, 2.4, -1.11, 0.018);
 
     // Viền đứng nổi trên mặt gỗ.
     for (const x of [-0.77, 0.77]) {
-      addRoundedWood(
-        0.07, 1.86, 0.035,
-        x, 2.4, -1.055,
-        0.008,
-      );
+      addRoundedWood(0.07, 1.86, 0.035, x, 2.4, -1.055, 0.008);
     }
 
     // Viền ngang.
     for (const y of [1.505, 3.295]) {
-      addRoundedWood(
-        1.47, 0.07, 0.035,
-        0, y, -1.055,
-        0.008,
-      );
+      addRoundedWood(1.47, 0.07, 0.035, 0, y, -1.055, 0.008);
     }
 
     // Viền đồng thanh mảnh quanh bài vị, phối cùng hoa văn trên cánh tủ.
@@ -1727,22 +1669,18 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       remembranceContext.shadowBlur = 7;
       remembranceContext.shadowOffsetY = 2;
 
-      remembranceContext.font =
-        '110px Georgia, "Times New Roman", serif';
+      remembranceContext.font = '110px Georgia, "Times New Roman", serif';
       remembranceContext.lineWidth = 9;
       remembranceContext.strokeText("Tưởng nhớ", 512, 175);
       remembranceContext.fillText("Tưởng nhớ", 512, 175);
 
-      remembranceContext.font =
-        'bold 145px Georgia, "Times New Roman", serif';
+      remembranceContext.font = 'bold 145px Georgia, "Times New Roman", serif';
       remembranceContext.lineWidth = 11;
       remembranceContext.strokeText("tổ tiên", 512, 335);
       remembranceContext.fillText("tổ tiên", 512, 335);
     }
 
-    const remembranceTexture = new THREE.CanvasTexture(
-      remembranceCanvas,
-    );
+    const remembranceTexture = new THREE.CanvasTexture(remembranceCanvas);
     remembranceTexture.colorSpace = THREE.SRGBColorSpace;
 
     const remembranceMaterial = new THREE.MeshBasicMaterial({
@@ -1783,7 +1721,10 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     const altarBounds = new THREE.Box3();
 
     scene.traverse((object) => {
-      if (!(object instanceof THREE.Mesh) || object.userData.excludeFromAltarBounds) {
+      if (
+        !(object instanceof THREE.Mesh) ||
+        object.userData.excludeFromAltarBounds
+      ) {
         return;
       }
       const materials = Array.isArray(object.material)
@@ -1791,9 +1732,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         : [object.material];
 
       const isRoomSurface = materials.some(
-        (material) =>
-          material === floorMaterial ||
-          material === wallMaterial
+        (material) => material === floorMaterial || material === wallMaterial,
       );
 
       if (isRoomSurface) return;
@@ -1803,35 +1742,28 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       const localBounds = object.geometry.boundingBox;
       if (!localBounds) return;
 
-      const worldBounds = localBounds
-        .clone()
-        .applyMatrix4(object.matrixWorld);
+      const worldBounds = localBounds.clone().applyMatrix4(object.matrixWorld);
 
       altarBounds.union(worldBounds);
     });
 
-    const altarSphere = altarBounds.getBoundingSphere(
-      new THREE.Sphere()
-    );
+    const altarSphere = altarBounds.getBoundingSphere(new THREE.Sphere());
 
-    const defaultViewDirection = new THREE.Vector3(
-      0.12,
-      0.14,
-      1
-    ).normalize();
+    // Điểm trọng tâm nhìn bao quát toàn bộ bàn thờ, chân tủ và bài vị tổ tiên
+    const altarFocalPoint = new THREE.Vector3(0, 1.95, 0.05);
 
-    const controls = new OrbitControls(
-      camera,
-      renderer.domElement
-    );
+    // Góc nhìn chúc nhẹ (~15 độ) để vừa nhìn rõ mặt bàn thờ và các mâm lễ vật, vừa nhìn thấy trọn vẹn cả bài vị lẫn đôi bình hoa hai bên
+    const defaultViewDirection = new THREE.Vector3(0.0, 0.26, 0.96).normalize();
+
+    const controls = new OrbitControls(camera, renderer.domElement);
 
     controls.enablePan = false;
     controls.enableDamping = false;
 
     controls.minAzimuthAngle = -Math.PI / 4.5;
     controls.maxAzimuthAngle = Math.PI / 4.5;
-    controls.minPolarAngle = Math.PI / 3;
-    controls.maxPolarAngle = Math.PI / 2;
+    controls.minPolarAngle = Math.PI / 4;
+    controls.maxPolarAngle = Math.PI / 2.05;
 
     const fitCameraToAltar = (resetDirection = false) => {
       const direction = resetDirection
@@ -1842,30 +1774,31 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
         direction.copy(defaultViewDirection);
       }
 
-      const verticalHalfFov = THREE.MathUtils.degToRad(
-        camera.fov / 2
-      );
+      const verticalHalfFov = THREE.MathUtils.degToRad(camera.fov / 2);
 
       const horizontalHalfFov = Math.atan(
-        Math.tan(verticalHalfFov) * camera.aspect
+        Math.tan(verticalHalfFov) * camera.aspect,
       );
 
-      const limitingHalfFov = Math.min(
-        verticalHalfFov,
-        horizontalHalfFov
-      );
+      // Kích thước vùng bao quát toàn bộ bàn thờ đồ thờ:
+      // Chiều ngang 5.4m: thấy trọn vẹn từ rìa hoa ngoài cùng của bình hoa trái tới bình hoa phải và cả bàn thờ (4.1m) có khoảng thở thoáng hai bên
+      // Chiều cao 3.6m: thấy trọn vẹn từ bệ chân tủ (Y = 0.1m) lên đến tận đỉnh mái hậu cung bài vị (Y = 3.75m)
+      const targetWidth = 5.4;
+      const targetHeight = 3.6;
 
-      // Giữ trọn bàn thờ và thảm lễ trong khung hình.
-      const distance =
-        (altarSphere.radius / Math.sin(limitingHalfFov)) * 0.82;
+      const distanceByWidth = targetWidth / 2 / Math.tan(horizontalHalfFov);
+      const distanceByHeight = targetHeight / 2 / Math.tan(verticalHalfFov);
 
-      controls.target.copy(altarSphere.center);
+      // Khoảng cách tối ưu để toàn bộ bàn thờ nằm trọn trong khung nhìn, không bị cắt bất kỳ góc nào
+      const distance = Math.max(distanceByWidth, distanceByHeight) * 1.06;
+
+      controls.target.copy(altarFocalPoint);
 
       controls.minDistance = distance * 0.55;
-      controls.maxDistance = distance * 2;
+      controls.maxDistance = distance * 1.8;
 
       camera.position
-        .copy(altarSphere.center)
+        .copy(altarFocalPoint)
         .addScaledVector(direction, distance);
 
       camera.near = Math.max(0.01, distance / 100);
@@ -1881,43 +1814,79 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     };
     renderScene = render;
 
-    // Tạo họa tiết khói hương mềm mại, uốn lượn chân thực
-    const smokeCanvas = document.createElement("canvas");
-    smokeCanvas.width = 128;
-    smokeCanvas.height = 128;
+    // TẠO NHÓM KHÓI TRẦM HƯƠNG TỰ NHIÊN (VOLUMETRIC RISING INCENSE SMOKE)
+    const smokeGroup = new THREE.Group();
+    scene.add(smokeGroup);
 
-    const smokeContext = smokeCanvas.getContext("2d");
-
-    if (smokeContext) {
-      const gradient = smokeContext.createRadialGradient(64, 64, 0, 64, 64, 64);
-      gradient.addColorStop(0, "rgba(240, 235, 225, 0.75)");
-      gradient.addColorStop(0.25, "rgba(235, 230, 220, 0.45)");
-      gradient.addColorStop(0.55, "rgba(225, 220, 210, 0.18)");
-      gradient.addColorStop(0.85, "rgba(215, 210, 200, 0.04)");
-      gradient.addColorStop(1, "rgba(210, 205, 195, 0)");
-
-      smokeContext.fillStyle = gradient;
-      smokeContext.fillRect(0, 0, 128, 128);
+    // 1. Texture cuộn khói bồng bềnh (Soft Volumetric Smoke Puff)
+    const puffCanvas = document.createElement("canvas");
+    puffCanvas.width = 128;
+    puffCanvas.height = 128;
+    const pCtx = puffCanvas.getContext("2d");
+    if (pCtx) {
+      const grad = pCtx.createRadialGradient(64, 64, 0, 64, 64, 62);
+      grad.addColorStop(0, "rgba(252, 248, 240, 0.95)");  // Sắc trắng trầm ngà ấm áp, rõ nét
+      grad.addColorStop(0.25, "rgba(238, 230, 218, 0.72)");
+      grad.addColorStop(0.55, "rgba(220, 210, 198, 0.35)");
+      grad.addColorStop(0.80, "rgba(200, 190, 180, 0.10)");
+      grad.addColorStop(1, "rgba(180, 170, 160, 0)");
+      pCtx.fillStyle = grad;
+      pCtx.fillRect(0, 0, 128, 128);
     }
+    const smokePuffTexture = new THREE.CanvasTexture(puffCanvas);
 
-    const smokeTexture = new THREE.CanvasTexture(smokeCanvas);
+    // 2. Texture sợi khói mảnh uốn lượn chân tàn nhang (Slender Wisp)
+    const wispCanvas = document.createElement("canvas");
+    wispCanvas.width = 64;
+    wispCanvas.height = 192;
+    const wCtx = wispCanvas.getContext("2d");
+    if (wCtx) {
+      const grad = wCtx.createRadialGradient(32, 96, 2, 32, 96, 48);
+      grad.addColorStop(0, "rgba(255, 252, 245, 0.96)");
+      grad.addColorStop(0.35, "rgba(242, 234, 222, 0.65)");
+      grad.addColorStop(0.70, "rgba(218, 208, 195, 0.22)");
+      grad.addColorStop(1, "rgba(200, 190, 180, 0)");
+      wCtx.fillStyle = grad;
+      wCtx.fillRect(0, 0, 64, 192);
+
+      wCtx.beginPath();
+      wCtx.moveTo(32, 185);
+      wCtx.bezierCurveTo(24, 130, 40, 70, 32, 10);
+      wCtx.strokeStyle = "rgba(255, 250, 240, 0.45)";
+      wCtx.lineWidth = 5;
+      wCtx.stroke();
+    }
+    const smokeWispTexture = new THREE.CanvasTexture(wispCanvas);
+
+    // Tọa độ thế giới chính xác của 3 đầu nén nhang trong bát hương
+    const stickWorldOrigins = [
+      { x: -0.044, y: 2.006, z: 0.193 }, // Nhang trái
+      { x: 0.000, y: 2.014, z: 0.207 },  // Nhang giữa
+      { x: 0.044, y: 2.006, z: 0.196 },  // Nhang phải
+    ];
 
     const smokeParticles: {
       sprite: THREE.Sprite;
       material: THREE.SpriteMaterial;
       originX: number;
+      originY: number;
       originZ: number;
-      topY: number;
       phase: number;
       seed: number;
       speed: number;
+      widthFactor: number;
+      opacityFactor: number;
+      isWisp: boolean;
     }[] = [];
 
-    const particlesPerStick = 12;
-    for (const stick of plantedStickLayout) {
-      for (let index = 0; index < particlesPerStick; index += 1) {
+    // Tạo 32 hạt khói cho mỗi nén nhang (Tổng 96 hạt) tạo luồng khói dày dặn, liên tục
+    const puffsPerStick = 32;
+    for (let s = 0; s < stickWorldOrigins.length; s++) {
+      const origin = stickWorldOrigins[s];
+      for (let i = 0; i < puffsPerStick; i++) {
+        const isWisp = i % 3 === 0;
         const material = new THREE.SpriteMaterial({
-          map: smokeTexture,
+          map: isWisp ? smokeWispTexture : smokePuffTexture,
           transparent: true,
           opacity: 0,
           depthWrite: false,
@@ -1926,17 +1895,20 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
         const sprite = new THREE.Sprite(material);
         sprite.visible = false;
-        incenseContent.add(sprite);
+        smokeGroup.add(sprite);
 
         smokeParticles.push({
           sprite,
           material,
-          originX: stick.x,
-          originZ: stick.z,
-          topY: stick.top,
-          phase: index / particlesPerStick,
-          seed: stick.x * 12 + index * 0.7,
-          speed: 0.14 + (index % 4) * 0.015,
+          originX: origin.x,
+          originY: origin.y,
+          originZ: origin.z,
+          phase: i / puffsPerStick,
+          seed: s * 14.7 + i * 0.73,
+          speed: 0.13 + (i % 5) * 0.015,
+          widthFactor: 0.85 + (i % 4) * 0.10,
+          opacityFactor: 0.88 + (i % 3) * 0.08,
+          isWisp,
         });
       }
     }
@@ -1957,6 +1929,45 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
     const sparkleTexture = new THREE.CanvasTexture(sparkleCanvas);
     sparkleTexture.colorSpace = THREE.SRGBColorSpace;
+
+    // 3. Bụi tàn nhang / linh khí vàng bay bổng (Golden Ember Sparks)
+    const sparkParticles: {
+      sprite: THREE.Sprite;
+      material: THREE.SpriteMaterial;
+      originX: number;
+      originY: number;
+      originZ: number;
+      phase: number;
+      seed: number;
+      speed: number;
+    }[] = [];
+
+    for (let s = 0; s < stickWorldOrigins.length; s++) {
+      const origin = stickWorldOrigins[s];
+      for (let k = 0; k < 6; k++) {
+        const sparkMat = new THREE.SpriteMaterial({
+          map: sparkleTexture,
+          transparent: true,
+          opacity: 0,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const sprite = new THREE.Sprite(sparkMat);
+        sprite.visible = false;
+        smokeGroup.add(sprite);
+
+        sparkParticles.push({
+          sprite,
+          material: sparkMat,
+          originX: origin.x,
+          originY: origin.y,
+          originZ: origin.z,
+          phase: k / 6,
+          seed: s * 23.1 + k * 1.6,
+          speed: 0.18 + (k % 3) * 0.03,
+        });
+      }
+    }
 
     const fireworkBursts: {
       points: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>;
@@ -2023,9 +2034,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       });
     }
 
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    );
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     let isLit = false;
     let isLighting = false;
@@ -2040,25 +2049,28 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
     const updateSmoke = () => {
       // Khi 3 nén nhang đang hạ xuống, gốc khói sẽ bám theo cao độ của đầu nhang
-      const currentOffsetY = plantedIncense.position.y;
+      // plantedIncense.position.y hạ từ 0.42 về 0; nhân tỉ xích thế giới là * 0.62
+      const currentOffsetY = plantedIncense.position.y * 0.62;
 
       for (const particle of smokeParticles) {
-        const progress = (particle.phase + smokeTime * particle.speed) % 1;
-
-        particle.sprite.visible = isLit;
-        if (!isLit) {
+        particle.sprite.visible = isLit || isLighting;
+        if (!isLit && !isLighting) {
           particle.material.opacity = 0;
           continue;
         }
 
-        // Dòng khói uốn lượn tự nhiên theo hình sóng mềm mại
-        const driftX =
-          Math.sin(progress * Math.PI * 3.2 + particle.seed) * progress * 0.14 +
-          Math.sin(smokeTime * 0.7 + particle.seed) * 0.02;
-        const driftZ =
-          Math.cos(progress * Math.PI * 2.8 + particle.seed * 1.2) * progress * 0.08;
+        const progress = (particle.phase + smokeTime * particle.speed) % 1.0;
 
-        const currentY = particle.topY + currentOffsetY + progress * 1.35;
+        // Dòng khói uốn lượn tự nhiên theo hình sóng mềm mại dải lụa
+        const waveX1 = Math.sin(smokeTime * 1.5 + progress * 4.2 + particle.seed);
+        const waveX2 = Math.sin(smokeTime * 0.7 + particle.seed * 1.4);
+        const driftX = waveX1 * (0.015 + progress * 0.16) + waveX2 * 0.035 * progress;
+
+        const waveZ = Math.cos(smokeTime * 1.2 + progress * 3.6 + particle.seed * 0.9);
+        const driftZ = waveZ * (0.012 + progress * 0.11);
+
+        // Chiều cao bốc lên từ 2.0m lên đến 3.75m (gần hoành phi)
+        const currentY = particle.originY + currentOffsetY + progress * 1.75;
 
         particle.sprite.position.set(
           particle.originX + driftX,
@@ -2066,14 +2078,55 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
           particle.originZ + driftZ,
         );
 
-        // Kích thước khói: nhỏ gọn tại đốm tàn (0.05), cuộn mở mềm mại khi lên cao (0.33)
-        const size = 0.05 + Math.pow(progress, 0.7) * 0.28;
-        particle.sprite.scale.set(size, size * 1.15, 1);
+        // Tỷ xích khói thế giới thực: chân nhang mảnh (6-8cm), lên giữa nở rộng (18-24cm), lên cao cuộn tỏa (32-38cm)
+        const baseScale = particle.isWisp
+          ? 0.045 + Math.pow(progress, 0.70) * 0.18
+          : 0.075 + Math.pow(progress, 0.78) * 0.28;
+        const billow = 0.88 + Math.sin(progress * Math.PI * 2.5 + particle.seed) * 0.12;
 
-        // Độ mờ: bừng sáng dần từ tàn nhang, duy trì dải lụa khói, rồi tan êm ở trên cao
-        const opacityEnvelope = Math.sin(Math.pow(progress, 0.55) * Math.PI);
-        particle.material.opacity = Math.max(0, opacityEnvelope * 0.55);
-        particle.material.rotation = particle.seed + smokeTime * 0.15;
+        particle.sprite.scale.set(
+          baseScale * particle.widthFactor * billow,
+          baseScale * (particle.isWisp ? 1.8 : 1.25 + (1 - progress) * 0.45) * billow,
+          1,
+        );
+
+        // Độ mờ: Bốc lên từ tàn nhang hiện rõ nét, đậm đà ở đoạn thân, lên cao tan dần
+        const fadeIn = Math.min(progress / 0.06, 1.0);
+        const fadeOut = Math.pow(1 - progress, 1.15);
+        const opacityEnvelope = fadeIn * fadeOut;
+
+        particle.material.opacity = Math.max(
+          0,
+          opacityEnvelope * (particle.isWisp ? 0.62 : 0.54) * particle.opacityFactor,
+        );
+        particle.material.rotation =
+          particle.seed + Math.sin(smokeTime * 0.25 + particle.seed) * 0.15;
+      }
+
+      // Cập nhật bụi tàn nhang vàng bay bổng
+      for (const spark of sparkParticles) {
+        spark.sprite.visible = isLit || isLighting;
+        if (!isLit && !isLighting) {
+          spark.material.opacity = 0;
+          continue;
+        }
+
+        const progress = (spark.phase + smokeTime * spark.speed) % 1.0;
+        const currentY = spark.originY + currentOffsetY + progress * 0.85;
+        const driftX = Math.sin(smokeTime * 2.2 + spark.seed) * (0.02 + progress * 0.06);
+        const driftZ = Math.cos(smokeTime * 1.8 + spark.seed) * (0.02 + progress * 0.05);
+
+        spark.sprite.position.set(
+          spark.originX + driftX,
+          currentY,
+          spark.originZ + driftZ,
+        );
+
+        const sparkSize = 0.016 + Math.random() * 0.012;
+        spark.sprite.scale.set(sparkSize, sparkSize, 1);
+
+        const sparkFade = Math.sin(progress * Math.PI);
+        spark.material.opacity = sparkFade * (0.45 + Math.sin(smokeTime * 8 + spark.seed) * 0.35);
       }
     };
 
@@ -2181,22 +2234,18 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
     const animateSmoke = (time: number) => {
       animationFrame = null;
 
-      if (
-        contextLost ||
-        (!isLit && !isLighting) ||
-        document.hidden
-      ) {
+      if (contextLost || (!isLit && !isLighting) || document.hidden) {
         lastTime = null;
         return;
       }
 
-      if (lastTime !== null && !reducedMotion.matches) {
-        // Limit the time step so smoke does not jump on a slow device.
+      if (lastTime !== null) {
+        // Tốc độ khói trầm bốc lên êm dịu, không bị giật
         smokeTime += Math.min((time - lastTime) / 1000, 0.05);
       }
 
       lastTime = time;
-      if (!reducedMotion.matches) updateSmoke();
+      updateSmoke();
       updateIncenseRitual(time);
       updateFireworks(time);
       render();
@@ -2212,10 +2261,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       updateFireworks(performance.now());
       render();
 
-      if (
-        (isLighting || (isLit && !reducedMotion.matches)) &&
-        !document.hidden
-      ) {
+      if ((isLighting || isLit) && !document.hidden) {
         animationFrame = requestAnimationFrame(animateSmoke);
       }
     };
@@ -2231,14 +2277,11 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       incenseRef.current = null;
 
       setError(
-        "Cảnh 3D đã tạm ngừng do mất kết nối đồ họa. Bạn hãy đóng cảnh rồi mở lại, hoặc tiếp tục ở những mục bên dưới."
+        "Cảnh 3D đã tạm ngừng do mất kết nối đồ họa. Bạn hãy đóng cảnh rồi mở lại, hoặc tiếp tục ở những mục bên dưới.",
       );
     };
 
-    renderer.domElement.addEventListener(
-      "webglcontextlost",
-      handleContextLost
-    );
+    renderer.domElement.addEventListener("webglcontextlost", handleContextLost);
 
     reducedMotion.addEventListener("change", syncSmokeAnimation);
     document.addEventListener("visibilitychange", syncSmokeAnimation);
@@ -2321,54 +2364,139 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       },
     };
 
+    // Hệ thống Multi-Slot bố trí vật phẩm trang trí / lễ vật trên bàn thờ theo chuẩn phong thủy:
+    // Slot chicken: Tiền bái tả lễ (Đĩa gà luộc) ở phía trước bên trái bàn thờ
+    // Slot rice: Tiền bái hữu lễ (Đĩa xôi gấc) ở phía trước bên phải bàn thờ
+    // Slot flower: Hữu biên hoa tươi (Bình sen ngọc / sen vàng) ở bên phải
+    // Slot censer: Trung cung đỉnh hương (Lư đồng trầm hương) ở phía sau bát hương chính
+    // Slot lantern: Tiền duyên hoa đăng (Đèn hoa đăng) ở mép trước bàn thờ
     const decorationRoot = new THREE.Group();
-    decorationRoot.matrixAutoUpdate = false;
-
-    // Mặt bàn trong cảnh hiện tại nằm ở cao độ 1.3.
-    // Đặt vật phẩm nhỏ phía trước bên trái lư hương.
-    decorationRoot.position.set(-0.55, 1.3, 0.38);
-    decorationRoot.updateMatrix();
-
     scene.add(decorationRoot);
 
-    let currentDecoration: THREE.Group | null = null;
-    let currentDecorationId: DecorationId | null = null;
+    type SlotKey = "chicken" | "rice";
 
-    const setDecoration = (nextId: DecorationId | null) => {
-      if (nextId === currentDecorationId) return;
+    const slotConfigs: Record<
+      SlotKey,
+      { position: [number, number, number]; scale: number }
+    > = {
+      chicken: { position: [-0.98, 1.3, 0.58], scale: 0.7 },
+      rice: { position: [0.98, 1.3, 0.58], scale: 0.95 },
+    };
 
-      if (currentDecoration) {
-        disposeDigitalDecoration(currentDecoration);
-        currentDecoration = null;
+    const getSlotForKey = (id: DecorationId): SlotKey | null => {
+      if (id === "boiled-chicken") return "chicken";
+      if (id === "sticky-rice") return "rice";
+      return null;
+    };
+
+    const slots: Record<
+      SlotKey,
+      {
+        group: THREE.Group;
+        current: THREE.Group | null;
+        currentId: DecorationId | null;
+      }
+    > = {
+      chicken: { group: new THREE.Group(), current: null, currentId: null },
+      rice: { group: new THREE.Group(), current: null, currentId: null },
+    };
+
+    (Object.keys(slots) as SlotKey[]).forEach((key) => {
+      const cfg = slotConfigs[key];
+      const slot = slots[key];
+      slot.group.position.set(...cfg.position);
+      slot.group.scale.setScalar(cfg.scale);
+      decorationRoot.add(slot.group);
+    });
+
+    const setMultipleDecorations = (ids: (DecorationId | null)[]) => {
+      const validIds = ids.filter((id): id is DecorationId => Boolean(id));
+
+      const targetBySlot: Record<SlotKey, DecorationId | null> = {
+        chicken: null,
+        rice: null,
+      };
+
+      for (const id of validIds) {
+        const slotKey = getSlotForKey(id);
+        if (slotKey) {
+          targetBySlot[slotKey] = id;
+        }
       }
 
-      currentDecorationId = nextId;
-
-      if (nextId === "boiled-chicken") {
-        // Đặt gà cúng cân đối ở khoảng trống phía trước bên trái bàn thờ.
-        decorationRoot.position.set(-0.68, 1.3, 0.52);
-        decorationRoot.scale.setScalar(0.68);
-      } else {
-        decorationRoot.position.set(-0.55, 1.3, 0.38);
-        decorationRoot.scale.setScalar(1);
-      }
-      decorationRoot.updateMatrix();
-
-      if (nextId) {
-        currentDecoration = createDigitalDecoration(nextId, () => {
-          if (disposed || currentDecorationId !== nextId) return;
-          renderer.shadowMap.needsUpdate = true;
-          render();
-        });
-        decorationRoot.add(currentDecoration);
+      if (!sceneWasRevealed) {
+        initialDecorationStateReady = true;
+        pendingInitialModelLoads = new Set(
+          Object.values(targetBySlot).filter(
+            (id): id is DecorationId =>
+              id === "boiled-chicken" || id === "sticky-rice",
+          ),
+        );
       }
 
-      renderer.shadowMap.needsUpdate = true;
-      render();
+      let hasChanges = false;
+
+      // 1. Cập nhật các slot mô hình động (Gà, Xôi, Bình sen, Lư đồng, Hoa đăng)
+      (Object.keys(slots) as SlotKey[]).forEach((key) => {
+        const slot = slots[key];
+        const targetId = targetBySlot[key];
+
+        if (slot.currentId !== targetId) {
+          hasChanges = true;
+          if (slot.current) {
+            disposeDigitalDecoration(slot.current);
+            slot.current = null;
+          }
+
+          slot.currentId = targetId;
+
+          if (targetId) {
+            const mesh = createDigitalDecoration(targetId, () => {
+              if (disposed || slot.currentId !== targetId) return;
+              if (!sceneWasRevealed && pendingInitialModelLoads.has(targetId)) {
+                pendingInitialModelLoads.delete(targetId);
+                revealSceneWhenReady();
+              }
+              renderer.shadowMap.needsUpdate = true;
+              render();
+            });
+            slot.current = mesh;
+            slot.group.add(mesh);
+          }
+        }
+      });
+
+      // 2. Cập nhật hiển thị Dưa hấu và Đĩa trái cây từ mô hình có sẵn trong scene
+      const showMelon = validIds.includes("watermelon");
+      const showFruit = validIds.includes("fruit-plate");
+
+      melonOfferingGroups.forEach((g) => {
+        if (g.visible !== showMelon) {
+          g.visible = showMelon;
+          hasChanges = true;
+        }
+      });
+
+      fruitOfferingGroups.forEach((g) => {
+        if (g.visible !== showFruit) {
+          g.visible = showFruit;
+          hasChanges = true;
+        }
+      });
+
+      if (hasChanges) {
+        renderer.shadowMap.needsUpdate = true;
+        render();
+      }
+    };
+
+    const setSingleDecoration = (id: DecorationId | null) => {
+      setMultipleDecorations(id ? [id] : []);
     };
 
     decorationControllerRef.current = {
-      set: setDecoration,
+      set: setSingleDecoration,
+      setMultiple: setMultipleDecorations,
     };
 
     const observer = new ResizeObserver(resize);
@@ -2381,17 +2509,20 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       disposed = true;
       decorationControllerRef.current = null;
 
-      if (currentDecoration) {
-        disposeDigitalDecoration(currentDecoration);
-        currentDecoration = null;
-      }
+      (Object.keys(slots) as SlotKey[]).forEach((key) => {
+        const slot = slots[key];
+        if (slot.current) {
+          disposeDigitalDecoration(slot.current);
+          slot.current = null;
+        }
+      });
 
       decorationRoot.removeFromParent();
 
       stopSmokeAnimation();
       renderer.domElement.removeEventListener(
         "webglcontextlost",
-        handleContextLost
+        handleContextLost,
       );
 
       reducedMotion.removeEventListener("change", syncSmokeAnimation);
@@ -2406,9 +2537,16 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       incenseRef.current = null;
 
       for (const particle of smokeParticles) {
-        incenseContent.remove(particle.sprite);
+        smokeGroup.remove(particle.sprite);
         particle.material.dispose();
       }
+
+      for (const spark of sparkParticles) {
+        smokeGroup.remove(spark.sprite);
+        spark.material.dispose();
+      }
+
+      scene.remove(smokeGroup);
 
       for (const burst of fireworkBursts) {
         scene.remove(burst.points);
@@ -2418,7 +2556,8 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
       scene.remove(sourceIncense);
 
-      smokeTexture.dispose();
+      smokePuffTexture.dispose();
+      smokeWispTexture.dispose();
       sparkleTexture.dispose();
       incenseMaterial.dispose();
       sourceIncenseMaterials.forEach((material) => material.dispose());
@@ -2465,50 +2604,121 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
   }, []);
 
   useEffect(() => {
-    decorationControllerRef.current?.set(decoration);
-  }, [decoration]);
+    if (decorations !== undefined && decorations !== null) {
+      decorationControllerRef.current?.setMultiple(decorations);
+    } else {
+      decorationControllerRef.current?.set(decoration);
+    }
+  }, [decoration, decorations]);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-md">
+    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-xs flex flex-col h-full">
       {/* 3D Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-soft/80 p-4 sm:px-6">
-        <div className="flex items-center gap-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-surface-soft/80 px-3 py-2 sm:px-4">
+        <div className="flex items-center gap-2">
           <Badge
             variant="outline"
-            className="text-xs px-2.5 py-0.5 font-semibold bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-400/40 gap-1.5"
+            className="text-[11px] px-2 py-0.5 font-semibold bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-400/40 gap-1"
           >
-            <Compass className="w-3.5 h-3.5" />
-            <span>Mô hình 3D tương tác</span>
+            <Compass className="w-3 h-3" />
+            <span>3D Tương tác</span>
           </Badge>
-          <span className="text-xs text-stone-500 dark:text-stone-400 hidden sm:inline">
-            Góc tri ân và không gian bài trí
-          </span>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={Boolean(error)}
-          onClick={() => resetRef.current?.()}
-          className="text-xs border-line text-ink hover:text-accent cursor-pointer gap-1.5"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Đặt lại góc nhìn</span>
-        </Button>
+        <div className="flex items-center gap-1.5">
+          {/* Incense Light Button inside Header */}
+          <button
+            type="button"
+            disabled={
+              Boolean(error) || sceneLoading || incenseLighting || incenseLit
+            }
+            aria-busy={incenseLighting}
+            onClick={handleLightIncense}
+            title={
+              incenseLit ? "Nén hương đang thắp ấm cúng" : "Thắp nén hương lòng"
+            }
+            className={`h-7 px-2.5 rounded-lg text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed ${
+              incenseLit
+                ? "bg-amber-950/20 text-amber-800 dark:text-amber-200 border border-amber-500/30"
+                : "bg-gradient-to-r from-red-800 to-amber-800 text-white hover:from-red-700 hover:to-amber-700 shadow-2xs"
+            }`}
+          >
+            <Flame
+              className={`w-3 h-3 ${
+                incenseLighting || incenseLit
+                  ? "text-amber-400 animate-pulse fill-current"
+                  : "text-amber-200"
+              }`}
+            />
+            <span className="text-[11px]">
+              {incenseLighting
+                ? "Đang thắp…"
+                : incenseLit
+                  ? "Hương đang thắp"
+                  : "Thắp hương"}
+            </span>
+          </button>
+
+          {onToggleMusic && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              title={musicPlaying ? "Tắt nhạc nền thiền" : "Bật nhạc nền thiền"}
+              aria-label={
+                musicPlaying ? "Tắt nhạc nền thiền" : "Bật nhạc nền thiền"
+              }
+              onClick={onToggleMusic}
+              className="h-7 px-2 text-xs border-line text-stone-700 dark:text-stone-300 hover:text-accent cursor-pointer gap-1"
+            >
+              {musicPlaying ? (
+                <>
+                  <Volume2 className="w-3 h-3 text-accent animate-pulse" />
+                  <span className="hidden sm:inline text-[11px]">
+                    Nhạc thiền
+                  </span>
+                </>
+              ) : (
+                <>
+                  <VolumeX className="w-3 h-3 text-muted" />
+                  <span className="hidden sm:inline text-[11px]">Bật nhạc</span>
+                </>
+              )}
+            </Button>
+          )}
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={Boolean(error)}
+            onClick={() => resetRef.current?.()}
+            title="Đặt lại góc nhìn bàn thờ"
+            className="h-7 px-2 text-xs border-line text-stone-700 dark:text-stone-300 hover:text-accent cursor-pointer gap-1"
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span className="hidden sm:inline text-[11px]">Đặt lại góc</span>
+          </Button>
+        </div>
       </div>
 
       {/* 3D Canvas Viewport */}
       {error ? (
-        <div role="status" className="p-8 text-center bg-surface-soft">
-          <p className="text-sm text-stone-600 dark:text-stone-300">{error}</p>
+        <div
+          role="status"
+          className="p-8 text-center bg-surface-soft flex-1 flex flex-col items-center justify-center"
+        >
+          <p className="text-sm text-stone-600 dark:text-stone-300 mb-2">
+            {error}
+          </p>
+          <p className="text-xs text-muted">
+            Bạn vẫn có thể chọn lễ vật và gửi lời tri ân bình thường qua bảng
+            bên phải.
+          </p>
         </div>
       ) : (
-        <div className="relative">
-          <div
-            ref={hostRef}
-            className="h-[360px] w-full sm:h-[440px] lg:h-[500px]"
-          />
+        <div className="relative flex-1 min-h-[300px] sm:min-h-[350px] lg:min-h-0 w-full">
+          <div ref={hostRef} className="absolute inset-0 w-full h-full" />
 
           {sceneLoading && (
             <div
@@ -2565,39 +2775,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
           </div>
         </div>
       )}
-
-      {/* Interactive Controls Toolbar */}
-      <div className="flex justify-center border-t border-line bg-surface p-4 sm:p-6">
-        {/* Incense Action Button */}
-        <button
-          type="button"
-          disabled={Boolean(error) || sceneLoading || incenseLighting || incenseLit}
-          aria-busy={incenseLighting}
-          onClick={handleLightIncense}
-          className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-80 ${
-            incenseLit
-              ? "bg-stone-800 text-stone-200 border border-stone-600"
-              : "bg-gradient-to-r from-red-800 via-amber-800 to-red-900 text-white shadow-amber-900/20 hover:from-red-700 hover:to-amber-700"
-          }`}
-        >
-          <Flame
-            className={`w-4 h-4 ${
-              incenseLighting || incenseLit
-                ? "text-amber-400 animate-pulse fill-current"
-                : "text-amber-200"
-            }`}
-          />
-          <span>
-            {incenseLighting
-              ? "Đang thắp hương…"
-              : incenseLit
-                ? "Hương đang cháy"
-                : "Thắp hương lòng"}
-          </span>
-        </button>
-      </div>
       {children}
     </div>
   );
 };
-

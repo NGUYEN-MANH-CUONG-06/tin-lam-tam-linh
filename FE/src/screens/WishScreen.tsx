@@ -1,9 +1,4 @@
-import React, {
-  Suspense,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { UnverifiedImage } from "../components/UnverifiedImage";
 import {
   ArrowLeft,
@@ -15,35 +10,79 @@ import {
   ExternalLink,
   Flower2,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import "../styles/WishScreen.css";
 import { SchoolSupportNotice } from "../components/SchoolSupportNotice";
-import { WISH_RELEASE_SESSION_KEY } from "../data/wishReleaseSession";
+import {
+  WISH_RELEASE_SESSION_KEY,
+  WISH_RELEASE_SCENE_VERSION,
+  type ReleasedLanternWish,
+} from "../data/wishReleaseSession";
 
 const SouthernRiverScene = React.lazy(() =>
   import("../components/SouthernRiverScene").then((module) => ({
     default: module.SouthernRiverScene,
-  }))
+  })),
 );
 
 export type WishTopic = "Bình an" | "Gia đạo" | "Công danh" | "Tình duyên";
 export type WishMode = "journal" | "ephemeral";
 
-function readWishReleaseForCurrentRoute(): string {
-  if (window.location.pathname.replace(/\/$/, "") !== "/wish") return "";
+interface RestoredLanternSession {
+  wishes: ReleasedLanternWish[];
+  label: string | null;
+}
+
+function readWishReleaseForCurrentRoute(): RestoredLanternSession {
+  if (window.location.pathname.replace(/\/$/, "") !== "/wish") {
+    return { wishes: [], label: null };
+  }
   try {
     const saved = sessionStorage.getItem(WISH_RELEASE_SESSION_KEY);
     const parsed: unknown = saved ? JSON.parse(saved) : null;
-    if (
-      typeof parsed === "object" && parsed !== null &&
-      "wish" in parsed && typeof parsed.wish === "string"
-    ) return parsed.wish;
+    if (typeof parsed === "object" && parsed !== null) {
+      const session = parsed as {
+        sceneVersion?: unknown;
+        wishes?: unknown;
+        wish?: unknown;
+        label?: unknown;
+      };
+      if (session.sceneVersion !== WISH_RELEASE_SCENE_VERSION) {
+        sessionStorage.removeItem(WISH_RELEASE_SESSION_KEY);
+        return { wishes: [], label: null };
+      }
+      const wishes = Array.isArray(session.wishes)
+        ? session.wishes.flatMap((entry): ReleasedLanternWish[] => {
+            if (typeof entry === "string" && entry.trim()) {
+              return [{ text: entry, royal: false }];
+            }
+            if (typeof entry !== "object" || entry === null) return [];
+            const record = entry as {
+              text?: unknown;
+              wish?: unknown;
+              royal?: unknown;
+            };
+            const text =
+              typeof record.text === "string" ? record.text : record.wish;
+            return typeof text === "string" && text.trim()
+              ? [{ text, royal: record.royal === true }]
+              : [];
+          })
+        : typeof session.wish === "string" && session.wish.trim()
+          ? [{ text: session.wish, royal: false }]
+          : [];
+      return {
+        wishes,
+        label: typeof session.label === "string" ? session.label : null,
+      };
+    }
   } catch {
     // The release can still be used normally when session storage is unavailable.
   }
-  return "";
+  return { wishes: [], label: null };
 }
 
 interface WishScreenProps {
@@ -54,15 +93,12 @@ interface WishScreenProps {
   onSaveJournal?: (
     text: string,
     topic: WishTopic,
-    requestId: string
+    requestId: string,
   ) => boolean | Promise<boolean>;
   isLoggedIn?: boolean;
   initialContent?: string;
   initialCategory?: string;
-  onDraftChange?: (
-    content: string | null,
-    category: string
-  ) => void;
+  onDraftChange?: (content: string | null, category: string) => void;
   currentUserEmail?: string;
 }
 
@@ -94,14 +130,11 @@ class LanternSceneBoundary extends React.Component<
           role="status"
           className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center text-stone-200"
         >
-          <p className="font-semibold">
-            Chưa mở được cảnh hoa đăng.
-          </p>
+          <p className="font-semibold">Chưa mở được cảnh hoa đăng.</p>
 
           <p className="max-w-md text-sm leading-relaxed">
-            Bạn vẫn có thể đọc lời vừa viết ở phía trên.
-            Nội dung chưa được lưu vào tài khoản.
-            Bạn có thể viết lời khác hoặc trở về Hôm nay.
+            Bạn vẫn có thể đọc lời vừa viết ở phía trên. Nội dung chưa được lưu
+            vào tài khoản. Bạn có thể viết lời khác hoặc trở về Hôm nay.
           </p>
         </div>
       );
@@ -124,9 +157,24 @@ export const WishScreen: React.FC<WishScreenProps> = ({
   currentUserEmail,
 }) => {
   // Keep the just-released lantern available when this tab reloads /wish.
-  const [restoredLanternWish] = useState(readWishReleaseForCurrentRoute);
+  const [restoredLanternSession] = useState(readWishReleaseForCurrentRoute);
+
+  useEffect(() => {
+    return () => {
+      // Keep wishes through a page refresh, but start a fresh river after
+      // navigating away from the wish experience.
+      if (window.location.pathname.replace(/\/$/, "") !== "/wish") {
+        try {
+          sessionStorage.removeItem(WISH_RELEASE_SESSION_KEY);
+        } catch {
+          // The next visit still starts fresh when session storage is unavailable.
+        }
+      }
+    };
+  }, []);
+
   const [viewState, setViewState] = useState<"form" | "variantA" | "variantB">(
-    restoredLanternWish ? "variantB" : "form"
+    restoredLanternSession.wishes.length > 0 ? "variantB" : "form",
   );
 
   // Form State - default to empty string so user never accidentally saves sample text
@@ -140,10 +188,7 @@ export const WishScreen: React.FC<WishScreenProps> = ({
       "Tình duyên",
     ];
 
-    return (
-      validTopics.find((value) => value === initialCategory) ??
-      "Bình an"
-    );
+    return validTopics.find((value) => value === initialCategory) ?? "Bình an";
   });
   const [mode, setMode] = useState<WishMode>("journal");
   const [hasActuallySaved, setHasActuallySaved] = useState(false);
@@ -164,33 +209,27 @@ export const WishScreen: React.FC<WishScreenProps> = ({
       mountedRef.current = false;
     };
   }, []);
-  const [pendingLanternWish, setPendingLanternWish] = useState(restoredLanternWish);
+  const [pendingLanternWishes, setPendingLanternWishes] = useState(
+    restoredLanternSession.wishes,
+  );
+  const pendingLanternWishesRef = useRef(restoredLanternSession.wishes);
+  const [pendingLanternWishLabel, setPendingLanternWishLabel] = useState<
+    string | null
+  >(restoredLanternSession.label);
 
   useEffect(() => {
     const shouldKeepDraft =
-      mode === "journal" &&
-      viewState === "form" &&
-      !hasActuallySaved;
+      mode === "journal" && viewState === "form" && !hasActuallySaved;
 
-    onDraftChange?.(
-      shouldKeepDraft ? content : null,
-      topic
-    );
-  }, [
-    content,
-    topic,
-    mode,
-    viewState,
-    hasActuallySaved,
-    onDraftChange,
-  ]);
+    onDraftChange?.(shouldKeepDraft ? content : null, topic);
+  }, [content, topic, mode, viewState, hasActuallySaved, onDraftChange]);
 
   const TOPICS: WishTopic[] = ["Gia đạo", "Công danh", "Tình duyên", "Bình an"];
 
   const handleApplySample = () => {
     if (content.trim()) {
       setSaveError(
-        "Ô viết đang có nội dung. Nếu muốn dùng mẫu, bạn hãy xóa nội dung trước."
+        "Ô viết đang có nội dung. Nếu muốn dùng mẫu, bạn hãy xóa nội dung trước.",
       );
       return;
     }
@@ -202,16 +241,9 @@ export const WishScreen: React.FC<WishScreenProps> = ({
   const handleWriteAnother = () => {
     saveAttemptRef.current = null;
 
-    try {
-      sessionStorage.removeItem(WISH_RELEASE_SESSION_KEY);
-    } catch {
-      // No-op when session storage is unavailable.
-    }
-
     if (submitLockRef.current) return;
 
     setContent("");
-    setPendingLanternWish("");
     setHasActuallySaved(false);
     setSaveError("");
     setViewState("form");
@@ -243,15 +275,25 @@ export const WishScreen: React.FC<WishScreenProps> = ({
     }
 
     if (mode === "ephemeral") {
+      const nextWishes = [
+        ...pendingLanternWishesRef.current,
+        { text: cleanContent, royal: false },
+      ];
       try {
         sessionStorage.setItem(
           WISH_RELEASE_SESSION_KEY,
-          JSON.stringify({ wish: cleanContent })
+          JSON.stringify({
+            sceneVersion: WISH_RELEASE_SCENE_VERSION,
+            wishes: nextWishes,
+            label: topic,
+          }),
         );
       } catch {
         // The current release still works for this page view.
       }
-      setPendingLanternWish(cleanContent);
+      pendingLanternWishesRef.current = nextWishes;
+      setPendingLanternWishes(nextWishes);
+      setPendingLanternWishLabel(topic);
       setContent("");
       setHasActuallySaved(false);
       setViewState("variantB");
@@ -288,7 +330,7 @@ export const WishScreen: React.FC<WishScreenProps> = ({
       const saved = await onSaveJournal(
         attempt.content,
         attempt.topic,
-        attempt.requestId
+        attempt.requestId,
       );
 
       // App có thể đã chuyển khách sang trang đăng nhập.
@@ -297,7 +339,7 @@ export const WishScreen: React.FC<WishScreenProps> = ({
       if (saved !== true) {
         if (isLoggedIn) {
           setSaveError(
-            "Chưa xác nhận được việc lưu. Bạn hãy kiểm tra Góc của tôi trước khi lưu lại để tránh trùng nội dung."
+            "Chưa xác nhận được việc lưu. Bạn hãy kiểm tra Góc của tôi trước khi lưu lại để tránh trùng nội dung.",
           );
         }
         return;
@@ -310,7 +352,7 @@ export const WishScreen: React.FC<WishScreenProps> = ({
     } catch {
       if (mountedRef.current) {
         setSaveError(
-          "Chưa xác nhận được việc lưu. Nội dung vẫn còn ở đây; bạn hãy kiểm tra Góc của tôi trước khi thử lại."
+          "Chưa xác nhận được việc lưu. Nội dung vẫn còn ở đây; bạn hãy kiểm tra Góc của tôi trước khi thử lại.",
         );
       }
     } finally {
@@ -345,7 +387,9 @@ export const WishScreen: React.FC<WishScreenProps> = ({
                   Trải nghiệm
                 </button>
                 <span>/</span>
-                <span className="text-accent font-semibold">Lời nguyện hoa đăng</span>
+                <span className="text-accent font-semibold">
+                  Lời nguyện hoa đăng
+                </span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -358,13 +402,20 @@ export const WishScreen: React.FC<WishScreenProps> = ({
 
             {/* Main Header */}
             <div className="mx-auto mb-6 max-w-2xl text-center">
-              <h1 tabIndex={-1} className="wish-page-title mb-2.5 outline-none focus:outline-none flex items-center justify-center gap-2 text-2xl sm:text-3xl text-ink font-display">
-                <span className="wish-seal-badge" aria-hidden="true">願</span>
+              <h1
+                tabIndex={-1}
+                className="wish-page-title mb-2.5 outline-none focus:outline-none flex items-center justify-center gap-2 text-2xl sm:text-3xl text-ink font-display"
+              >
+                <span className="wish-seal-badge" aria-hidden="true">
+                  願
+                </span>
                 <span>Lời nguyện & Gửi gắm tâm tư</span>
               </h1>
 
               <p className="text-sm leading-relaxed text-muted max-w-lg mx-auto">
-                Viết ra những điều bạn đang ấp ủ. Bạn có thể lưu giữ vào sổ tay cá nhân để đọc lại, hoặc thả trôi nhẹ nhàng cùng ánh hoa đăng buông xả.
+                Viết ra những điều bạn đang ấp ủ. Bạn có thể lưu giữ vào sổ tay
+                cá nhân để đọc lại, hoặc thả trôi nhẹ nhàng cùng ánh hoa đăng
+                buông xả.
               </p>
             </div>
 
@@ -381,200 +432,275 @@ export const WishScreen: React.FC<WishScreenProps> = ({
                     disabled={isSubmitting}
                     className="min-w-0 space-y-6 border-0 p-0"
                   >
-                  {/* Card 1: Textarea Card (Parchment Box) */}
-                  <div className="wish-parchment-box">
-                    <div className="flex items-center justify-between mb-2">
-                      <label
-                        htmlFor="wish-content"
-                        className="text-base font-semibold text-ink font-display"
-                      >
-                        Điều bạn muốn viết
-                      </label>
-
-                      <button
-                        type="button"
-                        onClick={handleApplySample}
-                        className="text-xs text-accent hover:underline flex items-center gap-1 font-semibold cursor-pointer"
-                      >
-                        <Lightbulb className="w-3.5 h-3.5" />
-                        <span>Gợi ý mẫu</span>
-                      </button>
-                    </div>
-
-                    <p
-                      id="wish-content-help"
-                      className="mb-3 text-xs sm:text-sm leading-relaxed text-muted"
-                    >
-                      Không cần viết thật hay. Tránh nhập thông tin cá nhân nhạy cảm.
-                    </p>
-
-                    <div className="relative mb-2">
-                      <textarea
-                        id="wish-content"
-                        rows={6}
-                        required
-                        maxLength={1000}
-                        value={content}
-                        onChange={(event) => {
-                          setContent(event.target.value);
-                          setSaveError("");
-                        }}
-                        aria-describedby="wish-content-help wish-content-count"
-                        placeholder="Hôm nay, mình muốn gửi gắm..."
-                        className="wish-parchment-textarea"
-                      />
-                    </div>
-
-                    <SchoolSupportNotice text={content} />
-                    {/* Counter & Clear Button */}
-                    <div className="flex items-center justify-between text-xs text-muted mb-5">
-                      <span id="wish-content-count" className="text-xs text-muted">
-                        {content.length}/1000 ký tự
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setContent("");
-                          setSaveError("");
-                        }}
-                        className="text-muted hover:text-accent flex items-center gap-1 cursor-pointer transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Xóa nội dung</span>
-                      </button>
-                    </div>
-
-                    {/* Category Tags */}
-                    <div>
-                      <div className="text-xs font-semibold text-ink mb-2">
-                        Gắn chủ đề để dễ nhìn lại (tùy ý):
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {TOPICS.map((t) => {
-                          const isActive = topic === t;
-                          return (
-                            <button
-                              key={t}
-                              type="button"
-                              onClick={() => setTopic(t)}
-                              className={`wish-topic-pill ${
-                                isActive ? "wish-topic-pill--active" : ""
-                              }`}
-                            >
-                              {isActive ? `● ${t}` : t}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-
-                  <fieldset className="space-y-3">
-                    <legend className="text-base font-semibold text-ink font-display">
-                      Bạn muốn giữ lại lời viết này thế nào?
-                    </legend>
-
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {(
-                        [
-                          {
-                            value: "journal",
-                            title: "Lưu để đọc lại",
-                            description: isLoggedIn
-                              ? "Lưu vào Góc của tôi để bạn có thể xem lại bất cứ lúc nào, bảo mật an tâm."
-                              : "Đăng nhập để lưu vào Góc của tôi và theo dõi hành trình nội tâm của bạn.",
-                          },
-                          {
-                            value: "ephemeral",
-                            title: "Thả hoa đăng buông xả",
-                            description:
-                              "Gửi gắm lời viết thành ánh hoa đăng trôi trên dòng sông 3D. Lời nguyện sẽ tan biến nhẹ nhàng sau phiên này, không lưu trữ.",
-                          },
-                        ] satisfies {
-                          value: WishMode;
-                          title: string;
-                          description: string;
-                        }[]
-                      ).map((option) => (
+                    {/* Card 1: Textarea Card (Parchment Box) */}
+                    <div className="wish-parchment-box">
+                      <div className="flex items-center justify-between mb-2">
                         <label
-                          key={option.value}
+                          htmlFor="wish-content"
+                          className="text-base font-semibold text-ink font-display flex items-center gap-2"
+                        >
+                          <span>Án thư tâm nguyện</span>
+                          <span className="text-xs font-normal text-muted/80">
+                            • Giấy dó truyền thống
+                          </span>
+                        </label>
+
+                        <button
+                          type="button"
+                          onClick={handleApplySample}
+                          className="text-xs text-accent hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+                        >
+                          <Lightbulb className="w-3.5 h-3.5" />
+                          <span>Gợi ý mẫu tâm sự</span>
+                        </button>
+                      </div>
+
+                      <p
+                        id="wish-content-help"
+                        className="mb-3 text-xs sm:text-sm leading-relaxed text-muted"
+                      >
+                        Hãy thả lỏng tâm trí và giãi bày chân thật. Tránh nhập
+                        thông tin cá nhân nhạy cảm.
+                      </p>
+
+                      <div className="relative mb-2">
+                        <textarea
+                          id="wish-content"
+                          rows={6}
+                          required
+                          maxLength={1000}
+                          value={content}
+                          onChange={(event) => {
+                            setContent(event.target.value);
+                            setSaveError("");
+                          }}
+                          aria-describedby="wish-content-help wish-content-count"
+                          placeholder="Chắp bút gửi gắm những ấp ủ, ước nguyện thiện lành hôm nay..."
+                          className="wish-parchment-textarea"
+                        />
+                      </div>
+
+                      <SchoolSupportNotice text={content} />
+                      {/* Counter & Clear Button */}
+                      <div className="flex items-center justify-between text-xs text-muted mb-5">
+                        <span
+                          id="wish-content-count"
+                          className="text-xs text-muted font-mono"
+                        >
+                          {content.length}/1000 ký tự
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setContent("");
+                            setSaveError("");
+                          }}
+                          className="text-muted hover:text-accent flex items-center gap-1.5 cursor-pointer transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Xóa nội dung</span>
+                        </button>
+                      </div>
+
+                      {/* Category Tags */}
+                      <div>
+                        <div className="text-xs font-semibold text-ink mb-2.5 flex items-center justify-between">
+                          <span>Gắn chủ đề để ước nguyện thêm chu toàn:</span>
+                          <span className="text-[11px] text-muted font-normal">
+                            Tự động gắn dải lụa cây ước nguyện
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {TOPICS.map((t) => {
+                            const isActive = topic === t;
+                            const topicIcons: Record<WishTopic, string> = {
+                              "Bình an": "🕊️",
+                              "Gia đạo": "🏡",
+                              "Công danh": "🌟",
+                              "Tình duyên": "🌸",
+                            };
+                            return (
+                              <button
+                                key={t}
+                                type="button"
+                                onClick={() => setTopic(t)}
+                                className={`wish-topic-pill ${
+                                  isActive ? "wish-topic-pill--active" : ""
+                                }`}
+                              >
+                                <span className="mr-1.5 text-xs">
+                                  {topicIcons[t]}
+                                </span>
+                                <span>{t}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    <fieldset className="space-y-4">
+                      <legend className="text-base font-semibold text-ink font-display flex items-center gap-2">
+                        <span>Hình thức gửi gắm tâm tư</span>
+                        <span className="text-xs font-normal text-muted/80">
+                          (Chọn nghi thức phù hợp)
+                        </span>
+                      </legend>
+
+                      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+                        {/* Option 1: Journal Mode */}
+                        <label
                           className={`wish-mode-card ${
-                            mode === option.value ? "wish-mode-card--active" : ""
+                            mode === "journal" ? "wish-mode-card--active" : ""
                           }`}
                         >
                           <input
                             type="radio"
                             name="wish-mode"
-                            value={option.value}
-                            checked={mode === option.value}
+                            value="journal"
+                            checked={mode === "journal"}
                             onChange={() => {
-                              setMode(option.value);
+                              setMode("journal");
                               setSaveError("");
                             }}
-                            className="mt-1 h-4 w-4 shrink-0 accent-accent"
+                            className="sr-only"
                           />
 
-                          <span>
-                            <span className="block text-sm font-semibold text-ink">
-                              {option.title}
-                            </span>
+                          <div className="flex items-start gap-3 w-full">
+                            <div
+                              className={`wish-mode-icon-badge ${mode === "journal" ? "wish-mode-icon-badge--journal" : ""}`}
+                            >
+                              <BookOpen className="w-5 h-5" />
+                            </div>
 
-                            <span className="mt-1 block text-xs sm:text-sm leading-relaxed text-muted">
-                              {option.description}
-                            </span>
-                          </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="block text-sm font-bold text-ink font-display">
+                                  Niêm phong vào Sổ tâm tư
+                                </span>
+                                <span
+                                  className={`wish-mode-radio-indicator ${mode === "journal" ? "wish-mode-radio-indicator--active" : ""}`}
+                                />
+                              </div>
+
+                              <p className="mt-1 text-xs leading-relaxed text-muted">
+                                {isLoggedIn
+                                  ? "Lưu an toàn vào Góc của tôi để bạn xem lại bất cứ lúc nào, bảo mật riêng tư tuyệt đối."
+                                  : "Đăng nhập để lưu vào Góc của tôi và theo dõi hành trình nội tâm an nhiên của bạn."}
+                              </p>
+
+                              <div className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-accent">
+                                <Lock className="w-3 h-3" />
+                                <span>Lưu trữ vĩnh viễn • Riêng tư 100%</span>
+                              </div>
+                            </div>
+                          </div>
                         </label>
-                      ))}
-                    </div>
 
-                    <div className="flex items-center gap-2 text-xs text-muted/90 pt-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-accent shrink-0" />
-                      <span>
-                        {mode === "journal"
-                          ? "Lời gửi gắm được lưu giữ an tâm trong tài khoản riêng tư của bạn, không chia sẻ công khai."
-                          : "Ở chế độ hoa đăng, lời viết chỉ xuất hiện trong phiên này để bạn buông xả và không lưu lại bất cứ đâu."}
-                      </span>
+                        {/* Option 2: Ephemeral Lotus Mode */}
+                        <label
+                          className={`wish-mode-card ${
+                            mode === "ephemeral" ? "wish-mode-card--active" : ""
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="wish-mode"
+                            value="ephemeral"
+                            checked={mode === "ephemeral"}
+                            onChange={() => {
+                              setMode("ephemeral");
+                              setSaveError("");
+                            }}
+                            className="sr-only"
+                          />
+
+                          <div className="flex items-start gap-3 w-full">
+                            <div
+                              className={`wish-mode-icon-badge ${mode === "ephemeral" ? "wish-mode-icon-badge--ephemeral" : ""}`}
+                            >
+                              <Flower2 className="w-5 h-5" />
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="block text-sm font-bold text-ink font-display">
+                                  Thả hoa đăng buông xả
+                                </span>
+                                <span
+                                  className={`wish-mode-radio-indicator ${mode === "ephemeral" ? "wish-mode-radio-indicator--active" : ""}`}
+                                />
+                              </div>
+
+                              <p className="mt-1 text-xs leading-relaxed text-muted">
+                                Hóa thành ánh hoa đăng trôi trên dòng sông 3D.
+                                Tâm tư nhẹ nhàng buông xả, không lưu lại dữ
+                                liệu.
+                              </p>
+
+                              <div className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+                                <Sparkles className="w-3 h-3" />
+                                <span>Dòng sông hoa đăng 3D • Buông xả</span>
+                              </div>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+
+                      {/* Trust banner */}
+                      <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-surface-soft/60 border border-line/60 text-xs text-muted">
+                        <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span>
+                          {mode === "journal"
+                            ? "Bảo mật an tâm: Lời gửi gắm được mã hóa và chỉ hiển thị duy nhất với tài khoản riêng của bạn."
+                            : "Buông xả trọn vẹn: Lời viết hóa vào ánh hoa đăng sông nước và tự động tan biến khi kết thúc phiên."}
+                        </span>
+                      </div>
+                    </fieldset>
+
+                    {saveError && (
+                      <p
+                        role="alert"
+                        className="text-sm text-danger font-medium"
+                      >
+                        {saveError}
+                      </p>
+                    )}
+
+                    {/* Action Buttons Row */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                      <button
+                        type="button"
+                        onClick={onBackToExperience}
+                        className="w-full sm:w-auto h-12 px-6 rounded-full border border-line/80 bg-surface hover:bg-surface-soft text-ink/80 text-sm font-medium inline-flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Quay lại Trải nghiệm</span>
+                      </button>
+
+                      <button
+                        type="submit"
+                        disabled={isSubmitting || !content.trim()}
+                        className={`wish-submit-btn w-full sm:w-auto h-12 px-8 rounded-full whitespace-nowrap inline-flex items-center justify-center gap-2.5 text-sm sm:text-base cursor-pointer ${
+                          mode === "ephemeral" ? "wish-submit-btn--lantern" : ""
+                        }`}
+                      >
+                        <span className="wish-btn-sheen" />
+                        <span>
+                          {isSubmitting
+                            ? "Đang gửi gắm…"
+                            : mode === "journal"
+                              ? isLoggedIn
+                                ? "Niêm phong vào Góc của tôi 📜"
+                                : "Đăng nhập để niêm phong 📜"
+                              : "Thả hoa đăng buông xả 🪷"}
+                        </span>
+                        <ArrowRight className="w-4 h-4 ml-1" />
+                      </button>
                     </div>
                   </fieldset>
-
-                  {saveError && (
-                    <p role="alert" className="text-sm text-danger">
-                      {saveError}
-                    </p>
-                  )}
-
-                  {/* Action Buttons Row */}
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-                    <button
-                      type="button"
-                      onClick={onBackToExperience}
-                      className="w-full sm:w-auto h-12 px-6 rounded-full border border-line/80 bg-surface hover:bg-surface-soft text-ink/80 text-sm font-medium inline-flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                      <span>Quay lại Trải nghiệm</span>
-                    </button>
-
-                    <button
-                      type="submit"
-                      disabled={isSubmitting || !content.trim()}
-                      className="wish-submit-btn w-full sm:w-auto h-12 px-8 rounded-full whitespace-nowrap inline-flex items-center justify-center gap-2.5 text-sm sm:text-base cursor-pointer"
-                    >
-                      <span className="wish-btn-sheen" />
-                      <span>
-                        {isSubmitting
-                          ? "Đang gửi gắm…"
-                          : mode === "journal"
-                            ? isLoggedIn
-                              ? "Lưu vào Góc của tôi"
-                              : "Đăng nhập để lưu"
-                            : "Thả hoa đăng buông xả"}
-                      </span>
-                      <ArrowRight className="w-4 h-4 ml-1" />
-                    </button>
-                  </div>
-                </fieldset>
-              </form>
+                </form>
               </div>
 
               {/* Sacred Wishing Tree & Silk Streamer Companion */}
@@ -587,67 +713,77 @@ export const WishScreen: React.FC<WishScreenProps> = ({
                       loading="lazy"
                       className="h-full w-full object-cover filter brightness-95"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30" />
-                    
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/35" />
+
                     {/* Dải lụa đỏ son đung đưa theo gió */}
                     <div className="wishing-silk-streamer">
-                      BÌNH AN
+                      {topic.toUpperCase()}
                     </div>
 
                     <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-amber-200 font-semibold">
-                      <span>CÂY NGUYỆN ƯỚC DÂN GIAN</span>
-                      <span className="bg-black/50 px-2.5 py-0.5 rounded-full border border-amber-400/30 text-[11px] text-amber-300">
+                      <span className="flex items-center gap-1.5 tracking-wider">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-400" /> CÂY
+                        NGUYỆN ƯỚC DÂN GIAN
+                      </span>
+                      <span className="bg-black/60 backdrop-blur-xs px-2.5 py-0.5 rounded-full border border-amber-400/40 text-[11px] text-amber-300">
                         Dải lụa gửi tâm tư
                       </span>
                     </div>
                   </div>
 
-                  <div className="space-y-4 p-5">
-                    <h2 className="text-lg font-semibold text-ink font-display">
+                  <div className="space-y-4 p-5 sm:p-6">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                        Ý niệm văn hóa
+                      </span>
+                      <span className="text-xs text-muted">
+                        • Tĩnh tâm & Soi chiếu
+                      </span>
+                    </div>
+
+                    <h2 className="text-lg font-bold text-ink font-display">
                       Gửi gắm ước vọng thiện lành
                     </h2>
 
                     <p className="text-sm leading-relaxed text-muted">
-                      Người xưa tin rằng, khi dải lụa đỏ mang theo ước nguyện được buộc lên cành cây cổ thụ,
-                      từng cơn gió thoảng qua sẽ chở lời khẩn cầu hòa vào đất trời.
+                      Người xưa tin rằng, khi dải lụa đỏ mang theo ước nguyện
+                      được buộc lên cành cây cổ thụ, hoặc ánh hoa đăng rực rỡ
+                      trôi theo dòng nước, từng ngọn gió hay con sóng sẽ chở lời
+                      khẩn cầu hòa vào đất trời.
                     </p>
 
-                    <details className="border-t border-line pt-3">
-                      <summary className="cursor-pointer py-2 text-sm font-medium text-ink hover:text-accent transition-colors">
-                        Gợi ý hướng dòng suy nghĩ ▾
+                    <details className="border-t border-line/70 pt-3">
+                      <summary className="cursor-pointer py-1 text-sm font-semibold text-ink hover:text-accent transition-colors flex items-center justify-between">
+                        <span>Gợi ý hướng dòng suy nghĩ</span>
+                        <span className="text-xs text-muted">▾</span>
                       </summary>
 
-                      <ul className="mt-2 list-disc space-y-2 pl-5 text-xs sm:text-sm leading-relaxed text-muted">
-                        <li>Điều gì khiến bạn băn khoăn nhất lúc này?</li>
-                        <li>Có điều gì bạn muốn ghi lại hoặc gửi đến ai đó, nếu thấy phù hợp?</li>
-                        <li>Một việc thiện lành bạn tự nhủ sẽ làm trong hôm nay?</li>
+                      <ul className="mt-2.5 list-disc space-y-2 pl-5 text-xs sm:text-sm leading-relaxed text-muted">
+                        <li>
+                          Điều gì khiến bạn băn khoăn hay trăn trở nhất lúc này?
+                        </li>
+                        <li>
+                          Có lời tri ân hoặc lời chúc nào bạn muốn gửi đến người
+                          thân yêu?
+                        </li>
+                        <li>
+                          Một việc thiện lành, một thói quen tích cực bạn tự nhủ
+                          sẽ thực hiện?
+                        </li>
                       </ul>
                     </details>
 
-                    <p className="border-t border-line pt-3 text-xs leading-relaxed text-muted">
-                      Hoa đăng và dải lụa là hình ảnh văn hóa tượng trưng, giúp tâm trí định an và hướng thiện.
-                    </p>
+                    <div className="rounded-xl p-3 bg-amber-500/5 border border-amber-500/20 text-xs leading-relaxed text-muted flex items-start gap-2.5">
+                      <Flower2 className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                      <span>
+                        Dải lụa và hoa đăng là biểu tượng văn hóa tâm linh giúp
+                        tâm trí an định, gột rửa âu lo và hướng tới những điều
+                        tốt đẹp.
+                      </span>
+                    </div>
                   </div>
                 </div>
               </aside>
-            </div>
-
-            {/* Bottom Privacy Banner */}
-            <div className="p-6 rounded-card bg-surface border border-line flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
-              <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-panel bg-surface flex items-center justify-center text-accent flex-shrink-0">
-                  <Lock className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm text-ink mb-0.5">
-                    Thông tin lưu trữ
-                  </h4>
-                  <p className="text-sm text-muted leading-relaxed max-w-2xl">
-                    Chọn lưu để đưa nội dung vào Góc của tôi qua tài khoản.
-                    Chọn hiệu ứng buông bỏ để kết thúc mà không ghi nội dung vào nhật ký.
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -710,13 +846,18 @@ export const WishScreen: React.FC<WishScreenProps> = ({
                 </span>
               </div>
 
-              <h1 tabIndex={-1} className="wish-page-title mb-3 outline-none focus:outline-none flex items-center justify-center">
-                <span className="wish-seal-badge" aria-hidden="true">願</span>
+              <h1
+                tabIndex={-1}
+                className="wish-page-title mb-3 outline-none focus:outline-none flex items-center justify-center"
+              >
+                <span className="wish-seal-badge" aria-hidden="true">
+                  願
+                </span>
                 <span>Đã lưu vào Góc của tôi</span>
               </h1>
               <p className="text-sm text-muted max-w-xl mx-auto leading-relaxed">
-                Lời gửi gắm đã được lưu vào Góc của tôi qua tài khoản. Bạn có thể
-                mở lại để đọc hoặc xóa khi muốn.
+                Lời gửi gắm đã được lưu vào Góc của tôi qua tài khoản. Bạn có
+                thể mở lại để đọc hoặc xóa khi muốn.
               </p>
             </div>
 
@@ -732,9 +873,10 @@ export const WishScreen: React.FC<WishScreenProps> = ({
                     <span className="text-xs text-accent">🛡</span>
                   </h4>
                   <p className="text-sm text-muted leading-relaxed">
-                    Backend mã hóa nội dung trước khi lưu vào cơ sở dữ liệu và chỉ
-                    trả nội dung theo tài khoản đã đăng nhập. Đây không phải mã hóa
-                    đầu cuối; backend vẫn có thể giải mã để phục vụ ứng dụng.
+                    Backend mã hóa nội dung trước khi lưu vào cơ sở dữ liệu và
+                    chỉ trả nội dung theo tài khoản đã đăng nhập. Đây không phải
+                    mã hóa đầu cuối; backend vẫn có thể giải mã để phục vụ ứng
+                    dụng.
                   </p>
                 </div>
               </div>
@@ -770,8 +912,8 @@ export const WishScreen: React.FC<WishScreenProps> = ({
 
               {/* Quote */}
               <div className="text-center py-2 text-xs text-muted italic border-t border-line">
-                “Hít một hơi thật sâu, thả lỏng đôi vai. Bạn vừa trao cho chính mình một cơ
-                hội được thấu hiểu.”
+                “Hít một hơi thật sâu, thả lỏng đôi vai. Bạn vừa trao cho chính
+                mình một cơ hội được thấu hiểu.”
               </div>
             </div>
 
@@ -812,8 +954,8 @@ export const WishScreen: React.FC<WishScreenProps> = ({
               </h2>
 
               <p className="text-sm leading-relaxed text-muted">
-                Mở Góc của tôi và chọn mục Điều ước & Lời tri ân.
-                Bạn có thể xem nội dung, đánh dấu yêu thích hoặc xóa bản ghi.
+                Mở Góc của tôi và chọn mục Điều ước & Lời tri ân. Bạn có thể xem
+                nội dung, đánh dấu yêu thích hoặc xóa bản ghi.
               </p>
             </div>
           </div>
@@ -826,10 +968,7 @@ export const WishScreen: React.FC<WishScreenProps> = ({
           <div>
             {/* Top Bar with Variant Switchers */}
             <div className="wish-release-topbar">
-              <nav
-                aria-label="Đường dẫn"
-                className="wish-release-breadcrumb"
-              >
+              <nav aria-label="Đường dẫn" className="wish-release-breadcrumb">
                 <button
                   type="button"
                   onClick={onBackToExperience}
@@ -862,16 +1001,19 @@ export const WishScreen: React.FC<WishScreenProps> = ({
             </div>
 
             <header className="wish-release-hero">
-              <span className="wish-release-mark" aria-hidden="true">
-                <Flower2 />
+              <span className="wish-seal-badge" aria-hidden="true">
+                願
               </span>
               <div>
-                <p className="wish-release-kicker">Hoa đăng an yên</p>
+                <p className="wish-release-kicker">
+                  ● HOA ĐĂNG AN YÊN • BUÔNG BỎ ƯU TƯ
+                </p>
                 <h1 tabIndex={-1} className="wish-release-title">
                   Lời nguyện đã được thả
                 </h1>
                 <p className="wish-release-subtitle">
-                  Lời bạn gửi đang trôi trong khung cảnh riêng của phiên này.
+                  Lời bạn gửi gắm đang hòa vào ánh hoa đăng, nhẹ nhàng trôi theo
+                  con nước Nam Bộ.
                 </p>
               </div>
             </header>
@@ -894,8 +1036,29 @@ export const WishScreen: React.FC<WishScreenProps> = ({
                   >
                     <SouthernRiverScene
                       key={currentUserEmail || "guest"}
-                      initialWish={pendingLanternWish}
+                      initialWishes={pendingLanternWishes}
                       currentUserEmail={currentUserEmail}
+                      onWishReleased={(wish) => {
+                        const nextWishes = [
+                          ...pendingLanternWishesRef.current,
+                          wish,
+                        ];
+                        pendingLanternWishesRef.current = nextWishes;
+                        setPendingLanternWishes(nextWishes);
+                        setPendingLanternWishLabel("Tâm nguyện riêng");
+                        try {
+                          sessionStorage.setItem(
+                            WISH_RELEASE_SESSION_KEY,
+                            JSON.stringify({
+                              sceneVersion: WISH_RELEASE_SCENE_VERSION,
+                              wishes: nextWishes,
+                              label: "Tâm nguyện riêng",
+                            }),
+                          );
+                        } catch {
+                          // The current 3D scene remains usable if storage is unavailable.
+                        }
+                      }}
                     />
                   </Suspense>
                 </LanternSceneBoundary>
@@ -903,61 +1066,92 @@ export const WishScreen: React.FC<WishScreenProps> = ({
             </section>
 
             <section className="wish-release-details">
-              {pendingLanternWish && (
-                <article className="wish-release-wish">
-                  <p className="wish-release-detail-label">Lời gửi gắm của bạn</p>
-                  <blockquote>{pendingLanternWish}</blockquote>
+              {pendingLanternWishes.length > 0 && (
+                <article className="wish-release-wish relative">
+                  <div className="flex items-center justify-between pb-3 mb-2 border-b border-line/60">
+                    <span className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Thiệp hoa đăng tâm nguyện</span>
+                    </span>
+                    <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 font-medium border border-amber-500/25">
+                      {pendingLanternWishLabel ?? topic}
+                    </span>
+                  </div>
+
+                  <div className="wish-release-wishes">
+                    {pendingLanternWishes.map((wish, index) => (
+                      <div
+                        key={`${index}-${wish.text}`}
+                        className={`wish-release-entry ${wish.royal ? "wish-release-entry--royal" : "wish-release-entry--standard"}`}
+                      >
+                        <span
+                          className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold ${wish.royal ? "border-amber-400/40 bg-amber-500/10 text-amber-800 dark:text-amber-200" : "border-rose-300/40 bg-rose-500/5 text-rose-800 dark:text-rose-200"}`}
+                        >
+                          {wish.royal
+                            ? "♛ Hoa đăng hoàng gia"
+                            : "🪷 Hoa đăng an yên"}
+                        </span>
+                        <blockquote className="wish-release-wish-quote">
+                          “{wish.text}”
+                        </blockquote>
+                      </div>
+                    ))}
+
+                    {/* Dấu triện son phong ấn an nhiên */}
+                    <div className="flex items-center justify-between pt-3 mt-2 border-t border-line/40 text-xs text-muted">
+                      <span className="italic text-[11px] opacity-80">
+                        Tâm niệm phát khởi, hòa theo ánh nến xuôi dòng buông xả
+                        muộn phiền.
+                      </span>
+                      <span className="w-7 h-7 rounded-md bg-accent text-[#fde8c4] flex items-center justify-center font-serif font-bold text-xs shadow-xs shrink-0 select-none border border-amber-300/40">
+                        安
+                      </span>
+                    </div>
+                  </div>
                 </article>
               )}
-
-              <aside className="wish-release-privacy">
-                <span className="wish-release-privacy-icon" aria-hidden="true">
-                  <Lock />
-                </span>
-                <div>
-                  <h2>Riêng tư trong phiên này</h2>
-                  <p>
-                    Lời viết không được gửi lên máy chủ, lưu vào nhật ký hay chia sẻ công khai.
-                    Rời màn hình sẽ kết thúc phiên hoa đăng.
-                  </p>
-                </div>
-              </aside>
             </section>
 
             {/* Action Buttons */}
-            <div className="wish-release-actions">
+            <div className="wish-release-actions flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-4">
               <Button
                 variant="default"
                 size="lg"
-                onClick={onGoToHome}
-                className="w-full sm:w-auto px-8 py-3.5 font-semibold shadow-md gap-2"
+                onClick={handleWriteAnother}
+                className="wish-submit-btn--lantern w-full sm:w-auto h-12 px-7 rounded-full font-bold text-sm text-white shadow-lg cursor-pointer inline-flex items-center justify-center gap-2"
               >
-                <span>Trở về Hôm nay</span>
-                <ArrowRight className="w-4 h-4" />
+                <Flower2 className="w-4 h-4" />
+                <span>Thả thêm một ước nguyện 🪷</span>
               </Button>
 
               <Button
                 variant="outline"
                 size="default"
-                onClick={handleWriteAnother}
-                className="text-xs text-muted border-line"
+                onClick={onGoToHome}
+                className="w-full sm:w-auto h-12 px-6 rounded-full border border-line bg-surface hover:bg-surface-soft text-ink text-sm font-medium inline-flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
               >
-                Viết điều khác
+                <span>Trở về Hôm nay</span>
+                <ArrowRight className="w-4 h-4" />
               </Button>
 
               {onGoToExplore && (
                 <button
+                  type="button"
                   onClick={onGoToExplore}
-                  className="min-h-11 px-3 text-sm font-semibold text-accent hover:underline flex items-center gap-1 cursor-pointer"
+                  className="h-11 px-4 text-xs sm:text-sm font-semibold text-accent hover:underline inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>Khám phá phong thổ văn hóa 3 miền</span>
+                  <span>Khám phá phong thổ 3 miền</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
 
-            <p className="wish-release-aftercare">
-              Bạn có thể dừng lại một chút rồi tiếp tục khi thấy sẵn sàng.
+            <p className="wish-release-aftercare flex items-center justify-center gap-2 text-xs text-muted">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span>
+                Hãy dành vài phút tĩnh lặng, lắng nghe tiếng nước chảy và ngắm
+                nhìn ánh sáng trôi xa...
+              </span>
             </p>
           </div>
         )}

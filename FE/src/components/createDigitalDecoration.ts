@@ -7,13 +7,17 @@ export type DecorationId =
   | "jade-lotus"
   | "golden-lotus"
   | "incense-burner"
-  | "boiled-chicken";
+  | "boiled-chicken"
+  | "sticky-rice"
+  | "watermelon"
+  | "fruit-plate";
 
 export function createDigitalDecoration(
   id: DecorationId,
   onAssetLoaded?: () => void,
 ): THREE.Group {
   const group = new THREE.Group();
+  group.userData.disposed = false;
 
   const addMesh = (
     geometry: THREE.BufferGeometry,
@@ -85,8 +89,112 @@ export function createDigitalDecoration(
       undefined,
       (err) => {
         console.error("Lỗi tải /models/offering-chicken.glb:", err);
+        onAssetLoaded?.();
       }
     );
+  } else if (id === "sticky-rice") {
+    const loader = new GLTFLoader();
+    loader.load(
+      "/models/offering-sticky-rice.glb",
+      (gltf) => {
+        const model = gltf.scene;
+        const bounds = new THREE.Box3().setFromObject(model);
+        const size = bounds.getSize(new THREE.Vector3());
+        const center = bounds.getCenter(new THREE.Vector3());
+        const plateRadius = Math.max(size.x, size.z) / 2;
+        const targetDiameter = 0.54;
+        const modelScale = targetDiameter / (plateRadius * 2);
+        const porcelainColor = new THREE.Color("#fffaf0");
+        const riceColor = new THREE.Color("#a92218");
+        const riceLight = new THREE.Color("#c43a27");
+        const goldColor = new THREE.Color("#d9ad45");
+        const garnishColor = new THREE.Color("#f6c52f");
+        const shadeColor = new THREE.Color();
+
+        model.updateMatrixWorld(true);
+        model.traverse((child) => {
+          if (!(child instanceof THREE.Mesh)) return;
+
+          const geometry = child.geometry;
+          const positions = geometry.getAttribute("position");
+          if (!positions) return;
+
+          const colors = new Float32Array(positions.count * 3);
+          const point = new THREE.Vector3();
+          const localPoint = new THREE.Vector3();
+          const inverseWorld = child.matrixWorld.clone().invert();
+          const heightRange = Math.max(size.y, 1e-6);
+          for (let index = 0; index < positions.count; index += 1) {
+            point.fromBufferAttribute(positions, index).applyMatrix4(child.matrixWorld);
+            const radiusRatio = Math.hypot(point.x - center.x, point.z - center.z) / plateRadius;
+            const heightRatio = (point.y - bounds.min.y) / heightRange;
+            const riceWeight =
+              THREE.MathUtils.smoothstep(radiusRatio, 0.06, 0.14) *
+              (1 - THREE.MathUtils.smoothstep(radiusRatio, 0.64, 0.9)) *
+              THREE.MathUtils.smoothstep(heightRatio, 0.28, 0.5);
+
+            if (riceWeight > 0.001) {
+              point.x = center.x + (point.x - center.x) * (1 - 0.12 * riceWeight);
+              point.z = center.z + (point.z - center.z) * (1 - 0.12 * riceWeight);
+              point.y -= 0.016 * riceWeight;
+              localPoint.copy(point).applyMatrix4(inverseWorld);
+              positions.setXYZ(index, localPoint.x, localPoint.y, localPoint.z);
+            }
+
+            let color = porcelainColor;
+
+            if (radiusRatio < 0.045 && heightRatio > 0.63) {
+              color = garnishColor;
+            } else if (radiusRatio < 0.76 && heightRatio > 0.34) {
+              const warmVariation = THREE.MathUtils.smoothstep(point.y, center.y, bounds.max.y);
+              color = shadeColor.copy(riceColor).lerp(riceLight, warmVariation * 0.32);
+            } else if (radiusRatio > 0.945 && radiusRatio < 0.99 && heightRatio > 0.34) {
+              color = goldColor;
+            }
+
+            color.toArray(colors, index * 3);
+          }
+
+          positions.needsUpdate = true;
+          geometry.computeVertexNormals();
+          geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+          child.material = new THREE.MeshPhysicalMaterial({
+            color: "#ffffff",
+            vertexColors: true,
+            roughness: 0.4,
+            metalness: 0,
+            clearcoat: 0.22,
+            clearcoatRoughness: 0.3,
+          });
+          child.castShadow = true;
+          child.receiveShadow = true;
+        });
+
+        if (group.userData.disposed) {
+          disposeDigitalDecoration(model);
+          return;
+        }
+
+        model.scale.setScalar(modelScale);
+        model.position.set(
+          -center.x * modelScale,
+          -bounds.min.y * modelScale + 0.008,
+          -center.z * modelScale,
+        );
+        group.add(model);
+        group.updateMatrixWorld(true);
+        onAssetLoaded?.();
+      },
+      undefined,
+      (error) => {
+        console.error("Lỗi tải /models/offering-sticky-rice.glb:", error);
+        onAssetLoaded?.();
+      },
+    );
+  } else if (id === "watermelon" || id === "fruit-plate") {
+    // Tận dụng mô hình 3D có sẵn trong không gian bàn thờ
+    onAssetLoaded?.();
+    return group;
   } else if (id === "incense-burner") {
     const bronze = "#a7783c";
 
@@ -226,6 +334,7 @@ export function createDigitalDecoration(
 }
 
 export function disposeDigitalDecoration(group: THREE.Group): void {
+  group.userData.disposed = true;
   const textures = new Set<THREE.Texture>();
 
   group.traverse((object) => {

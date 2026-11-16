@@ -1,0 +1,14 @@
+3D assets used in the Southern River scene
+
+Mekong rowboat
+- File: mekong-rowboat.glb
+- License: CC0 1.0 (no attribution required)
+- Source: https://grab3d.com/models/vehicles/rowboat/
+
+Pink lotus flower
+- File: pink-lotus.glb
+- Creator/source: Scenario, Scenario 3D Collection
+- License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+- Source: https://huggingface.co/datasets/scenario-labs/3d-collection/viewer?row=1126
+- Changes: scaled and positioned for the floating-lantern scene.
+- License text: https://creativecommons.org/licenses/by/4.0/
