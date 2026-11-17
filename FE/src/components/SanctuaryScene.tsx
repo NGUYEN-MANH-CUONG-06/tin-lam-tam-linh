@@ -1409,23 +1409,7 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
 
     const melonGeometry = new THREE.SphereGeometry(0.18, 48, 32);
 
-    const melonStandProfile = [
-      [0.001, 0],
-      [0.13, 0],
-      [0.14, 0.025],
-      [0.1, 0.05],
-      [0.07, 0.08],
-      [0.07, 0.11],
-      [0.14, 0.14],
-      [0.17, 0.16],
-      [0.17, 0.18],
-      [0.14, 0.18],
-      [0.001, 0.15],
-    ].map(([radius, height]) => new THREE.Vector2(radius, height));
-
-    const melonStandGeometry = new THREE.LatheGeometry(melonStandProfile, 32);
-
-    geometries.push(melonGeometry, melonStandGeometry);
+    geometries.push(melonGeometry);
 
     const melonOfferingGroups: THREE.Group[] = [];
 
@@ -1434,16 +1418,21 @@ export const SanctuaryScene: React.FC<SanctuarySceneProps> = ({
       const melonGroup = new THREE.Group();
       melonGroup.position.set(x, 1.3, 0.05);
 
-      const stand = new THREE.Mesh(melonStandGeometry, wood);
-      melonGroup.add(stand);
+      const melonPlate = new THREE.Mesh(plateGeometry, porcelainMaterial);
+      melonPlate.scale.setScalar(0.75);
+      melonGroup.add(melonPlate);
+
+      const melonOrientation = new THREE.Group();
+      melonOrientation.rotation.y = x;
+      melonGroup.add(melonOrientation);
 
       const melon = new THREE.Mesh(melonGeometry, melonMaterial);
-      melon.scale.set(0.95, 1.15, 0.95);
+      melon.scale.set(0.84, 1.15, 0.95);
 
-      // Đáy quả tựa trên lòng đế.
-      melon.position.y = 0.357;
-      melon.rotation.y = x;
-      melonGroup.add(melon);
+      // Đặt quả nằm ngang vừa lòng đĩa sứ, phần vỏ và sọc xoay cùng thân quả.
+      melon.position.y = 0.162;
+      melon.rotation.z = Math.PI / 2;
+      melonOrientation.add(melon);
 
       scene.add(melonGroup);
       melonOfferingGroups.push(melonGroup);
